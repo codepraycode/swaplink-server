@@ -1,0 +1,111 @@
+// src/test/utils.ts
+import { faker } from '@faker-js/faker';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import prisma from '../utils/database';
+
+export class TestUtils {
+    static generateUserData(overrides = {}) {
+        return {
+            email: faker.internet.email().toLowerCase(),
+            phone: faker.phone.number('+234##########'),
+            password: 'Password123!',
+            firstName: faker.name.firstName(),
+            lastName: faker.name.lastName(),
+            ...overrides,
+        };
+    }
+
+    static generateOfferData(overrides = {}) {
+        return {
+            type: 'SELL' as const,
+            currency: 'USD' as const,
+            amount: faker.datatype.float({ min: 50, max: 1000, precision: 0.01 }),
+            rate: faker.datatype.float({ min: 1400, max: 1500, precision: 0.01 }),
+            minAmount: faker.datatype.float({ min: 10, max: 50, precision: 0.01 }),
+            maxAmount: faker.datatype.float({ min: 500, max: 1000, precision: 0.01 }),
+            paymentWindow: 30,
+            terms: 'Bank transfer only',
+            ...overrides,
+        };
+    }
+
+    static async createUser(userData?: any) {
+        const data = this.generateUserData(userData);
+        const hashedPassword = await bcrypt.hash(data.password, 12);
+
+        return await prisma.user.create({
+            data: {
+                ...data,
+                password: hashedPassword,
+            },
+            select: {
+                id: true,
+                email: true,
+                phone: true,
+                firstName: true,
+                lastName: true,
+                kycLevel: true,
+                isVerified: true,
+                createdAt: true,
+            },
+        });
+    }
+
+    static async createUserWithWallets(userData?: any) {
+        const user = await this.createUser(userData);
+
+        // Create wallets for user
+        await prisma.wallet.createMany({
+            data: [
+                { userId: user.id, currency: 'USD', balance: 1000 },
+                { userId: user.id, currency: 'NGN', balance: 500000 },
+            ],
+        });
+
+        const wallets = await prisma.wallet.findMany({
+            where: { userId: user.id },
+        });
+
+        return { user, wallets };
+    }
+
+    static async createOffer(userId: string, offerData?: any) {
+        const data = this.generateOfferData(offerData);
+
+        return await prisma.offer.create({
+            data: {
+                ...data,
+                userId,
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        kycLevel: true,
+                    },
+                },
+            },
+        });
+    }
+
+    static generateAuthToken(userId: string) {
+        return jwt.sign({ userId, email: 'test@example.com' }, process.env.JWT_SECRET!, {
+            expiresIn: '1h',
+        });
+    }
+
+    static async cleanup() {
+        const tablenames = await prisma.$queryRaw<
+            Array<{ tablename: string }>
+        >`SELECT tablename FROM pg_tables WHERE schemaname='public'`;
+
+        for (const { tablename } of tablenames) {
+            if (tablename !== '_prisma_migrations') {
+                await prisma.$executeRawUnsafe(`TRUNCATE TABLE "public"."${tablename}" CASCADE;`);
+            }
+        }
+    }
+}

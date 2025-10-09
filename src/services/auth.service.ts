@@ -16,7 +16,7 @@ interface AuthDTO {
 
 type LoginDto = Pick<AuthDTO, 'email' | 'password'>;
 
-class AuthService extends BaseService {
+export class AuthService extends BaseService {
     private generateTokens(user: any) {
         // Generate tokens
         const expiresIn = 24 * 60 * 60; // 24 hours in seconds

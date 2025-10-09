@@ -1,5 +1,6 @@
-import { FetchQueryParam } from '../types/query.types';
+import { Currency, FetchQueryParam, UserId } from '../types/query.types';
 import prisma from '../utils/database';
+import { ApiError } from '../utils/error';
 import { BaseService } from './abstract';
 
 type FetchTransactionParam = FetchQueryParam<{
@@ -7,21 +8,30 @@ type FetchTransactionParam = FetchQueryParam<{
     type: string;
 }>;
 
-class WalletService extends BaseService {
+export class WalletService extends BaseService {
     private calculateAvailableBalance(balance: number, lockedBalance: number): number {
         return balance - lockedBalance;
     }
 
-    // private async getUserWalletsWithAvailableBalance(userId: string) {
-    //     const wallets = await prisma.wallet.findMany({
-    //         where: { userId },
-    //     });
+    async getWalletBalance(userId: UserId, currency: Currency) {
+        const wallet = await prisma.wallet.findFirst({
+            where: {
+                userId,
+                currency: currency as any,
+            },
+        });
 
-    //     return wallets.map(wallet => ({
-    //         ...wallet,
-    //         availableBalance: this.calculateAvailableBalance(wallet.balance, wallet.lockedBalance),
-    //     }));
-    // }
+        if (!wallet) {
+            throw new ApiError('Wallet not found', 404, this.context);
+        }
+
+        return {
+            currency: wallet.currency,
+            balance: wallet.balance,
+            lockedBalance: wallet.lockedBalance,
+            availableBalance: wallet.balance - wallet.lockedBalance,
+        };
+    }
 
     async getWallets(userId: string) {
         const wallets = await prisma.wallet.findMany({
@@ -74,6 +84,51 @@ class WalletService extends BaseService {
             page,
             limit,
         };
+    }
+
+    async hasSufficientBalance(
+        userId: UserId,
+        currency: Currency,
+        amount: number
+    ): Promise<boolean> {
+        const wallet = await prisma.wallet.findFirst({
+            where: {
+                userId,
+                currency: currency as any,
+            },
+        });
+
+        if (!wallet) return false;
+
+        const availableBalance = wallet.balance - wallet.lockedBalance;
+        return availableBalance >= amount;
+    }
+
+    async createTransaction(
+        userId: UserId,
+        walletId: string,
+        type: string,
+        currency: Currency,
+        amount: number,
+        status: string = 'pending',
+        metadata: any = {}
+    ) {
+        const reference = `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+        return await prisma.transaction.create({
+            data: {
+                userId,
+                walletId,
+                type: type as any,
+                currency: currency as any,
+                amount,
+                balanceBefore: 0, // This would be calculated based on current balance
+                balanceAfter: 0, // This would be calculated based on current balance
+                status: status as any,
+                reference,
+                metadata,
+            },
+        });
     }
 }
 
