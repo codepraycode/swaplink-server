@@ -1,0 +1,249 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  phone     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  kycLevel  KycLevel @default(NONE)
+  kycStatus KycStatus @default(PENDING)
+  isVerified Boolean @default(false)
+  isActive  Boolean  @default(true)
+  twoFactorEnabled Boolean @default(false)
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  wallets      Wallet[]
+  offers       Offer[]
+  tradesAsBuyer Trade[] @relation("BuyerTrades")
+  tradesAsSeller Trade[] @relation("SellerTrades")
+  bankAccounts BankAccount[]
+  kycDocuments KycDocument[]
+//   notifications Notification[]
+  transactions Transaction[]
+
+  escrowsFrom Escrow[] @relation("EscrowFromUser")
+  escrowsTo   Escrow[] @relation("EscrowToUser")
+
+  @@map("users")
+}
+
+model Wallet {
+  id        String   @id @default(uuid())
+  userId    String
+  currency  Currency
+  balance   Float    @default(0)
+  lockedBalance Float @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([userId, currency])
+  @@map("wallets")
+}
+
+model Transaction {
+  id             String   @id @default(uuid())
+  userId         String
+  walletId       String
+  type           TransactionType
+  currency       Currency
+  amount         Float
+  balanceBefore  Float
+  balanceAfter   Float
+  status         TransactionStatus @default(PENDING)
+  reference      String   @unique
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@map("transactions")
+}
+
+model Offer {
+  id            String   @id @default(uuid())
+  userId        String
+  type          OfferType
+  currency      Currency
+  amount        Float
+  rate          Float
+  minAmount     Float?
+  maxAmount     Float?
+  paymentWindow Int      @default(30)
+  terms         String?
+  status        OfferStatus @default(ACTIVE)
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  trades Trade[]
+
+  @@map("offers")
+}
+
+model Trade {
+  id                String   @id @default(uuid())
+  offerId           String
+  buyerId           String
+  sellerId          String
+  amount            Float
+  rate              Float
+  totalNgn          Float
+  status            TradeStatus @default(PENDING)
+  escrowLocked      Boolean  @default(false)
+  paymentSent       Boolean  @default(false)
+  paymentConfirmed  Boolean  @default(false)
+  paymentProofUrl   String?
+  paymentWindow     Int      @default(30)
+  expiresAt         DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  offer   Offer  @relation(fields: [offerId], references: [id])
+  buyer   User   @relation("BuyerTrades", fields: [buyerId], references: [id])
+  seller  User   @relation("SellerTrades", fields: [sellerId], references: [id])
+  escrow  Escrow?
+//   disputes Dispute[]
+
+  @@map("trades")
+}
+
+model Escrow {
+  id        String   @id @default(uuid())
+  tradeId   String   @unique
+  fromUserId String
+  toUserId  String
+  currency  Currency
+  amount    Float
+  status    EscrowStatus @default(LOCKED)
+  lockedAt  DateTime @default(now())
+  releasedAt DateTime?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trade    Trade  @relation(fields: [tradeId], references: [id])
+  fromUser User   @relation("EscrowFromUser", fields: [fromUserId], references: [id])
+  toUser   User   @relation("EscrowToUser", fields: [toUserId], references: [id])
+
+  @@map("escrow")
+}
+
+model BankAccount {
+  id            String   @id @default(uuid())
+  userId        String
+  accountNumber String
+  accountName   String
+  bankName      String
+  bankCode      String
+  currency      Currency @default(NGN)
+  isVerified    Boolean  @default(false)
+  isPrimary     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("bank_accounts")
+}
+
+model KycDocument {
+  id           String   @id @default(uuid())
+  userId       String
+  documentType String
+  documentUrl  String
+  status       KycDocumentStatus @default(PENDING)
+  rejectionReason String?
+  verifiedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("kyc_documents")
+}
+
+// Enums (add these at the bottom)
+enum Currency {
+  USD
+  NGN
+}
+
+enum KycLevel {
+  NONE
+  BASIC
+  INTERMEDIATE
+  FULL
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRADE
+  CONVERSION
+  FEE
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum OfferType {
+  BUY
+  SELL
+}
+
+enum OfferStatus {
+  ACTIVE
+  INACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum TradeStatus {
+  PENDING
+  PAYMENT_SENT
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum EscrowStatus {
+  LOCKED
+  RELEASED
+  REFUNDED
+  DISPUTED
+}
+
+enum KycDocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
