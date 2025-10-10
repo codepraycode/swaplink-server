@@ -2,7 +2,7 @@ import { execSync } from 'child_process';
 
 // Global setup for integration tests
 export default async function globalSetup() {
-    console.log('🚀 Setting up integration test environment...');
+    console.debug('🚀 Setting up integration test environment...');
 
     // Start test database
     execSync('npm run docker:test:up', { stdio: 'inherit' });
@@ -13,5 +13,5 @@ export default async function globalSetup() {
     // Run migrations
     execSync('npm run db:migrate', { stdio: 'inherit' });
 
-    console.log('✅ Integration test environment ready');
+    console.debug('✅ Integration test environment ready');
 }

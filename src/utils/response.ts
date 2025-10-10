@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { ApiError } from './error';
-import { isEnv } from '../config/env';
+import { isDevEnv } from '../config/env';
 
 export type ApiResponse<T = any> = {
     success: boolean;
@@ -30,7 +30,7 @@ export const sendError = (res: Response, error: ApiError) => {
     const response: ApiResponse = {
         success: false,
         message,
-        error: isEnv ? JSON.stringify(error, null, 2) : undefined,
+        error: isDevEnv ? JSON.stringify(error, null, 2) : undefined,
     };
     res.status(statusCode).json(response);
 };
