@@ -1,14 +1,16 @@
 import express from 'express';
 
-import { authenticate } from '../middleware/auth';
+import { authenticate } from '../middleware/auth.middleware';
 import { sendSuccess, sendError } from '../utils/response';
 import { authService } from '../services/auth.service';
 import { handlerEror } from '../utils/error';
+import { validateBody } from '../middleware/validation.middleware';
+import { AuthSchema } from '../validators/auth.validator';
 
 const router: express.Router = express.Router();
 
 // Register
-router.post('/register', async (req, res) => {
+router.post('/register', validateBody(AuthSchema), async (req, res) => {
     try {
         const { user, token, refreshToken, expiresIn } = await authService.register(req.body);
 
@@ -27,7 +29,7 @@ router.post('/register', async (req, res) => {
         );
     } catch (error: any) {
         console.error('Registration error:', error);
-        sendError(res, handlerEror('Registration error'));
+        sendError(res, handlerEror(error, 'Registration error'));
     }
 });
 

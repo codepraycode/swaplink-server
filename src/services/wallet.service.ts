@@ -183,6 +183,26 @@ export class WalletService extends BaseService {
 
         return res.data!;
     }
+
+    async setUpWallet(userId: UserId) {
+        const walletRes = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.wallet.createMany({
+                    data: [
+                        { userId: userId, currency: 'USD' },
+                        { userId: userId, currency: 'NGN' },
+                    ],
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Failed to create user wallets',
+            }
+        );
+
+        if (!walletRes.success) {
+            throw new ApiError(walletRes.error, 500, this.context);
+        }
+    }
 }
 
 export const walletService = new WalletService('WalletService');

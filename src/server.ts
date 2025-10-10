@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 
-import authRoutes from './routes/auth';
+import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user';
 import walletRoutes from './routes/wallet';
 import offerRoutes from './routes/offer';

@@ -1,6 +1,6 @@
 // src/routes/offers.ts
 import express from 'express';
-import { authenticate } from '../middleware/auth';
+import { authenticate } from '../middleware/auth.middleware';
 import { sendSuccess, sendError } from '../utils/response';
 import { offerService } from '../services/offer.service';
 import { handlerEror } from '../utils/error';

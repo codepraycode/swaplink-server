@@ -5,6 +5,7 @@ import { isEmpty } from '../utils/functions';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { BaseService } from './abstract';
+import { walletService } from './wallet.service';
 
 interface AuthDTO {
     email: string;
@@ -83,7 +84,7 @@ export class AuthService extends BaseService {
         );
 
         if (!existingRes.success) {
-            throw new ApiError(existingRes.error, 500, this.context);
+            throw new ApiError(existingRes.error, 400, this.context);
         }
 
         if (existingRes.data) {
@@ -122,29 +123,13 @@ export class AuthService extends BaseService {
         );
 
         if (!userRes.success) {
-            throw new ApiError(userRes.error, 500, this.context);
+            throw new ApiError(userRes.error, 400, this.context);
         }
 
         const user = userRes.data!;
 
         // Create wallets for the new user
-        const walletRes = await PrismaErrorHandler.wrap(
-            () =>
-                prisma.wallet.createMany({
-                    data: [
-                        { userId: user.id, currency: 'USD' },
-                        { userId: user.id, currency: 'NGN' },
-                    ],
-                }),
-            {
-                operationName: this.context,
-                customErrorMessage: 'Failed to create user wallets',
-            }
-        );
-
-        if (!walletRes.success) {
-            throw new ApiError(walletRes.error, 500, this.context);
-        }
+        await walletService.setUpWallet(user.id);
 
         const { expiresIn, refreshToken, token } = this.generateTokens(user);
 

@@ -1,16 +1,15 @@
 import { DATABASE_URL, isDevEnv, isProdEnv, isTestEnv, NODE_ENV } from '../config/env';
 import { PrismaClient } from '../generated/prisma';
 
-// Log which database we're using (for debugging)
-console.log(`🔧 Environment: ${NODE_ENV || 'development'}`);
-console.log(`🗄️  Database: ${isTestEnv ? 'TEST' : 'DEVELOPMENT'}`);
-
 // Prevent multiple instances in development
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-export const prisma =
-    globalForPrisma.prisma ||
-    new PrismaClient({
+function getPrismaInstance() {
+    // Log which database we're using (for debugging)
+    console.log(`🔧 Environment: ${NODE_ENV || 'development'}`);
+    console.log(`🗄️  Database: ${isTestEnv ? 'TEST' : 'DEVELOPMENT'}`);
+
+    return new PrismaClient({
         datasources: {
             db: {
                 url: DATABASE_URL,
@@ -19,6 +18,9 @@ export const prisma =
         log: isDevEnv ? ['query', 'info', 'warn', 'error'] : ['error'],
         errorFormat: 'pretty',
     });
+}
+
+export const prisma = globalForPrisma.prisma || getPrismaInstance();
 
 if (!isProdEnv) globalForPrisma.prisma = prisma;
 

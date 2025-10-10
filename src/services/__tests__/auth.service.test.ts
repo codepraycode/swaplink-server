@@ -14,18 +14,21 @@ describe('AuthService', () => {
         it('should register a new user successfully', async () => {
             const userData = TestUtils.generateUserData();
 
+            // ✅ Await the async function
             const result = await authService.register(userData);
 
-            expect(result?.user).toHaveProperty('id');
-            expect(result?.user.email).toBe(userData.email);
-            expect(result?.user.phone).toBe(userData.phone);
-            expect(result?.token).toBeDefined();
-            expect(result?.refreshToken).toBeDefined();
+            // ✅ Now we can safely check the resolved result
+            expect(result).toHaveProperty('user.id');
+            expect(result.user.email).toBe(userData.email);
+            expect(result.user.phone).toBe(userData.phone);
+            expect(result.token).toBeDefined();
+            expect(result.refreshToken).toBeDefined();
 
-            // Verify user was created in database
+            // ✅ Verify user was created in database
             const dbUser = await prisma.user.findUnique({
                 where: { email: userData.email },
             });
+
             expect(dbUser).toBeTruthy();
             expect(dbUser?.firstName).toBe(userData.firstName);
         });

@@ -3,6 +3,7 @@ import { Prisma } from '../generated/prisma';
 export class ApiError extends Error {
     code = 500;
     context = '';
+    obj = {};
     constructor(message: string, code: number, context: string = 'API') {
         super(message);
 
@@ -56,7 +57,7 @@ export class PrismaErrorHandler {
             const duration = Date.now() - startTime;
 
             if (context.logError) {
-                this.logger.log(`✅ ${context.operationName} completed in ${duration}ms`);
+                this.logger.debug(`✅ ${context.operationName} completed in ${duration}ms`);
             }
 
             return {

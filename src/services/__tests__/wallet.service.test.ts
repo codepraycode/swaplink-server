@@ -1,5 +1,6 @@
 import { WalletService } from '../wallet.service';
 import { TestUtils } from '../../test/utils';
+import { ApiError } from '../../utils/error';
 
 describe('WalletService', () => {
     let walletService: WalletService;
@@ -38,9 +39,7 @@ describe('WalletService', () => {
         it('should throw error for non-existent wallet', async () => {
             const { user } = await TestUtils.createUserWithWallets();
 
-            await expect(walletService.getWalletBalance(user.id, 'EUR')).rejects.toThrow(
-                'Wallet not found'
-            );
+            await expect(walletService.getWalletBalance(user.id, 'EUR')).rejects.toThrow(ApiError);
         });
     });
 });

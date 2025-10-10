@@ -16,7 +16,7 @@ module.exports = {
     ],
     setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
     testPathIgnorePatterns: [
-        'src/services/__tests__/wallet.service.test.ts',
-        'src/routes/__tests__',
+        // 'src/services/__tests__/wallet.service.test.ts',
+        // 'src/routes/__tests__',
     ],
 };

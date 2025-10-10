@@ -30,7 +30,12 @@ beforeAll(async () => {
     }
 });
 
-beforeEach(async () => {
+// beforeEach(async () => {
+
+// });
+
+// Disconnect from database after all tests
+afterAll(async () => {
     if (process.env.NODE_ENV !== 'test') {
         throw new Error('Tests should only run in test environment!');
     }
@@ -57,9 +62,6 @@ beforeEach(async () => {
     if (!cleanupResult.success) {
         console.warn('⚠️ Database cleanup had issues:', cleanupResult.error);
     }
-});
 
-// Disconnect from database after all tests
-afterAll(async () => {
     await prisma.$disconnect();
 });
