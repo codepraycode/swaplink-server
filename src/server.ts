@@ -8,7 +8,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user';
 import walletRoutes from './routes/wallet';
-import offerRoutes from './routes/offer';
+import offerRoutes from './routes/offer.routes';
 import { checkDatabaseConnection } from './utils/database';
 import { sendError, sendSuccess } from './utils/response';
 import { ApiError } from './utils/error';

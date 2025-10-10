@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
 // Create offer
 router.post('/', authenticate, async (req: any, res) => {
     try {
-        const { offer } = await offerService.createOffer(req.body, req.user.userId);
+        const { offer } = await offerService.createOffer(req.user.userId, req.body);
 
         sendSuccess(res, { offer }, 'Offer created successfully', 201);
     } catch (error) {

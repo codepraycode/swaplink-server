@@ -6,8 +6,8 @@ export type Currency = string;
 export type UserId = string;
 
 type FetchQuery = {
-    page: QueryNumber;
-    limit: QueryNumber;
+    page?: QueryNumber;
+    limit?: QueryNumber;
 };
 
 export type FetchQueryParam<T> = {

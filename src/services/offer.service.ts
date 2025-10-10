@@ -8,22 +8,22 @@ type FetchOfferParam = FetchQueryParam<{
     currency: Currency;
     type: Type;
 
-    minAmount: QueryNumber;
-    maxAmount: QueryNumber;
+    minAmount?: QueryNumber;
+    maxAmount?: QueryNumber;
 }>;
 
-type OfferDto = {
+export type OfferDto = {
     type: Type;
     currency: Currency;
     amount: QueryNumber;
-    rate: QueryNumber;
+    rate?: QueryNumber;
     minAmount?: QueryNumber;
     maxAmount?: QueryNumber;
-    paymentWindow: QueryNumber;
-    terms: string;
+    paymentWindow?: QueryNumber;
+    terms?: string;
 };
 
-class OfferService extends BaseService {
+export class OfferService extends BaseService {
     async getOffers(params: FetchOfferParam) {
         const { query } = params;
         const { type, currency, minAmount, maxAmount, page = 1, limit = 20 } = query;
@@ -82,7 +82,7 @@ class OfferService extends BaseService {
         };
     }
 
-    async createOffer(dto: OfferDto, userId: UserId) {
+    async createOffer(userId: UserId, dto: OfferDto) {
         const {
             type,
             currency,

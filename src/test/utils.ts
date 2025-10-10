@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../utils/database';
 import { PrismaErrorHandler } from '../utils/error';
+import { Currency } from '../generated/prisma';
 
 const operationName = 'TEST UTIL';
 
@@ -17,6 +18,25 @@ export class TestUtils {
             lastName: faker.name.lastName(),
             ...overrides,
         };
+    }
+
+    static async updateWalletBalance(userId: string, currency: Currency, newBalance: number) {
+        const {} = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.wallet.updateMany({
+                    where: {
+                        userId,
+                        currency,
+                    },
+                    data: {
+                        balance: newBalance,
+                        lockedBalance: 0,
+                    },
+                }),
+            {
+                operationName,
+            }
+        );
     }
 
     static generateOfferData(overrides = {}) {
