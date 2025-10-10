@@ -28,8 +28,8 @@ beforeEach(async () => {
 
     // Clean up all data
     await prisma.$executeRawUnsafe(`TRUNCATE TABLE 
-    "disputes", "escrow", "trades", "offers", "transactions", 
-    "wallets", "kyc_documents", "bank_accounts", "notifications", "users" 
+    "escrow", "trades", "offers", "transactions", 
+    "wallets", "kyc_documents", "bank_accounts", "users" 
     CASCADE;`);
 });
 
