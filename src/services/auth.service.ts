@@ -1,6 +1,6 @@
 import { UserId } from '../types/query.types';
 import prisma from '../utils/database';
-import { ApiError } from '../utils/error';
+import { ApiError, PrismaErrorHandler } from '../utils/error';
 import { isEmpty } from '../utils/functions';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -18,8 +18,7 @@ type LoginDto = Pick<AuthDTO, 'email' | 'password'>;
 
 export class AuthService extends BaseService {
     private generateTokens(user: any) {
-        // Generate tokens
-        const expiresIn = 24 * 60 * 60; // 24 hours in seconds
+        const expiresIn = 24 * 60 * 60;
         const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET!, {
             expiresIn: '24h',
         });
@@ -28,110 +27,154 @@ export class AuthService extends BaseService {
             expiresIn: '7d',
         });
 
-        return {
-            expiresIn,
-            token,
-            refreshToken,
-        };
+        return { expiresIn, token, refreshToken };
     }
 
     private async findUser(userId: UserId, hideValue: string[] = []) {
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: {
-                id: true,
-                email: true,
-                phone: true,
-                firstName: true,
-                lastName: true,
-                kycLevel: true,
-                kycStatus: true,
-                isVerified: true,
-                isActive: true,
-                twoFactorEnabled: true,
-                lastLogin: true,
-                createdAt: true,
-                updatedAt: true,
-                wallets: !hideValue.includes('wallets'),
-            },
-        });
+        const res = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.user.findUnique({
+                    where: { id: userId },
+                    select: {
+                        id: true,
+                        email: true,
+                        phone: true,
+                        firstName: true,
+                        lastName: true,
+                        kycLevel: true,
+                        kycStatus: true,
+                        isVerified: true,
+                        isActive: true,
+                        twoFactorEnabled: true,
+                        lastLogin: true,
+                        createdAt: true,
+                        updatedAt: true,
+                        wallets: !hideValue.includes('wallets'),
+                    },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'User not found',
+            }
+        );
 
-        if (!user) {
-            throw new ApiError('User not found', 404, this.context);
+        if (!res.success) {
+            throw new ApiError(res.error, 404, this.context);
         }
 
-        return user;
+        return res.data!;
     }
 
     async register(dto: AuthDTO) {
         const { email, phone, password, firstName, lastName } = dto;
 
-        // Check if user exists
-        const existingUser = await prisma.user.findFirst({
-            where: {
-                OR: [{ email }, { phone }],
-            },
-        });
+        // Check if user already exists
+        const existingRes = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.user.findFirst({
+                    where: {
+                        OR: [{ email }, { phone }],
+                    },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Error checking existing user',
+            }
+        );
 
-        if (isEmpty(existingUser)) {
+        if (!existingRes.success) {
+            throw new ApiError(existingRes.error, 500, this.context);
+        }
+
+        if (existingRes.data) {
             throw new ApiError('User with this email or phone already exists', 400, this.context);
         }
 
         // Hash password
-        const saltRounds = 12;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const hashedPassword = await bcrypt.hash(password, 12);
 
         // Create user
-        const user = await prisma.user.create({
-            data: {
-                email,
-                phone,
-                password: hashedPassword,
-                firstName,
-                lastName,
-            },
-            select: {
-                id: true,
-                email: true,
-                phone: true,
-                firstName: true,
-                lastName: true,
-                kycLevel: true,
-                isVerified: true,
-                createdAt: true,
-            },
-        });
+        const userRes = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.user.create({
+                    data: {
+                        email,
+                        phone,
+                        password: hashedPassword,
+                        firstName,
+                        lastName,
+                    },
+                    select: {
+                        id: true,
+                        email: true,
+                        phone: true,
+                        firstName: true,
+                        lastName: true,
+                        kycLevel: true,
+                        isVerified: true,
+                        createdAt: true,
+                    },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Failed to create user',
+            }
+        );
 
-        // Create wallets for user
-        await prisma.wallet.createMany({
-            data: [
-                { userId: user.id, currency: 'USD' },
-                { userId: user.id, currency: 'NGN' },
-            ],
-        });
+        if (!userRes.success) {
+            throw new ApiError(userRes.error, 500, this.context);
+        }
+
+        const user = userRes.data!;
+
+        // Create wallets for the new user
+        const walletRes = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.wallet.createMany({
+                    data: [
+                        { userId: user.id, currency: 'USD' },
+                        { userId: user.id, currency: 'NGN' },
+                    ],
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Failed to create user wallets',
+            }
+        );
+
+        if (!walletRes.success) {
+            throw new ApiError(walletRes.error, 500, this.context);
+        }
 
         const { expiresIn, refreshToken, token } = this.generateTokens(user);
 
-        return {
-            user,
-            token,
-            refreshToken,
-            expiresIn,
-        };
+        return { user, token, refreshToken, expiresIn };
     }
 
     async login(dto: LoginDto) {
         const { email, password } = dto;
 
         // Find user
-        const user = await prisma.user.findUnique({
-            where: { email },
-            include: {
-                wallets: true,
-            },
-        });
+        const userRes = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.user.findUnique({
+                    where: { email },
+                    include: { wallets: true },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Failed to find user',
+            }
+        );
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        if (!userRes.success || !userRes.data) {
+            throw new ApiError('Invalid email or password', 401, this.context);
+        }
+
+        const user = userRes.data;
+
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
             throw new ApiError('Invalid email or password', 401, this.context);
         }
 
@@ -140,14 +183,24 @@ export class AuthService extends BaseService {
         }
 
         // Update last login
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLogin: new Date() },
-        });
+        const updateRes = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.user.update({
+                    where: { id: user.id },
+                    data: { lastLogin: new Date() },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Failed to update last login',
+            }
+        );
+
+        if (!updateRes.success) {
+            throw new ApiError(updateRes.error, 500, this.context);
+        }
 
         const { expiresIn, refreshToken, token } = this.generateTokens(user);
 
-        // Remove password from response
         const { password: _, ...userWithoutPassword } = user;
 
         return {
@@ -159,23 +212,51 @@ export class AuthService extends BaseService {
     }
 
     async getUser(userId: UserId) {
-        const user = await this.findUser(userId);
+        const userRes = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.user.findUnique({
+                    where: { id: userId },
+                    include: { wallets: true },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'User not found',
+            }
+        );
 
-        if (!user) {
-            throw new ApiError('User not found', 404, this.context);
+        if (!userRes.success) {
+            throw new ApiError(userRes.error, 404, this.context);
         }
 
-        return user;
+        return userRes.data;
     }
 
     async getUserMini(userId: UserId) {
-        const user = await this.findUser(userId, ['wallets']);
+        const userRes = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.user.findUnique({
+                    where: { id: userId },
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phone: true,
+                        kycLevel: true,
+                        isVerified: true,
+                    },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Failed to retrieve user profile',
+            }
+        );
 
-        if (!user) {
-            throw new ApiError('User profile retrieved successfully', 404, this.context);
+        if (!userRes.success) {
+            throw new ApiError(userRes.error, 404, this.context);
         }
 
-        return user;
+        return userRes.data;
     }
 }
 

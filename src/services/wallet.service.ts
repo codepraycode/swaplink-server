@@ -1,6 +1,6 @@
 import { Currency, FetchQueryParam, UserId } from '../types/query.types';
 import prisma from '../utils/database';
-import { ApiError } from '../utils/error';
+import { ApiError, PrismaErrorHandler } from '../utils/error';
 import { BaseService } from './abstract';
 
 type FetchTransactionParam = FetchQueryParam<{
@@ -14,16 +14,26 @@ export class WalletService extends BaseService {
     }
 
     async getWalletBalance(userId: UserId, currency: Currency) {
-        const wallet = await prisma.wallet.findFirst({
-            where: {
-                userId,
-                currency: currency as any,
-            },
-        });
+        const res = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.wallet.findFirst({
+                    where: {
+                        userId,
+                        currency: currency as any,
+                    },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Wallet not found',
+            }
+        );
 
-        if (!wallet) {
-            throw new ApiError('Wallet not found', 404, this.context);
+        if (!res.success) {
+            const { error } = res;
+            throw new ApiError(error, 404, this.context);
         }
+
+        const wallet = res.data!;
 
         return {
             currency: wallet.currency,
@@ -34,9 +44,22 @@ export class WalletService extends BaseService {
     }
 
     async getWallets(userId: string) {
-        const wallets = await prisma.wallet.findMany({
-            where: { userId: userId },
-        });
+        const res = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.wallet.findMany({
+                    where: { userId: userId },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Could not get wallets',
+            }
+        );
+
+        if (!res.success) {
+            throw new ApiError(res.error, 400, this.context);
+        }
+
+        const wallets = res.data!;
 
         const walletsWithAvailableBalance = wallets.map(wallet => ({
             id: wallet.id,
@@ -60,30 +83,38 @@ export class WalletService extends BaseService {
         if (currency) where.currency = currency;
         if (type) where.type = type;
 
-        const transactions = await prisma.transaction.findMany({
-            where,
-            skip,
-            take: parseInt(limit as string),
-            orderBy: { createdAt: 'desc' },
-            select: {
-                id: true,
-                type: true,
-                currency: true,
-                amount: true,
-                status: true,
-                reference: true,
-                createdAt: true,
+        const res = await PrismaErrorHandler.wrap(
+            async () => {
+                const transactions = await prisma.transaction.findMany({
+                    where,
+                    skip,
+                    take: parseInt(limit as string),
+                    orderBy: { createdAt: 'desc' },
+                    select: {
+                        id: true,
+                        type: true,
+                        currency: true,
+                        amount: true,
+                        status: true,
+                        reference: true,
+                        createdAt: true,
+                    },
+                });
+
+                const total = await prisma.transaction.count({ where });
+                return { transactions, total, page, limit };
             },
-        });
+            {
+                operationName: this.context,
+                customErrorMessage: 'Could not fetch transactions',
+            }
+        );
 
-        const total = await prisma.transaction.count({ where });
+        if (!res.success) {
+            throw new ApiError(res.error, 400, this.context);
+        }
 
-        return {
-            transactions,
-            total,
-            page,
-            limit,
-        };
+        return res.data!;
     }
 
     async hasSufficientBalance(
@@ -91,13 +122,22 @@ export class WalletService extends BaseService {
         currency: Currency,
         amount: number
     ): Promise<boolean> {
-        const wallet = await prisma.wallet.findFirst({
-            where: {
-                userId,
-                currency: currency as any,
-            },
-        });
+        const res = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.wallet.findFirst({
+                    where: { userId, currency: currency as any },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Failed to verify wallet balance',
+            }
+        );
 
+        if (!res.success) {
+            throw new ApiError(res.error, 400, this.context);
+        }
+
+        const wallet = res.data;
         if (!wallet) return false;
 
         const availableBalance = wallet.balance - wallet.lockedBalance;
@@ -113,22 +153,35 @@ export class WalletService extends BaseService {
         status: string = 'pending',
         metadata: any = {}
     ) {
-        const reference = `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const reference = `TX-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-        return await prisma.transaction.create({
-            data: {
-                userId,
-                walletId,
-                type: type as any,
-                currency: currency as any,
-                amount,
-                balanceBefore: 0, // This would be calculated based on current balance
-                balanceAfter: 0, // This would be calculated based on current balance
-                status: status as any,
-                reference,
-                metadata,
-            },
-        });
+        const res = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.transaction.create({
+                    data: {
+                        userId,
+                        walletId,
+                        type: type as any,
+                        currency: currency as any,
+                        amount,
+                        balanceBefore: 0, // TODO: compute actual balance before
+                        balanceAfter: 0, // TODO: compute actual balance after
+                        status: status as any,
+                        reference,
+                        metadata,
+                    },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Could not create transaction',
+            }
+        );
+
+        if (!res.success) {
+            throw new ApiError(res.error, 400, this.context);
+        }
+
+        return res.data!;
     }
 }
 

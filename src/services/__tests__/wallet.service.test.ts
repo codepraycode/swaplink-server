@@ -30,9 +30,9 @@ describe('WalletService', () => {
 
             const result = await walletService.getWalletBalance(user.id, 'USD');
 
-            expect(result.currency).toBe('USD');
-            expect(result.balance).toBe(1000);
-            expect(result.availableBalance).toBe(1000);
+            expect(result?.currency).toBe('USD');
+            expect(result?.balance).toBe(1000);
+            expect(result?.availableBalance).toBe(1000);
         });
 
         it('should throw error for non-existent wallet', async () => {

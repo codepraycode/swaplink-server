@@ -3,6 +3,7 @@ import request from 'supertest';
 import app from '../../server';
 import { TestUtils } from '../../test/utils';
 import prisma from '../../utils/database';
+import { PrismaErrorHandler } from '../../utils/error';
 
 describe('Auth Routes', () => {
     beforeEach(async () => {
@@ -23,9 +24,11 @@ describe('Auth Routes', () => {
             expect(response.body.data.tokens.accessToken).toBeTruthy();
 
             // Verify user was created in database
-            const dbUser = await prisma.user.findUnique({
-                where: { email: userData.email },
-            });
+            const { data: dbUser } = await PrismaErrorHandler.wrap(() =>
+                prisma.user.findUnique({
+                    where: { email: userData.email },
+                })
+            );
             expect(dbUser).toBeTruthy();
         });
 

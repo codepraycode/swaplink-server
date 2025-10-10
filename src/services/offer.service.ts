@@ -1,7 +1,7 @@
 import { Currency, Offer } from '@prisma/client';
 import { FetchQueryParam, QueryNumber, Type, UserId } from '../types/query.types';
 import prisma from '../utils/database';
-import { ApiError } from '../utils/error';
+import { ApiError, PrismaErrorHandler } from '../utils/error';
 import { BaseService } from './abstract';
 
 type FetchOfferParam = FetchQueryParam<{
@@ -37,28 +37,46 @@ class OfferService extends BaseService {
 
         const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
 
-        const offers = await prisma.offer.findMany({
-            where,
-            skip,
-            take: parseInt(limit as string),
-            orderBy: { rate: type === 'BUY' ? 'desc' : 'asc' },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        kycLevel: true,
+        const offersRes = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.offer.findMany({
+                    where,
+                    skip,
+                    take: parseInt(limit as string),
+                    orderBy: { rate: type === 'BUY' ? 'desc' : 'asc' },
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                kycLevel: true,
+                            },
+                        },
                     },
-                },
-            },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Failed to fetch offers',
+            }
+        );
+
+        if (!offersRes.success) {
+            throw new ApiError(offersRes.error, 500, this.context);
+        }
+
+        const totalRes = await PrismaErrorHandler.wrap(() => prisma.offer.count({ where }), {
+            operationName: this.context,
+            customErrorMessage: 'Failed to count offers',
         });
 
-        const total = await prisma.offer.count({ where });
+        if (!totalRes.success) {
+            throw new ApiError(totalRes.error, 500, this.context);
+        }
 
         return {
-            offers,
-            total,
+            offers: offersRes.data!,
+            total: totalRes.data!,
             page,
             limit,
         };
@@ -76,54 +94,78 @@ class OfferService extends BaseService {
             terms,
         } = dto;
 
-        // Parse fields
         const amount = parseFloat(rawAmount as string);
         const rate = parseFloat(rawRate as string);
         const minAmount = parseFloat(rawMinAmount as string);
         const maxAmount = parseFloat(rawMaxAmount as string);
         const paymentWindow = parseInt(rawPaymentWindow as string);
 
-        // Validate user has sufficient balance for sell offers
+        // 🧮 Validate balance for SELL offers
         if (type === 'SELL') {
-            const wallet = await prisma.wallet.findFirst({
-                where: {
-                    userId,
-                    currency: 'USD',
-                },
-            });
+            const walletRes = await PrismaErrorHandler.wrap(
+                () =>
+                    prisma.wallet.findFirst({
+                        where: {
+                            userId,
+                            currency: 'USD',
+                        },
+                    }),
+                {
+                    operationName: this.context,
+                    customErrorMessage: 'Failed to fetch wallet balance',
+                }
+            );
 
-            if (!wallet || wallet.availableBalance < amount) {
+            if (!walletRes.success) {
+                throw new ApiError(walletRes.error, 500, this.context);
+            }
+
+            const wallet = walletRes.data;
+
+            if (!wallet || wallet.balance - wallet.lockedBalance < amount) {
                 throw new ApiError('Insufficient USD balance for sell offer', 400, this.context);
             }
         }
 
-        const offer = await prisma.offer.create({
-            data: {
-                userId,
-                type,
-                currency,
-                amount,
-                rate,
-                minAmount: minAmount ?? null,
-                maxAmount: maxAmount ?? null,
-                paymentWindow,
-                terms,
-                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        kycLevel: true,
+        // 🏗️ Create offer
+        const offerRes = await PrismaErrorHandler.wrap(
+            () =>
+                prisma.offer.create({
+                    data: {
+                        userId,
+                        type,
+                        currency,
+                        amount,
+                        rate,
+                        minAmount: minAmount ?? null,
+                        maxAmount: maxAmount ?? null,
+                        paymentWindow,
+                        terms,
+                        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
                     },
-                },
-            },
-        });
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                kycLevel: true,
+                            },
+                        },
+                    },
+                }),
+            {
+                operationName: this.context,
+                customErrorMessage: 'Failed to create offer',
+            }
+        );
+
+        if (!offerRes.success) {
+            throw new ApiError(offerRes.error, 500, this.context);
+        }
 
         return {
-            offer,
+            offer: offerRes.data!,
         };
     }
 }
