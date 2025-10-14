@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
         );
     } catch (error) {
         console.error('Get offers error:', error);
-        sendError(res, handlerEror('Failed to retrieve offers'));
+        sendError(res, handlerEror(error, 'Failed to retrieve offers'));
     }
 });
 
@@ -42,7 +42,7 @@ router.post('/', authenticate, async (req: any, res) => {
         sendSuccess(res, { offer }, 'Offer created successfully', 201);
     } catch (error) {
         console.error('Create offer error:', error);
-        sendError(res, handlerEror('Failed to create offer'));
+        sendError(res, handlerEror(error, 'Failed to create offer'));
     }
 });
 

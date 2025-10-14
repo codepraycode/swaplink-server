@@ -8,6 +8,7 @@ function getPrismaInstance() {
     // Log which database we're using (for debugging)
     console.log(`🔧 Environment: ${NODE_ENV || 'development'}`);
     console.log(`🗄️  Database: ${isTestEnv ? 'TEST' : 'DEVELOPMENT'}`);
+    console.log(`🗄️  Database URL: ${DATABASE_URL}`);
 
     return new PrismaClient({
         datasources: {

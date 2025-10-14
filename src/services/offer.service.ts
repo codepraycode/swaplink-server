@@ -132,15 +132,17 @@ export class OfferService extends BaseService {
             () =>
                 prisma.offer.create({
                     data: {
-                        userId,
+                        user: {
+                            connect: { id: userId },
+                        },
                         type,
                         currency,
                         amount,
                         rate,
-                        minAmount: minAmount ?? null,
-                        maxAmount: maxAmount ?? null,
+                        minAmount: isNaN(minAmount) ? null : minAmount,
+                        maxAmount: isNaN(maxAmount) ? null : maxAmount,
                         paymentWindow,
-                        terms,
+                        terms: terms ?? null,
                         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
                     },
                     include: {

@@ -5,6 +5,10 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 
+dotenv.config({
+    path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
+});
+
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user';
 import walletRoutes from './routes/wallet';
@@ -12,10 +16,6 @@ import offerRoutes from './routes/offer.routes';
 import { checkDatabaseConnection } from './utils/database';
 import { sendError, sendSuccess } from './utils/response';
 import { ApiError } from './utils/error';
-
-dotenv.config({
-    path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env.development',
-});
 
 const app: express.Application = express();
 const PORT = process.env.PORT || 3001;
