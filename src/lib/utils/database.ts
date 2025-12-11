@@ -1,5 +1,5 @@
-import { DATABASE_URL, isDevEnv, isProdEnv, isTestEnv, NODE_ENV } from '../config/env';
-import { PrismaClient } from '../generated/prisma';
+import { DATABASE_URL, isDevEnv, isProdEnv, isTestEnv, NODE_ENV } from '../../config/env.config';
+import { PrismaClient } from '../../database/generated/prisma';
 
 // Prevent multiple instances in development
 const globalForPrisma = global as unknown as { prisma: PrismaClient };

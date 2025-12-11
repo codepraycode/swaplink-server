@@ -1,5 +1,5 @@
-import prisma from '../utils/database';
-import { PrismaErrorHandler } from '../utils/error';
+import prisma from '../lib/utils/database';
+import { PrismaErrorHandler } from '../lib/utils/api-error';
 
 // Global test timeout
 jest.setTimeout(30000);

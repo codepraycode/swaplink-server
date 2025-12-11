@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodObject } from 'zod';
-import { sendError } from '../utils/response';
-import { ApiError } from '../utils/error';
+import { sendError } from '../lib/utils/api-response';
+import { ApiError } from '../lib/utils/api-error';
 
 export const validateBody =
     (schema: ZodObject) => (req: Request, res: Response, next: NextFunction) => {

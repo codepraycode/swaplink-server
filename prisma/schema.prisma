@@ -1,198 +1,164 @@
 // prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
-  output = "../src/generated/prisma"
+  output   = "../src/database/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
+// ==========================================
+// USER & AUTHENTICATION
+// ==========================================
+
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  phone     String   @unique
-  password  String
-  firstName String
-  lastName  String
-  kycLevel  KycLevel @default(NONE)
-  kycStatus KycStatus @default(PENDING)
-  isVerified Boolean @default(false)
-  isActive  Boolean  @default(true)
-  twoFactorEnabled Boolean @default(false)
-  lastLogin DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String    @id @default(uuid())
+  email            String    @unique
+  phone            String    @unique
+  password         String
+  firstName        String
+  lastName         String
+  
+  // KYC & Status
+  kycLevel         KycLevel  @default(NONE)
+  kycStatus        KycStatus @default(PENDING)
+  isVerified       Boolean   @default(false)
+  isActive         Boolean   @default(true)
+  twoFactorEnabled Boolean   @default(false)
+  
+  // Metadata
+  lastLogin        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  wallets      Wallet[]
-  offers       Offer[]
-  tradesAsBuyer Trade[] @relation("BuyerTrades")
-  tradesAsSeller Trade[] @relation("SellerTrades")
-  bankAccounts BankAccount[]
-  kycDocuments KycDocument[]
-//   notifications Notification[]
-  transactions Transaction[]
-
-  escrowsFrom Escrow[] @relation("EscrowFromUser")
-  escrowsTo   Escrow[] @relation("EscrowToUser")
+  // Relations
+  wallet           Wallet?   // 1:1 Relation (One user, one wallet)
+  bankAccounts     BankAccount[]
+  kycDocuments     KycDocument[]
+  transactions     Transaction[] // History of transactions initiated by user
 
   @@map("users")
 }
 
+// ==========================================
+// WALLET SYSTEM (Strictly NGN)
+// ==========================================
+
 model Wallet {
-  id        String   @id @default(uuid())
-  userId    String
-  currency  Currency
-  balance   Float    @default(0)
-  lockedBalance Float @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(uuid())
+  userId        String   @unique // Enforces 1-to-1 relationship
+  
+  // Balances (Implicitly NGN)
+  balance       Float    @default(0)
+  lockedBalance Float    @default(0) // For pending withdrawals or frozen funds
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
 
-  @@unique([userId, currency])
   @@map("wallets")
 }
 
 model Transaction {
-  id             String   @id @default(uuid())
+  id             String            @id @default(uuid())
   userId         String
   walletId       String
+  
+  // Details
   type           TransactionType
-  currency       Currency
   amount         Float
   balanceBefore  Float
   balanceAfter   Float
   status         TransactionStatus @default(PENDING)
-  reference      String   @unique
-  metadata       Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  reference      String            @unique
+  description    String?           // E.g., "Transfer to John Doe"
+  metadata       Json?             // Store external gateway refs (Paystack/Flutterwave)
+  
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
+  // Relations
   user   User   @relation(fields: [userId], references: [id])
   wallet Wallet @relation(fields: [walletId], references: [id])
 
   @@map("transactions")
 }
 
-model Offer {
-  id            String   @id @default(uuid())
-  userId        String
-  type          OfferType
-  currency      Currency
-  amount        Float
-  rate          Float
-  minAmount     Float?
-  maxAmount     Float?
-  paymentWindow Int      @default(30)
-  terms         String?
-  status        OfferStatus @default(ACTIVE)
-  expiresAt     DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user   User   @relation(fields: [userId], references: [id])
-  trades Trade[]
-
-  @@map("offers")
-}
-
-model Trade {
-  id                String   @id @default(uuid())
-  offerId           String
-  buyerId           String
-  sellerId          String
-  amount            Float
-  rate              Float
-  totalNgn          Float
-  status            TradeStatus @default(PENDING)
-  escrowLocked      Boolean  @default(false)
-  paymentSent       Boolean  @default(false)
-  paymentConfirmed  Boolean  @default(false)
-  paymentProofUrl   String?
-  paymentWindow     Int      @default(30)
-  expiresAt         DateTime?
-  completedAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  offer   Offer  @relation(fields: [offerId], references: [id])
-  buyer   User   @relation("BuyerTrades", fields: [buyerId], references: [id])
-  seller  User   @relation("SellerTrades", fields: [sellerId], references: [id])
-  escrow  Escrow?
-//   disputes Dispute[]
-
-  @@map("trades")
-}
-
-model Escrow {
-  id        String   @id @default(uuid())
-  tradeId   String   @unique
-  fromUserId String
-  toUserId  String
-  currency  Currency
-  amount    Float
-  status    EscrowStatus @default(LOCKED)
-  lockedAt  DateTime @default(now())
-  releasedAt DateTime?
-  metadata  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  trade    Trade  @relation(fields: [tradeId], references: [id])
-  fromUser User   @relation("EscrowFromUser", fields: [fromUserId], references: [id])
-  toUser   User   @relation("EscrowToUser", fields: [toUserId], references: [id])
-
-  @@map("escrow")
-}
+// ==========================================
+// BANKING & COMPLIANCE
+// ==========================================
 
 model BankAccount {
   id            String   @id @default(uuid())
   userId        String
+  
+  // Bank Details
   accountNumber String
   accountName   String
   bankName      String
-  bankCode      String
-  currency      Currency @default(NGN)
+  bankCode      String   // CBN Bank Code
+  
   isVerified    Boolean  @default(false)
   isPrimary     Boolean  @default(false)
+  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("bank_accounts")
 }
 
 model KycDocument {
-  id           String   @id @default(uuid())
-  userId       String
-  documentType String
-  documentUrl  String
-  status       KycDocumentStatus @default(PENDING)
+  id              String            @id @default(uuid())
+  userId          String
+  
+  documentType    String            // NIN, BVN_SLIP, PASSPORT
+  documentUrl     String            // Cloudinary/S3 URL
+  status          KycDocumentStatus @default(PENDING)
   rejectionReason String?
-  verifiedAt   DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  verifiedAt      DateTime?
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("kyc_documents")
 }
 
-// Enums (add these at the bottom)
-enum Currency {
-  USD
-  NGN
+// ==========================================
+// SECURITY (OTP)
+// ==========================================
+
+model Otp {
+  id         String   @id @default(uuid())
+  identifier String   // email or phone
+  code       String
+  type       OtpType
+  expiresAt  DateTime
+  isUsed     Boolean  @default(false)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("otps")
 }
+
+// ==========================================
+// ENUMS
+// ==========================================
 
 enum KycLevel {
   NONE
-  BASIC
-  INTERMEDIATE
-  FULL
+  BASIC         // Email/Phone Verified
+  INTERMEDIATE  // BVN/NIN Verified
+  FULL          // Utility Bill/Gov ID Verified
 }
 
 enum KycStatus {
@@ -201,12 +167,19 @@ enum KycStatus {
   REJECTED
 }
 
+enum KycDocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum TransactionType {
-  DEPOSIT
-  WITHDRAWAL
-  TRADE
-  CONVERSION
-  FEE
+  DEPOSIT       // Funding via Bank/Card
+  WITHDRAWAL    // Payout to Bank
+  TRANSFER      // Internal P2P (User to User)
+  BILL_PAYMENT  // Airtime/Data/Utilities
+  FEE           // Service charges
+  REVERSAL      // System corrections
 }
 
 enum TransactionStatus {
@@ -216,35 +189,10 @@ enum TransactionStatus {
   CANCELLED
 }
 
-enum OfferType {
-  BUY
-  SELL
-}
-
-enum OfferStatus {
-  ACTIVE
-  INACTIVE
-  COMPLETED
-  CANCELLED
-}
-
-enum TradeStatus {
-  PENDING
-  PAYMENT_SENT
-  COMPLETED
-  CANCELLED
-  DISPUTED
-}
-
-enum EscrowStatus {
-  LOCKED
-  RELEASED
-  REFUNDED
-  DISPUTED
-}
-
-enum KycDocumentStatus {
-  PENDING
-  APPROVED
-  REJECTED
+enum OtpType {
+  PHONE_VERIFICATION
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  TWO_FACTOR
+  WITHDRAWAL_CONFIRMATION
 }

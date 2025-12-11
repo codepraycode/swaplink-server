@@ -2,9 +2,9 @@
 import { faker } from '@faker-js/faker';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import prisma from '../utils/database';
-import { PrismaErrorHandler } from '../utils/error';
-import { Currency } from '../generated/prisma';
+import prisma from '../lib/utils/database';
+import { PrismaErrorHandler } from '../lib/utils/api-error';
+import { Currency } from '../database/generated/prisma';
 
 const operationName = 'TEST UTIL';
 

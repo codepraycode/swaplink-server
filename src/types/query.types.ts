@@ -1,4 +1,4 @@
-import { OfferType } from '../generated/prisma';
+import { OfferType } from '../database/generated/prisma';
 
 export type QueryNumber = number | `${number}`;
 export type Type = OfferType;
