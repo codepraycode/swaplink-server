@@ -2,8 +2,19 @@ import { prisma, OtpType } from '../../database';
 
 import { BadRequestError, InternalError } from '../utils/api-error';
 import logger from '../utils/logger';
+import { ISmsService } from './sms.service';
+import { IEmailService } from './email.service';
 
 export class OtpService {
+    private smsService: ISmsService;
+    private emailService: IEmailService;
+
+    constructor(smsService?: ISmsService, emailService?: IEmailService) {
+        // Lazy load to avoid circular dependency
+        this.smsService = smsService || require('./sms.service').smsService;
+        this.emailService = emailService || require('./email.service').emailService;
+    }
+
     /**
      * Generate and Store OTP
      */
@@ -30,13 +41,39 @@ export class OtpService {
             },
         });
 
-        // 4. Send OTP (Simulated)
-        // In production, inject an SmsService or EmailService here
-        if (process.env.NODE_ENV !== 'test') {
-            logger.info(`[OTP] Generated for ${identifier} (${type}): ${code}`);
+        // 4. Send OTP via appropriate channel
+        try {
+            await this.sendOtp(identifier, code, type);
+        } catch (error) {
+            logger.error(`[OTP] Failed to send OTP to ${identifier}:`, error);
+            // We don't throw here to prevent OTP generation failure
+            // The OTP is still valid in the database
         }
 
         return otpRecord;
+    }
+
+    /**
+     * Send OTP via appropriate channel (SMS or Email)
+     */
+    private async sendOtp(identifier: string, code: string, type: OtpType): Promise<void> {
+        switch (type) {
+            case OtpType.PHONE_VERIFICATION:
+            case OtpType.TWO_FACTOR:
+            case OtpType.WITHDRAWAL_CONFIRMATION:
+                // Send via SMS for phone-related OTPs
+                await this.smsService.sendOtp(identifier, code);
+                break;
+
+            case OtpType.EMAIL_VERIFICATION:
+            case OtpType.PASSWORD_RESET:
+                // Send via Email for email-related OTPs
+                await this.emailService.sendOtp(identifier, code);
+                break;
+
+            default:
+                logger.warn(`[OTP] Unknown OTP type: ${type}`);
+        }
     }
 
     /**
