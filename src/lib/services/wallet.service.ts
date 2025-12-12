@@ -1,6 +1,6 @@
 import { prisma, Prisma } from '../../database'; // Singleton
 import { NotFoundError, BadRequestError, InternalError } from '../utils/api-error';
-import { Currency, TransactionType, TransactionStatus } from '../../database/generated/prisma'; // Adjust based on your schema
+import { TransactionType } from '../../database/generated/prisma';
 import { UserId } from '../../types/query.types';
 
 // DTOs
@@ -8,7 +8,6 @@ interface FetchTransactionOptions {
     userId: UserId;
     page?: number;
     limit?: number;
-    currency?: Currency;
     type?: TransactionType;
 }
 
@@ -22,64 +21,66 @@ export class WalletService {
     // --- Main Methods ---
 
     /**
-     * Create Wallets for a new user
+     * Create Wallet for a new user (Single NGN wallet)
      * Accepts an optional transaction client to run inside AuthService.register
      */
     async setUpWallet(userId: string, tx?: Prisma.TransactionClient) {
         const db = tx || prisma; // Use transaction if provided, else global instance
 
         try {
-            await db.wallet.createMany({
-                data: [
-                    { userId, currency: 'USD', balance: 0, lockedBalance: 0 },
-                    { userId, currency: 'NGN', balance: 0, lockedBalance: 0 },
-                ],
+            await db.wallet.create({
+                data: {
+                    userId,
+                    balance: 0,
+                    lockedBalance: 0,
+                },
             });
         } catch (error) {
-            throw new InternalError('Failed to create user wallets', error as Error);
+            throw new InternalError('Failed to create user wallet', error as Error);
         }
     }
 
-    async getWalletBalance(userId: UserId, currency: Currency) {
-        const wallet = await prisma.wallet.findFirst({
-            where: { userId, currency },
+    async getWalletBalance(userId: UserId) {
+        const wallet = await prisma.wallet.findUnique({
+            where: { userId },
         });
 
         if (!wallet) {
-            throw new NotFoundError(`${currency} Wallet not found`);
+            throw new NotFoundError('Wallet not found');
         }
 
         return {
             id: wallet.id,
-            currency: wallet.currency,
             balance: Number(wallet.balance),
             lockedBalance: Number(wallet.lockedBalance),
             availableBalance: this.calculateAvailableBalance(wallet.balance, wallet.lockedBalance),
         };
     }
 
-    async getWallets(userId: string) {
-        const wallets = await prisma.wallet.findMany({
+    async getWallet(userId: string) {
+        const wallet = await prisma.wallet.findUnique({
             where: { userId },
         });
 
-        return wallets.map(wallet => ({
+        if (!wallet) {
+            throw new NotFoundError('Wallet not found');
+        }
+
+        return {
             id: wallet.id,
-            currency: wallet.currency,
             balance: Number(wallet.balance),
             lockedBalance: Number(wallet.lockedBalance),
             availableBalance: this.calculateAvailableBalance(wallet.balance, wallet.lockedBalance),
             createdAt: wallet.createdAt,
             updatedAt: wallet.updatedAt,
-        }));
+        };
     }
 
     async getTransactions(params: FetchTransactionOptions) {
-        const { userId, page = 1, limit = 20, currency, type } = params;
+        const { userId, page = 1, limit = 20, type } = params;
         const skip = (page - 1) * limit;
 
         const where: Prisma.TransactionWhereInput = { userId };
-        if (currency) where.currency = currency;
         if (type) where.type = type;
 
         const [transactions, total] = await Promise.all([
@@ -91,7 +92,6 @@ export class WalletService {
                 select: {
                     id: true,
                     type: true,
-                    currency: true,
                     amount: true,
                     status: true,
                     reference: true,
@@ -99,6 +99,7 @@ export class WalletService {
                     balanceAfter: true,
                     createdAt: true,
                     metadata: true,
+                    description: true,
                 },
             }),
             prisma.transaction.count({ where }),
@@ -115,13 +116,9 @@ export class WalletService {
         };
     }
 
-    async hasSufficientBalance(
-        userId: UserId,
-        currency: Currency,
-        amount: number
-    ): Promise<boolean> {
-        const wallet = await prisma.wallet.findFirst({
-            where: { userId, currency },
+    async hasSufficientBalance(userId: UserId, amount: number): Promise<boolean> {
+        const wallet = await prisma.wallet.findUnique({
+            where: { userId },
         });
 
         if (!wallet) return false;
@@ -138,11 +135,11 @@ export class WalletService {
      * Credit a wallet (Deposit)
      * Atomically updates balance and creates a transaction record
      */
-    async creditWallet(userId: string, currency: Currency, amount: number, metadata: any = {}) {
+    async creditWallet(userId: string, amount: number, metadata: any = {}) {
         return prisma.$transaction(async tx => {
-            // 1. Get Wallet (Locking it would be ideal in high concurrency, but findFirst is okay for MVP)
-            const wallet = await tx.wallet.findFirst({
-                where: { userId, currency },
+            // 1. Get Wallet (using unique constraint)
+            const wallet = await tx.wallet.findUnique({
+                where: { userId },
             });
 
             if (!wallet) throw new NotFoundError('Wallet not found');
@@ -166,12 +163,11 @@ export class WalletService {
                 data: {
                     userId,
                     walletId: wallet.id,
-                    type: 'DEPOSIT', // Ensure this matches your Enum
-                    currency,
+                    type: 'DEPOSIT',
                     amount,
                     balanceBefore,
                     balanceAfter,
-                    status: 'COMPLETED', // Ensure this matches your Enum
+                    status: 'COMPLETED',
                     reference,
                     metadata,
                 },
@@ -185,11 +181,11 @@ export class WalletService {
      * Debit a wallet (Withdrawal/Payment)
      * Atomically checks balance, deducts amount, and creates record
      */
-    async debitWallet(userId: string, currency: Currency, amount: number, metadata: any = {}) {
+    async debitWallet(userId: string, amount: number, metadata: any = {}) {
         return prisma.$transaction(async tx => {
             // 1. Get Wallet
-            const wallet = await tx.wallet.findFirst({
-                where: { userId, currency },
+            const wallet = await tx.wallet.findUnique({
+                where: { userId },
             });
 
             if (!wallet) throw new NotFoundError('Wallet not found');
@@ -221,8 +217,7 @@ export class WalletService {
                 data: {
                     userId,
                     walletId: wallet.id,
-                    type: 'WITHDRAWAL', // Ensure matches Enum
-                    currency,
+                    type: 'WITHDRAWAL',
                     amount,
                     balanceBefore,
                     balanceAfter,

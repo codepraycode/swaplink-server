@@ -1,35 +1,98 @@
 import express, { Router } from 'express';
 import authController from './auth.controller';
-// import { validateBody } from '../../middlewares/validation'; // Uncomment when ready
-// import { authenticate } from '../../middlewares/authenticate'; // Uncomment when ready
-// import { AuthSchema } from './auth.validation'; // Uncomment when ready
+import rateLimiters from '../../middlewares/rate-limit.middleware';
+import { authenticate } from '../../middlewares/auth.middleware';
+import { uploadKyc, uploadAvatar } from '../../middlewares/upload.middleware'; // You need this for KYC!
+// import { validateBody } from '../../middlewares/validation';
+// import { AuthSchema } from './auth.validation';
 
-// Mock middleware if not yet imported (Remove these lines once imports above are active)
 const router: Router = express.Router();
+
+// Mock validation for now (Replace with Zod/Joi later)
 const validateBody = (schema: any) => (req: any, res: any, next: any) => next();
-const authenticate = (req: any, res: any, next: any) => next();
 const AuthSchema = {};
 
-// --- Authentication ---
-router.post('/register', validateBody(AuthSchema), authController.register);
-router.post('/login', authController.login);
+// ======================================================
+// 1. Onboarding & Authentication
+// ======================================================
+
+router.post(
+    '/register',
+    rateLimiters.auth, // Strict limit (prevents mass account creation)
+    validateBody(AuthSchema),
+    authController.register
+);
+
+router.post(
+    '/login',
+    rateLimiters.auth, // Strict limit (prevents credential stuffing)
+    validateBody(AuthSchema),
+    authController.login
+);
+
 router.get('/me', authenticate, authController.me);
 
-// --- OTP Routes (Phone) ---
-router.post('/otp/phone', authController.sendPhoneOtp);
-router.post('/verify/phone', authController.verifyPhoneOtp);
+// ======================================================
+// 2. OTP Services (Dual Layer Protection)
+// ======================================================
+// We apply Source + Target limits to BOTH Phone and Email
+// to save costs and prevent harassment.
 
-// --- OTP Routes (Email) ---
-router.post('/otp/email', authController.sendEmailOtp);
-router.post('/verify/email', authController.verifyEmailOtp);
+// --- Phone ---
+router.post(
+    '/otp/phone',
+    [rateLimiters.otpSource, rateLimiters.otpTarget], // <--- Fixed Accessor
+    authController.sendPhoneOtp
+);
 
-// --- Password Reset ---
+router.post(
+    '/verify/phone',
+    rateLimiters.auth, // Verification attempts should be strict (prevents brute force guessing)
+    authController.verifyPhoneOtp
+);
+
+// --- Email ---
+router.post(
+    '/otp/email',
+    [rateLimiters.otpSource, rateLimiters.otpTarget], // <--- Added Dual Layer here too
+    authController.sendEmailOtp
+);
+
+router.post('/verify/email', rateLimiters.auth, authController.verifyEmailOtp);
+
+// ======================================================
+// 3. Password Management
+// ======================================================
+
 router.post('/password/reset-request', authController.requestPasswordReset);
-router.post('/password/verify-otp', authController.verifyResetOtp);
+
+router.post(
+    '/password/verify-otp',
+    rateLimiters.auth, // Strict check for the OTP itself
+    authController.verifyResetOtp
+);
+
 router.post('/password/reset', authController.resetPassword);
 
-// --- KYC Routes ---
-router.post('/kyc', authenticate, authController.submitKyc);
+// ======================================================
+// 4. KYC & Compliance
+// ======================================================
+
+router.post(
+    '/kyc',
+    authenticate,
+    rateLimiters.global,
+    uploadKyc.single('document'), // Expects form-data with key 'document'
+    authController.submitKyc
+);
+
+// router.post(
+//     '/profile/avatar',
+//     authenticate,
+//     uploadAvatar.single('avatar'),
+//     authController.updateAvatar
+// );
+
 router.get('/verification-status', authenticate, authController.getVerificationStatus);
 
 export default router;

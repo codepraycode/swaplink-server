@@ -3,6 +3,7 @@ import { envConfig } from '../config/env.config';
 import { PrismaClient } from './generated/prisma';
 
 export * from './database.types';
+export * from './database.errors';
 
 const isDevelopment = envConfig.NODE_ENV === 'development';
 

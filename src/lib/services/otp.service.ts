@@ -24,7 +24,6 @@ export class OtpService {
         const otpRecord = await prisma.otp.create({
             data: {
                 identifier,
-                userId,
                 code,
                 type,
                 expiresAt,

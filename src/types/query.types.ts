@@ -1,7 +1,7 @@
-import { OfferType } from '../database/generated/prisma';
+// import { OfferType } from '../database';
 
 export type QueryNumber = number | `${number}`;
-export type Type = OfferType;
+export type Type = string;
 export type Currency = string;
 export type UserId = string;
 

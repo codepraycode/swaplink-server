@@ -1,19 +1,23 @@
-import { DATABASE_URL, isDevEnv, isProdEnv, isTestEnv, NODE_ENV } from '../../config/env.config';
+import { envConfig } from '../../config/env.config';
 import { PrismaClient } from '../../database/generated/prisma';
 
 // Prevent multiple instances in development
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
+const isDevEnv = envConfig.NODE_ENV === 'development';
+const isProdEnv = envConfig.NODE_ENV === 'production';
+const isTestEnv = envConfig.NODE_ENV === 'test';
+
 function getPrismaInstance() {
     // Log which database we're using (for debugging)
-    console.log(`🔧 Environment: ${NODE_ENV || 'development'}`);
+    console.log(`🔧 Environment: ${envConfig.NODE_ENV || 'development'}`);
     console.log(`🗄️  Database: ${isTestEnv ? 'TEST' : 'DEVELOPMENT'}`);
-    console.log(`🗄️  Database URL: ${DATABASE_URL}`);
+    console.log(`🗄️  Database URL: ${envConfig.DATABASE_URL}`);
 
     return new PrismaClient({
         datasources: {
             db: {
-                url: DATABASE_URL,
+                url: envConfig.DATABASE_URL,
             },
         },
         log: isDevEnv ? ['query', 'info', 'warn', 'error'] : ['error'],
@@ -33,7 +37,7 @@ export const checkDatabaseConnection = async (): Promise<boolean> => {
         >`SELECT current_database()`;
         const dbName = result[0]?.current_database;
 
-        console.log(`✅ Database connected: ${dbName} (${NODE_ENV || 'unknown'})`);
+        console.log(`✅ Database connected: ${dbName} (${envConfig.NODE_ENV || 'unknown'})`);
 
         // Verify we're using the correct database for the environment
         if (isTestEnv && !dbName?.includes('test')) {

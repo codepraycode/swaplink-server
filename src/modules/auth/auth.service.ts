@@ -89,7 +89,7 @@ class AuthService {
 
         const user = await prisma.user.findUnique({
             where: { email },
-            include: { wallets: true },
+            include: { wallet: true },
         });
 
         if (!user) {
@@ -127,7 +127,7 @@ class AuthService {
     async getUser(id: string) {
         const user = await prisma.user.findUnique({
             where: { id },
-            include: { wallets: true },
+            include: { wallet: true },
         });
 
         if (!user) {
