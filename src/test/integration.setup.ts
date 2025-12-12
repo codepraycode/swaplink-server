@@ -1,8 +1,9 @@
 import { execSync } from 'child_process';
+import logger from '../lib/utils/logger';
 
 // Global setup for integration tests
 export default async function globalSetup() {
-    console.debug('🚀 Setting up integration test environment...');
+    logger.debug('🚀 Setting up integration test environment...');
 
     // Start test database
     execSync('npm run docker:test:up', { stdio: 'inherit' });
@@ -13,5 +14,5 @@ export default async function globalSetup() {
     // Run migrations
     execSync('npm run db:migrate', { stdio: 'inherit' });
 
-    console.debug('✅ Integration test environment ready');
+    logger.debug('✅ Integration test environment ready');
 }

@@ -4,6 +4,7 @@ import { ConflictError, NotFoundError, UnauthorizedError } from '../../lib/utils
 import { JwtUtils } from '../../lib/utils/jwt-utils';
 import { otpService } from '../../lib/services/otp.service';
 import walletService from '../../lib/services/wallet.service';
+import logger from '../../lib/utils/logger';
 
 // DTOs
 interface AuthDTO {
@@ -111,7 +112,7 @@ class AuthService {
                 where: { id: user.id },
                 data: { lastLogin: new Date() },
             })
-            .catch(err => console.error('Failed to update last login', err));
+            .catch(err => logger.error('Failed to update last login', err));
 
         // Generate Tokens via Utils
         const tokens = this.generateTokens(user);

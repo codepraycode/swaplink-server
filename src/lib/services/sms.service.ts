@@ -1,4 +1,5 @@
 import logger from '../utils/logger';
+import { envConfig } from '../../config/env.config';
 
 /**
  * SMS Service Interface
@@ -22,7 +23,7 @@ export class SmsService implements ISmsService {
             // TODO: Integrate with actual SMS provider (Twilio, Termii, etc.)
 
             // In development/test, log the message for debugging
-            if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+            if (envConfig.NODE_ENV === 'development' || envConfig.NODE_ENV === 'test') {
                 logger.info(`[SMS Service] 📱 SMS to ${phoneNumber}`);
                 logger.info(`[SMS Service] Message: ${message}`);
             }
@@ -42,7 +43,7 @@ export class SmsService implements ISmsService {
         const message = `Your SwapLink verification code is: ${code}. Valid for 10 minutes. Do not share this code.`;
 
         // Log OTP prominently in development/test for easy access
-        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+        if (envConfig.NODE_ENV === 'development' || envConfig.NODE_ENV === 'test') {
             logger.info('═══════════════════════════════════════');
             logger.info(`📱 SMS OTP for ${phoneNumber}`);
             logger.info(`🔑 CODE: ${code}`);

@@ -1,18 +1,19 @@
 import prisma from '../lib/utils/database';
+import logger from '../lib/utils/logger';
 
 // Global test timeout
 jest.setTimeout(30000);
 
 // Verify we're using test database
 beforeAll(async () => {
-    console.log(`🧪 Test Environment: ${process.env.NODE_ENV}`);
+    logger.debug(`🧪 Test Environment: ${process.env.NODE_ENV}`);
 
     try {
         const result = await prisma.$queryRaw<
             Array<{ current_database: string }>
         >`SELECT current_database()`;
         const dbName = result?.[0]?.current_database;
-        console.log(`🔍 Connected to database: ${dbName}`);
+        logger.debug(`🔍 Connected to database: ${dbName}`);
 
         if (!dbName?.includes('test')) {
             throw new Error(
@@ -38,9 +39,9 @@ afterAll(async () => {
         await prisma.bankAccount.deleteMany();
         await prisma.otp.deleteMany();
         await prisma.user.deleteMany();
-        console.log('✅ Database cleaned successfully');
+        logger.debug('✅ Database cleaned successfully');
     } catch (error) {
-        console.warn('⚠️ Database cleanup had issues:', error);
+        logger.warn('⚠️ Database cleanup had issues:', error);
     }
 
     await prisma.$disconnect();

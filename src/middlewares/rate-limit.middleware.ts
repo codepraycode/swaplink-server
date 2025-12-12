@@ -14,6 +14,8 @@ const standardHandler = (req: Request, res: Response, next: any, options: any) =
     });
 };
 
+import { envConfig } from '../config/env.config';
+
 // ======================================================
 // Global Rate Limiter
 // ======================================================
@@ -25,6 +27,7 @@ export const globalRateLimiter: RateLimitRequestHandler = rateLimit({
     legacyHeaders: false,
     keyGenerator: rateLimitKeyGenerator, // Imported from config
     handler: standardHandler,
+    skip: () => envConfig.NODE_ENV === 'test',
 });
 
 // ======================================================
@@ -39,6 +42,7 @@ export const authRateLimiter: RateLimitRequestHandler = rateLimit({
     legacyHeaders: false,
     keyGenerator: rateLimitKeyGenerator, // Imported from config
     handler: standardHandler,
+    skip: () => envConfig.NODE_ENV === 'test',
 });
 
 // ======================================================
@@ -60,6 +64,7 @@ export const otpTargetLimiter: RateLimitRequestHandler = rateLimit({
         return `otp_target:${req.body?.phone || req.body?.email || req.ip}`;
     },
     handler: standardHandler,
+    skip: () => envConfig.NODE_ENV === 'test',
 });
 
 /**
@@ -74,6 +79,7 @@ export const otpSourceLimiter: RateLimitRequestHandler = rateLimit({
     legacyHeaders: false,
     keyGenerator: rateLimitKeyGenerator, // Imported from config
     handler: standardHandler,
+    skip: () => envConfig.NODE_ENV === 'test',
 });
 
 export default {

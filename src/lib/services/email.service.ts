@@ -1,4 +1,5 @@
 import logger from '../utils/logger';
+import { envConfig } from '../../config/env.config';
 
 /**
  * Email Service Interface
@@ -11,10 +12,6 @@ export interface IEmailService {
     sendWelcomeEmail(email: string, firstName: string): Promise<boolean>;
 }
 
-/**
- * Mock Email Service for Development/Testing
- * Replace this with actual implementation when integrating with Email providers
- */
 export class EmailService implements IEmailService {
     /**
      * Send a generic email
@@ -24,7 +21,7 @@ export class EmailService implements IEmailService {
             // TODO: Integrate with actual Email provider (SendGrid, AWS SES, etc.)
 
             // In development/test, log the email for debugging
-            if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+            if (envConfig.NODE_ENV === 'development' || envConfig.NODE_ENV === 'test') {
                 logger.info(`[Email Service] 📧 Email to ${to}`);
                 logger.info(`[Email Service] Subject: ${subject}`);
             }
@@ -50,7 +47,7 @@ export class EmailService implements IEmailService {
         `;
 
         // Log OTP prominently in development/test for easy access
-        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+        if (envConfig.NODE_ENV === 'development' || envConfig.NODE_ENV === 'test') {
             logger.info('═══════════════════════════════════════');
             logger.info(`📧 EMAIL OTP for ${email}`);
             logger.info(`🔑 CODE: ${code}`);
@@ -66,7 +63,7 @@ export class EmailService implements IEmailService {
      */
     async sendPasswordResetLink(email: string, resetToken: string): Promise<boolean> {
         const subject = 'SwapLink - Password Reset Request';
-        const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+        const resetLink = `${envConfig.FRONTEND_URL}/reset-password?token=${resetToken}`;
         const body = `
             <h2>Password Reset Request</h2>
             <p>You requested to reset your password. Click the link below to proceed:</p>
@@ -76,7 +73,7 @@ export class EmailService implements IEmailService {
         `;
 
         // Log reset token prominently in development/test for easy access
-        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+        if (envConfig.NODE_ENV === 'development' || envConfig.NODE_ENV === 'test') {
             logger.info('═══════════════════════════════════════');
             logger.info(`📧 PASSWORD RESET for ${email}`);
             logger.info(`🔑 Reset Token: ${resetToken}`);

@@ -1,10 +1,17 @@
 import { SmsService } from '../sms.service';
 import logger from '../../utils/logger';
+import { envConfig } from '../../../config/env.config';
 
 jest.mock('../../utils/logger', () => ({
     info: jest.fn(),
     error: jest.fn(),
     warn: jest.fn(),
+}));
+
+jest.mock('../../../config/env.config', () => ({
+    envConfig: {
+        NODE_ENV: 'test',
+    },
 }));
 
 describe('SmsService - Unit Tests', () => {
@@ -13,8 +20,8 @@ describe('SmsService - Unit Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         smsService = new SmsService();
-        // Set NODE_ENV to test to suppress logging
-        process.env.NODE_ENV = 'test';
+        // Reset envConfig mock
+        (envConfig as any).NODE_ENV = 'test';
     });
 
     describe('sendSms', () => {
@@ -28,7 +35,7 @@ describe('SmsService - Unit Tests', () => {
         });
 
         it('should log SMS details in development environment', async () => {
-            process.env.NODE_ENV = 'development';
+            (envConfig as any).NODE_ENV = 'development';
             const phoneNumber = '+2348012345678';
             const message = 'Test message';
 
@@ -43,7 +50,7 @@ describe('SmsService - Unit Tests', () => {
         });
 
         it('should log in test environment for debugging', async () => {
-            process.env.NODE_ENV = 'test';
+            (envConfig as any).NODE_ENV = 'test';
             const phoneNumber = '+2348012345678';
             const message = 'Test message';
 

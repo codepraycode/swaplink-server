@@ -33,6 +33,7 @@ interface EnvConfig {
     SMTP_PASSWORD: string;
     EMAIL_TIMEOUT: number;
     FROM_EMAIL: string;
+    FRONTEND_URL: string;
 }
 
 const loadEnv = () => {
@@ -49,7 +50,7 @@ const loadEnv = () => {
         dotenv.config({ path: genericEnvFile });
     } else if (configResult.error) {
         // Log other potential errors with loading the file
-        console.error(`Error loading env file (${envFile}):`, configResult.error.message);
+        logger.error(`Error loading env file (${envFile}):`, configResult.error.message);
     }
 };
 
@@ -91,6 +92,7 @@ export const envConfig: EnvConfig = {
     SMTP_PASSWORD: getEnv('SMTP_PASSWORD'),
     EMAIL_TIMEOUT: parseInt(getEnv('EMAIL_TIMEOUT', '10000'), 10),
     FROM_EMAIL: getEnv('FROM_EMAIL', 'no-reply@example.com'),
+    FRONTEND_URL: getEnv('FRONTEND_URL', 'http://localhost:3000'),
 };
 
 /**

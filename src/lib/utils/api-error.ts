@@ -103,7 +103,7 @@ export class PrismaErrorConverter {
         }
 
         if (error instanceof PrismaClientKnownRequestError) {
-            return this.handleKnownRequestError(error);
+            return this.handleKnownRequestError(error as Prisma.PrismaClientKnownRequestError);
         }
 
         // SECURITY FIX 1: Sanitize Validation Errors

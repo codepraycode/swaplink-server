@@ -1,10 +1,18 @@
 import { EmailService } from '../email.service';
 import logger from '../../utils/logger';
+import { envConfig } from '../../../config/env.config';
 
 jest.mock('../../utils/logger', () => ({
     info: jest.fn(),
     error: jest.fn(),
     warn: jest.fn(),
+}));
+
+jest.mock('../../../config/env.config', () => ({
+    envConfig: {
+        NODE_ENV: 'test',
+        FRONTEND_URL: 'http://localhost:3000',
+    },
 }));
 
 describe('EmailService - Unit Tests', () => {
@@ -13,7 +21,8 @@ describe('EmailService - Unit Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         emailService = new EmailService();
-        process.env.NODE_ENV = 'test';
+        (envConfig as any).NODE_ENV = 'test';
+        (envConfig as any).FRONTEND_URL = 'http://localhost:3000';
     });
 
     describe('sendEmail', () => {
@@ -28,7 +37,7 @@ describe('EmailService - Unit Tests', () => {
         });
 
         it('should log email details in development environment', async () => {
-            process.env.NODE_ENV = 'development';
+            (envConfig as any).NODE_ENV = 'development';
             const to = 'user@example.com';
             const subject = 'Test Subject';
             const body = 'Test body';
@@ -44,7 +53,7 @@ describe('EmailService - Unit Tests', () => {
         });
 
         it('should log in test environment for debugging', async () => {
-            process.env.NODE_ENV = 'test';
+            (envConfig as any).NODE_ENV = 'test';
             const to = 'user@example.com';
             const subject = 'Test Subject';
             const body = 'Test body';
@@ -135,7 +144,7 @@ describe('EmailService - Unit Tests', () => {
 
     describe('sendPasswordResetLink', () => {
         it('should send password reset email with reset link', async () => {
-            process.env.FRONTEND_URL = 'https://swaplink.app';
+            (envConfig as any).FRONTEND_URL = 'https://swaplink.app';
             const email = 'user@example.com';
             const resetToken = 'reset_token_xyz';
 
@@ -152,7 +161,7 @@ describe('EmailService - Unit Tests', () => {
         });
 
         it('should include frontend URL in reset link', async () => {
-            process.env.FRONTEND_URL = 'https://swaplink.app';
+            (envConfig as any).FRONTEND_URL = 'https://swaplink.app';
             const email = 'user@example.com';
             const resetToken = 'reset_token_xyz';
 

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { sendSuccess } from '../../lib/utils/api-response';
+import { sendCreated, sendSuccess } from '../../lib/utils/api-response';
 import { HttpStatusCode } from '../../lib/utils/http-status-codes';
 import authService from './auth.service';
 
@@ -8,7 +8,7 @@ class AuthController {
         try {
             const result = await authService.register(req.body);
 
-            sendSuccess(
+            sendCreated(
                 res,
                 {
                     user: result.user,
@@ -18,8 +18,7 @@ class AuthController {
                         expiresIn: result.expiresIn,
                     },
                 },
-                'User registered successfully',
-                HttpStatusCode.CREATED
+                'User registered successfully'
             );
         } catch (error) {
             next(error);

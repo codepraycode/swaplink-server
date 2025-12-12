@@ -13,11 +13,11 @@ describe('Auth API - E2E Tests', () => {
         await prisma.user.deleteMany();
     });
 
-    describe('POST /api/auth/register', () => {
+    describe('POST /api/v1/auth/register', () => {
         it('should register a new user successfully', async () => {
             const userData = TestUtils.generateUserData();
 
-            const response = await request(app).post('/api/auth/register').send(userData);
+            const response = await request(app).post('/api/v1/auth/register').send(userData);
 
             expect(response.status).toBe(201);
             expect(response.body.success).toBe(true);
@@ -32,9 +32,9 @@ describe('Auth API - E2E Tests', () => {
         it('should return 409 for duplicate email', async () => {
             const userData = TestUtils.generateUserData();
 
-            await request(app).post('/api/auth/register').send(userData);
+            await request(app).post('/api/v1/auth/register').send(userData);
 
-            const response = await request(app).post('/api/auth/register').send(userData);
+            const response = await request(app).post('/api/v1/auth/register').send(userData);
 
             expect(response.status).toBe(409);
             expect(response.body.success).toBe(false);
@@ -46,9 +46,9 @@ describe('Auth API - E2E Tests', () => {
                 phone: userData1.phone,
             });
 
-            await request(app).post('/api/auth/register').send(userData1);
+            await request(app).post('/api/v1/auth/register').send(userData1);
 
-            const response = await request(app).post('/api/auth/register').send(userData2);
+            const response = await request(app).post('/api/v1/auth/register').send(userData2);
 
             expect(response.status).toBe(409);
             expect(response.body.success).toBe(false);
@@ -57,7 +57,7 @@ describe('Auth API - E2E Tests', () => {
         it('should create wallet for the new user', async () => {
             const userData = TestUtils.generateUserData();
 
-            const response = await request(app).post('/api/auth/register').send(userData);
+            const response = await request(app).post('/api/v1/auth/register').send(userData);
 
             const wallet = await prisma.wallet.findUnique({
                 where: { userId: response.body.data.user.id },
@@ -69,14 +69,14 @@ describe('Auth API - E2E Tests', () => {
         });
     });
 
-    describe('POST /api/auth/login', () => {
+    describe('POST /api/v1/auth/login', () => {
         it('should login with valid credentials', async () => {
             const password = 'Password123!';
             const userData = TestUtils.generateUserData({ password });
 
-            await request(app).post('/api/auth/register').send(userData);
+            await request(app).post('/api/v1/auth/register').send(userData);
 
-            const response = await request(app).post('/api/auth/login').send({
+            const response = await request(app).post('/api/v1/auth/login').send({
                 email: userData.email,
                 password,
             });
@@ -89,7 +89,7 @@ describe('Auth API - E2E Tests', () => {
         });
 
         it('should return 401 for invalid email', async () => {
-            const response = await request(app).post('/api/auth/login').send({
+            const response = await request(app).post('/api/v1/auth/login').send({
                 email: 'nonexistent@example.com',
                 password: 'Password123!',
             });
@@ -100,9 +100,9 @@ describe('Auth API - E2E Tests', () => {
 
         it('should return 401 for invalid password', async () => {
             const userData = TestUtils.generateUserData();
-            await request(app).post('/api/auth/register').send(userData);
+            await request(app).post('/api/v1/auth/register').send(userData);
 
-            const response = await request(app).post('/api/auth/login').send({
+            const response = await request(app).post('/api/v1/auth/login').send({
                 email: userData.email,
                 password: 'WrongPassword123!',
             });
@@ -113,7 +113,9 @@ describe('Auth API - E2E Tests', () => {
 
         it('should return 401 for deactivated account', async () => {
             const userData = TestUtils.generateUserData();
-            const registerResponse = await request(app).post('/api/auth/register').send(userData);
+            const registerResponse = await request(app)
+                .post('/api/v1/auth/register')
+                .send(userData);
 
             // Deactivate account
             await prisma.user.update({
@@ -121,7 +123,7 @@ describe('Auth API - E2E Tests', () => {
                 data: { isActive: false },
             });
 
-            const response = await request(app).post('/api/auth/login').send({
+            const response = await request(app).post('/api/v1/auth/login').send({
                 email: userData.email,
                 password: userData.password,
             });
@@ -130,15 +132,17 @@ describe('Auth API - E2E Tests', () => {
         });
     });
 
-    describe('GET /api/auth/me', () => {
+    describe('GET /api/v1/auth/me', () => {
         it('should return current user profile', async () => {
             const userData = TestUtils.generateUserData();
-            const registerResponse = await request(app).post('/api/auth/register').send(userData);
+            const registerResponse = await request(app)
+                .post('/api/v1/auth/register')
+                .send(userData);
 
             const token = registerResponse.body.data.tokens.accessToken;
 
             const response = await request(app)
-                .get('/api/auth/me')
+                .get('/api/v1/auth/me')
                 .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(200);
@@ -148,14 +152,14 @@ describe('Auth API - E2E Tests', () => {
         });
 
         it('should return 401 without token', async () => {
-            const response = await request(app).get('/api/auth/me');
+            const response = await request(app).get('/api/v1/auth/me');
 
             expect(response.status).toBe(401);
         });
 
         it('should return 401 with invalid token', async () => {
             const response = await request(app)
-                .get('/api/auth/me')
+                .get('/api/v1/auth/me')
                 .set('Authorization', 'Bearer invalid-token');
 
             expect(response.status).toBe(401);
@@ -165,10 +169,10 @@ describe('Auth API - E2E Tests', () => {
     describe('Phone OTP Flow', () => {
         it('should send and verify phone OTP', async () => {
             const userData = TestUtils.generateUserData();
-            await request(app).post('/api/auth/register').send(userData);
+            await request(app).post('/api/v1/auth/register').send(userData);
 
             // Send OTP
-            const sendResponse = await request(app).post('/api/auth/otp/phone').send({
+            const sendResponse = await request(app).post('/api/v1/auth/otp/phone').send({
                 phone: userData.phone,
             });
 
@@ -189,7 +193,7 @@ describe('Auth API - E2E Tests', () => {
             expect(otpRecord).toBeDefined();
 
             // Verify OTP
-            const verifyResponse = await request(app).post('/api/auth/verify/phone').send({
+            const verifyResponse = await request(app).post('/api/v1/auth/verify/phone').send({
                 phone: userData.phone,
                 otp: otpRecord!.code,
             });
@@ -207,13 +211,13 @@ describe('Auth API - E2E Tests', () => {
 
         it('should return 400 for invalid OTP', async () => {
             const userData = TestUtils.generateUserData();
-            await request(app).post('/api/auth/register').send(userData);
+            await request(app).post('/api/v1/auth/register').send(userData);
 
-            await request(app).post('/api/auth/otp/phone').send({
+            await request(app).post('/api/v1/auth/otp/phone').send({
                 phone: userData.phone,
             });
 
-            const response = await request(app).post('/api/auth/verify/phone').send({
+            const response = await request(app).post('/api/v1/auth/verify/phone').send({
                 phone: userData.phone,
                 otp: '000000',
             });
@@ -226,10 +230,10 @@ describe('Auth API - E2E Tests', () => {
     describe('Email OTP Flow', () => {
         it('should send and verify email OTP', async () => {
             const userData = TestUtils.generateUserData();
-            await request(app).post('/api/auth/register').send(userData);
+            await request(app).post('/api/v1/auth/register').send(userData);
 
             // Send OTP
-            const sendResponse = await request(app).post('/api/auth/otp/email').send({
+            const sendResponse = await request(app).post('/api/v1/auth/otp/email').send({
                 email: userData.email,
             });
 
@@ -249,7 +253,7 @@ describe('Auth API - E2E Tests', () => {
             expect(otpRecord).toBeDefined();
 
             // Verify OTP
-            const verifyResponse = await request(app).post('/api/auth/verify/email').send({
+            const verifyResponse = await request(app).post('/api/v1/auth/verify/email').send({
                 email: userData.email,
                 otp: otpRecord!.code,
             });
@@ -265,11 +269,11 @@ describe('Auth API - E2E Tests', () => {
             const newPassword = 'NewPassword123!';
             const userData = TestUtils.generateUserData({ password: oldPassword });
 
-            await request(app).post('/api/auth/register').send(userData);
+            await request(app).post('/api/v1/auth/register').send(userData);
 
             // Request password reset
             const requestResponse = await request(app)
-                .post('/api/auth/password/reset-request')
+                .post('/api/v1/auth/password/reset-request')
                 .send({
                     email: userData.email,
                 });
@@ -289,10 +293,12 @@ describe('Auth API - E2E Tests', () => {
             expect(otpRecord).toBeDefined();
 
             // Verify OTP
-            const verifyResponse = await request(app).post('/api/auth/password/verify-otp').send({
-                email: userData.email,
-                otp: otpRecord!.code,
-            });
+            const verifyResponse = await request(app)
+                .post('/api/v1/auth/password/verify-otp')
+                .send({
+                    email: userData.email,
+                    otp: otpRecord!.code,
+                });
 
             expect(verifyResponse.status).toBe(200);
             expect(verifyResponse.body.data.resetToken).toBeDefined();
@@ -300,7 +306,7 @@ describe('Auth API - E2E Tests', () => {
             const resetToken = verifyResponse.body.data.resetToken;
 
             // Reset password
-            const resetResponse = await request(app).post('/api/auth/password/reset').send({
+            const resetResponse = await request(app).post('/api/v1/auth/password/reset').send({
                 resetToken,
                 newPassword,
             });
@@ -308,7 +314,7 @@ describe('Auth API - E2E Tests', () => {
             expect(resetResponse.status).toBe(200);
 
             // Verify can login with new password
-            const loginResponse = await request(app).post('/api/auth/login').send({
+            const loginResponse = await request(app).post('/api/v1/auth/login').send({
                 email: userData.email,
                 password: newPassword,
             });
@@ -316,7 +322,7 @@ describe('Auth API - E2E Tests', () => {
             expect(loginResponse.status).toBe(200);
 
             // Verify cannot login with old password
-            const oldLoginResponse = await request(app).post('/api/auth/login').send({
+            const oldLoginResponse = await request(app).post('/api/v1/auth/login').send({
                 email: userData.email,
                 password: oldPassword,
             });
@@ -325,7 +331,7 @@ describe('Auth API - E2E Tests', () => {
         });
 
         it('should return success even for non-existent email (security)', async () => {
-            const response = await request(app).post('/api/auth/password/reset-request').send({
+            const response = await request(app).post('/api/v1/auth/password/reset-request').send({
                 email: 'nonexistent@example.com',
             });
 
@@ -337,12 +343,14 @@ describe('Auth API - E2E Tests', () => {
     describe('KYC Routes', () => {
         it('should submit KYC with authentication', async () => {
             const userData = TestUtils.generateUserData();
-            const registerResponse = await request(app).post('/api/auth/register').send(userData);
+            const registerResponse = await request(app)
+                .post('/api/v1/auth/register')
+                .send(userData);
 
             const token = registerResponse.body.data.tokens.accessToken;
 
             const response = await request(app)
-                .post('/api/auth/kyc')
+                .post('/api/v1/auth/kyc')
                 .set('Authorization', `Bearer ${token}`)
                 .send({
                     documentType: 'passport',
@@ -356,12 +364,14 @@ describe('Auth API - E2E Tests', () => {
 
         it('should get verification status', async () => {
             const userData = TestUtils.generateUserData();
-            const registerResponse = await request(app).post('/api/auth/register').send(userData);
+            const registerResponse = await request(app)
+                .post('/api/v1/auth/register')
+                .send(userData);
 
             const token = registerResponse.body.data.tokens.accessToken;
 
             const response = await request(app)
-                .get('/api/auth/verification-status')
+                .get('/api/v1/auth/verification-status')
                 .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(200);
@@ -371,7 +381,7 @@ describe('Auth API - E2E Tests', () => {
         });
 
         it('should return 401 without authentication', async () => {
-            const response = await request(app).post('/api/auth/kyc').send({
+            const response = await request(app).post('/api/v1/auth/kyc').send({
                 documentType: 'passport',
             });
 
@@ -384,14 +394,16 @@ describe('Auth API - E2E Tests', () => {
             const userData = TestUtils.generateUserData();
 
             // 1. Register
-            const registerResponse = await request(app).post('/api/auth/register').send(userData);
+            const registerResponse = await request(app)
+                .post('/api/v1/auth/register')
+                .send(userData);
             expect(registerResponse.status).toBe(201);
 
             const token = registerResponse.body.data.tokens.accessToken;
             const userId = registerResponse.body.data.user.id;
 
             // 2. Verify Email
-            await request(app).post('/api/auth/otp/email').send({ email: userData.email });
+            await request(app).post('/api/v1/auth/otp/email').send({ email: userData.email });
 
             const emailOtp = await prisma.otp.findFirst({
                 where: { identifier: userData.email, type: OtpType.EMAIL_VERIFICATION },
@@ -399,11 +411,11 @@ describe('Auth API - E2E Tests', () => {
             });
 
             await request(app)
-                .post('/api/auth/verify/email')
+                .post('/api/v1/auth/verify/email')
                 .send({ email: userData.email, otp: emailOtp!.code });
 
             // 3. Verify Phone
-            await request(app).post('/api/auth/otp/phone').send({ phone: userData.phone });
+            await request(app).post('/api/v1/auth/otp/phone').send({ phone: userData.phone });
 
             const phoneOtp = await prisma.otp.findFirst({
                 where: { identifier: userData.phone, type: OtpType.PHONE_VERIFICATION },
@@ -411,12 +423,12 @@ describe('Auth API - E2E Tests', () => {
             });
 
             await request(app)
-                .post('/api/auth/verify/phone')
+                .post('/api/v1/auth/verify/phone')
                 .send({ phone: userData.phone, otp: phoneOtp!.code });
 
             // 4. Submit KYC
             const kycResponse = await request(app)
-                .post('/api/auth/kyc')
+                .post('/api/v1/auth/kyc')
                 .set('Authorization', `Bearer ${token}`)
                 .send({ documentType: 'passport', documentNumber: 'A12345678' });
 
@@ -424,7 +436,7 @@ describe('Auth API - E2E Tests', () => {
 
             // 5. Check final status
             const statusResponse = await request(app)
-                .get('/api/auth/verification-status')
+                .get('/api/v1/auth/verification-status')
                 .set('Authorization', `Bearer ${token}`);
 
             expect(statusResponse.body.data.isVerified).toBe(true);
