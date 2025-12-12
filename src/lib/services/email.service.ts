@@ -22,10 +22,11 @@ export class EmailService implements IEmailService {
     async sendEmail(to: string, subject: string, body: string): Promise<boolean> {
         try {
             // TODO: Integrate with actual Email provider (SendGrid, AWS SES, etc.)
-            if (process.env.NODE_ENV !== 'test') {
-                logger.info(`[Email Service] Sending email to ${to}`);
+
+            // In development/test, log the email for debugging
+            if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+                logger.info(`[Email Service] 📧 Email to ${to}`);
                 logger.info(`[Email Service] Subject: ${subject}`);
-                logger.info(`[Email Service] Body: ${body}`);
             }
 
             // Simulate email sending
@@ -47,6 +48,16 @@ export class EmailService implements IEmailService {
             <p>This code is valid for 10 minutes.</p>
             <p>If you didn't request this code, please ignore this email.</p>
         `;
+
+        // Log OTP prominently in development/test for easy access
+        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+            logger.info('═══════════════════════════════════════');
+            logger.info(`📧 EMAIL OTP for ${email}`);
+            logger.info(`🔑 CODE: ${code}`);
+            logger.info(`⏰ Valid for: 10 minutes`);
+            logger.info('═══════════════════════════════════════');
+        }
+
         return this.sendEmail(email, subject, body);
     }
 
@@ -63,6 +74,17 @@ export class EmailService implements IEmailService {
             <p>This link is valid for 15 minutes.</p>
             <p>If you didn't request this, please ignore this email.</p>
         `;
+
+        // Log reset token prominently in development/test for easy access
+        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+            logger.info('═══════════════════════════════════════');
+            logger.info(`📧 PASSWORD RESET for ${email}`);
+            logger.info(`🔑 Reset Token: ${resetToken}`);
+            logger.info(`🔗 Reset Link: ${resetLink}`);
+            logger.info(`⏰ Valid for: 15 minutes`);
+            logger.info('═══════════════════════════════════════');
+        }
+
         return this.sendEmail(email, subject, body);
     }
 

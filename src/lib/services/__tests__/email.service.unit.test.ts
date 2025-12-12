@@ -27,7 +27,7 @@ describe('EmailService - Unit Tests', () => {
             expect(result).toBe(true);
         });
 
-        it('should log email details in non-test environment', async () => {
+        it('should log email details in development environment', async () => {
             process.env.NODE_ENV = 'development';
             const to = 'user@example.com';
             const subject = 'Test Subject';
@@ -36,14 +36,14 @@ describe('EmailService - Unit Tests', () => {
             await emailService.sendEmail(to, subject, body);
 
             expect(logger.info).toHaveBeenCalledWith(
-                expect.stringContaining(`[Email Service] Sending email to ${to}`)
+                expect.stringContaining(`[Email Service] 📧 Email to ${to}`)
             );
             expect(logger.info).toHaveBeenCalledWith(
                 expect.stringContaining(`Subject: ${subject}`)
             );
         });
 
-        it('should not log in test environment', async () => {
+        it('should log in test environment for debugging', async () => {
             process.env.NODE_ENV = 'test';
             const to = 'user@example.com';
             const subject = 'Test Subject';
@@ -51,7 +51,11 @@ describe('EmailService - Unit Tests', () => {
 
             await emailService.sendEmail(to, subject, body);
 
-            expect(logger.info).not.toHaveBeenCalled();
+            // Now logs in test environment too for easier debugging
+            expect(logger.info).toHaveBeenCalled();
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.stringContaining(`[Email Service] 📧 Email to ${to}`)
+            );
         });
 
         it('should handle email sending errors gracefully', async () => {

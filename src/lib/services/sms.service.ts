@@ -20,8 +20,11 @@ export class SmsService implements ISmsService {
     async sendSms(phoneNumber: string, message: string): Promise<boolean> {
         try {
             // TODO: Integrate with actual SMS provider (Twilio, Termii, etc.)
-            if (process.env.NODE_ENV !== 'test') {
-                logger.info(`[SMS Service] Sending SMS to ${phoneNumber}: ${message}`);
+
+            // In development/test, log the message for debugging
+            if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+                logger.info(`[SMS Service] 📱 SMS to ${phoneNumber}`);
+                logger.info(`[SMS Service] Message: ${message}`);
             }
 
             // Simulate SMS sending
@@ -37,6 +40,16 @@ export class SmsService implements ISmsService {
      */
     async sendOtp(phoneNumber: string, code: string): Promise<boolean> {
         const message = `Your SwapLink verification code is: ${code}. Valid for 10 minutes. Do not share this code.`;
+
+        // Log OTP prominently in development/test for easy access
+        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+            logger.info('═══════════════════════════════════════');
+            logger.info(`📱 SMS OTP for ${phoneNumber}`);
+            logger.info(`🔑 CODE: ${code}`);
+            logger.info(`⏰ Valid for: 10 minutes`);
+            logger.info('═══════════════════════════════════════');
+        }
+
         return this.sendSms(phoneNumber, message);
     }
 }

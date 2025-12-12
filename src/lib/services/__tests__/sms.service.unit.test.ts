@@ -27,7 +27,7 @@ describe('SmsService - Unit Tests', () => {
             expect(result).toBe(true);
         });
 
-        it('should log SMS details in non-test environment', async () => {
+        it('should log SMS details in development environment', async () => {
             process.env.NODE_ENV = 'development';
             const phoneNumber = '+2348012345678';
             const message = 'Test message';
@@ -35,18 +35,25 @@ describe('SmsService - Unit Tests', () => {
             await smsService.sendSms(phoneNumber, message);
 
             expect(logger.info).toHaveBeenCalledWith(
-                expect.stringContaining(`[SMS Service] Sending SMS to ${phoneNumber}`)
+                expect.stringContaining(`[SMS Service] 📱 SMS to ${phoneNumber}`)
+            );
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.stringContaining('Message: Test message')
             );
         });
 
-        it('should not log in test environment', async () => {
+        it('should log in test environment for debugging', async () => {
             process.env.NODE_ENV = 'test';
             const phoneNumber = '+2348012345678';
             const message = 'Test message';
 
             await smsService.sendSms(phoneNumber, message);
 
-            expect(logger.info).not.toHaveBeenCalled();
+            // Now logs in test environment too for easier debugging
+            expect(logger.info).toHaveBeenCalled();
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.stringContaining(`[SMS Service] 📱 SMS to ${phoneNumber}`)
+            );
         });
 
         it('should handle SMS sending errors gracefully', async () => {
