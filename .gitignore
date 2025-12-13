@@ -6,3 +6,7 @@ node_modules
 
 generated
 dist
+
+# Test Output
+test_output.txt
+test_output*.txt

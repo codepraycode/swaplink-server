@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import authRoutes from './auth/auth.routes';
+import transferRoutes from './transfer/transfer.routes';
 import webhookRoutes from './webhook/webhook.route';
 
 const router: Router = Router();
@@ -13,17 +14,8 @@ const router: Router = Router();
  * Pattern: /api/v1/<module>/<endpoint>
  */
 
-// Mount Auth Module Routes
-// Mount Auth Module Routes
 router.use('/auth', authRoutes);
-
-// Mount Webhook Routes
 router.use('/webhooks', webhookRoutes);
-
-// TODO: Add more module routes as they are created
-// Example:
-// router.use('/wallet', walletRoutes);
-// router.use('/transactions', transactionRoutes);
-// router.use('/kyc', kycRoutes);
+router.use('/transfers', transferRoutes);
 
 export default router;

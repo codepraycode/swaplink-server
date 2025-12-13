@@ -33,11 +33,17 @@ model User {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
+  // Security
+  transactionPin   String?
+  pinAttempts      Int       @default(0)
+  pinLockedUntil   DateTime?
+
   // Relations
   wallet           Wallet?   // 1:1 Relation (One user, one wallet)
   bankAccounts     BankAccount[]
   kycDocuments     KycDocument[]
   transactions     Transaction[] // History of transactions initiated by user
+  beneficiaries    Beneficiary[]
 
   @@map("users")
 }
@@ -95,6 +101,16 @@ model Transaction {
   reference      String            @unique
   description    String?           // E.g., "Transfer to John Doe"
   metadata       Json?             // Store external gateway refs (Paystack/Flutterwave)
+
+  // Banking Fields
+  destinationBankCode String?
+  destinationAccount  String?
+  destinationName     String?
+  sessionId           String?  // NIBSS Session ID from Globus
+  fee                 Float    @default(0)
+  
+  // Idempotency
+  idempotencyKey      String?  @unique
   
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
@@ -104,6 +120,25 @@ model Transaction {
   wallet Wallet @relation(fields: [walletId], references: [id])
 
   @@map("transactions")
+}
+
+model Beneficiary {
+  id            String   @id @default(uuid())
+  userId        String
+  accountNumber String
+  accountName   String
+  bankCode      String
+  bankName      String
+  isInternal    Boolean  @default(false)
+  avatarUrl     String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  user          User     @relation(fields: [userId], references: [id])
+  
+  @@unique([userId, accountNumber, bankCode])
+  @@map("beneficiaries")
 }
 
 // ==========================================

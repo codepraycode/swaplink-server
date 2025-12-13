@@ -1,0 +1,253 @@
+import { Queue } from 'bullmq';
+import { prisma } from '../../database';
+import { redisConnection } from '../../config/redis.config';
+import { pinService } from './pin.service';
+import { walletService } from './wallet.service';
+import { nameEnquiryService } from './name-enquiry.service';
+import { beneficiaryService } from './beneficiary.service';
+import { BadRequestError, InternalError, NotFoundError } from '../utils/api-error';
+import { TransactionType, TransactionStatus } from '../../database/generated/prisma';
+import { randomUUID } from 'crypto';
+import logger from '../utils/logger';
+
+export interface TransferRequest {
+    userId: string;
+    amount: number;
+    accountNumber: string;
+    bankCode: string;
+    accountName: string; // For validation
+    narration?: string;
+    pin: string;
+    saveBeneficiary?: boolean;
+    idempotencyKey: string;
+}
+
+export class TransferService {
+    private transferQueue: Queue;
+
+    constructor() {
+        this.transferQueue = new Queue('transfer-queue', { connection: redisConnection });
+    }
+
+    /**
+     * Process a transfer request (Hybrid: Internal or External)
+     */
+    async processTransfer(payload: TransferRequest) {
+        const { userId, amount, accountNumber, bankCode, pin, idempotencyKey } = payload;
+
+        // 1. Idempotency Check
+        const existingTx = await prisma.transaction.findUnique({
+            where: { idempotencyKey },
+        });
+        if (existingTx) {
+            return {
+                message: 'Transaction already processed',
+                transactionId: existingTx.id,
+                status: existingTx.status,
+            };
+        }
+
+        // 2. PIN Verification
+        await pinService.verifyPin(userId, pin);
+
+        // 3. Resolve Destination (Internal vs External)
+        const destination = await nameEnquiryService.resolveAccount(accountNumber, bankCode);
+
+        if (destination.isInternal) {
+            const result = await this.processInternalTransfer(payload, destination);
+            if (payload.saveBeneficiary) {
+                await this.saveBeneficiary(
+                    userId,
+                    destination,
+                    payload.accountNumber,
+                    payload.bankCode
+                );
+            }
+            return result;
+        } else {
+            const result = await this.initiateExternalTransfer(payload, destination);
+            if (payload.saveBeneficiary) {
+                await this.saveBeneficiary(
+                    userId,
+                    destination,
+                    payload.accountNumber,
+                    payload.bankCode
+                );
+            }
+            return result;
+        }
+    }
+
+    private async saveBeneficiary(
+        userId: string,
+        destination: any,
+        accountNumber: string,
+        bankCode: string
+    ) {
+        try {
+            await beneficiaryService.createBeneficiary({
+                userId,
+                accountNumber,
+                accountName: destination.accountName,
+                bankCode,
+                bankName: destination.bankName,
+                isInternal: destination.isInternal,
+            });
+        } catch (error) {
+            logger.error('Failed to save beneficiary', error);
+        }
+    }
+
+    /**
+     * Handle Internal Transfer (Atomic)
+     */
+    private async processInternalTransfer(payload: TransferRequest, destination: any) {
+        const { userId, amount, accountNumber, narration, idempotencyKey } = payload;
+
+        // Find Sender Wallet
+        const senderWallet = await prisma.wallet.findUnique({ where: { userId } });
+        if (!senderWallet) throw new NotFoundError('Sender wallet not found');
+
+        // Find Receiver Wallet (via Virtual Account)
+        const receiverVirtualAccount = await prisma.virtualAccount.findUnique({
+            where: { accountNumber },
+            include: { wallet: true },
+        });
+        if (!receiverVirtualAccount) throw new NotFoundError('Receiver account not found');
+
+        const receiverWallet = receiverVirtualAccount.wallet;
+
+        if (senderWallet.id === receiverWallet.id) {
+            throw new BadRequestError('Cannot transfer to self');
+        }
+
+        // Atomic Transaction
+        return await prisma.$transaction(async tx => {
+            // Check Balance
+            if (senderWallet.balance < amount) {
+                throw new BadRequestError('Insufficient funds');
+            }
+
+            // Debit Sender
+            const senderTx = await tx.transaction.create({
+                data: {
+                    userId: senderWallet.userId,
+                    walletId: senderWallet.id,
+                    type: TransactionType.TRANSFER,
+                    amount: -amount,
+                    balanceBefore: senderWallet.balance,
+                    balanceAfter: senderWallet.balance - amount,
+                    status: TransactionStatus.COMPLETED,
+                    reference: `TRF-${randomUUID()}`,
+                    description: narration || `Transfer to ${destination.accountName}`,
+                    destinationAccount: accountNumber,
+                    destinationBankCode: payload.bankCode,
+                    destinationName: destination.accountName,
+                    idempotencyKey,
+                },
+            });
+
+            await tx.wallet.update({
+                where: { id: senderWallet.id },
+                data: { balance: { decrement: amount } },
+            });
+
+            // Credit Receiver
+            await tx.transaction.create({
+                data: {
+                    userId: receiverWallet.userId,
+                    walletId: receiverWallet.id,
+                    type: TransactionType.DEPOSIT,
+                    amount: amount,
+                    balanceBefore: receiverWallet.balance,
+                    balanceAfter: receiverWallet.balance + amount,
+                    status: TransactionStatus.COMPLETED,
+                    reference: `DEP-${randomUUID()}`,
+                    description: narration || `Received from ${senderWallet.userId}`, // Ideally user name
+                    metadata: { senderId: senderWallet.userId },
+                },
+            });
+
+            await tx.wallet.update({
+                where: { id: receiverWallet.id },
+                data: { balance: { increment: amount } },
+            });
+
+            return {
+                message: 'Transfer successful',
+                transactionId: senderTx.id,
+                status: 'COMPLETED',
+                amount,
+                recipient: destination.accountName,
+            };
+        });
+    }
+
+    /**
+     * Initiate External Transfer (Async)
+     */
+    private async initiateExternalTransfer(payload: TransferRequest, destination: any) {
+        const { userId, amount, accountNumber, bankCode, narration, idempotencyKey } = payload;
+        const fee = 0; // TODO: Implement fee logic
+
+        const senderWallet = await prisma.wallet.findUnique({ where: { userId } });
+        if (!senderWallet) throw new NotFoundError('Sender wallet not found');
+
+        if (senderWallet.balance < amount + fee) {
+            throw new BadRequestError('Insufficient funds');
+        }
+
+        // 1. Debit & Create Pending Transaction
+        const transaction = await prisma.$transaction(async tx => {
+            const txRecord = await tx.transaction.create({
+                data: {
+                    userId: senderWallet.userId,
+                    walletId: senderWallet.id,
+                    type: TransactionType.TRANSFER,
+                    amount: -(amount + fee),
+                    balanceBefore: senderWallet.balance,
+                    balanceAfter: senderWallet.balance - (amount + fee),
+                    status: TransactionStatus.PENDING,
+                    reference: `NIP-${randomUUID()}`,
+                    description: narration || `Transfer to ${destination.accountName}`,
+                    destinationAccount: accountNumber,
+                    destinationBankCode: bankCode,
+                    destinationName: destination.accountName,
+                    fee,
+                    idempotencyKey,
+                },
+            });
+
+            await tx.wallet.update({
+                where: { id: senderWallet.id },
+                data: { balance: { decrement: amount + fee } },
+            });
+
+            return txRecord;
+        });
+
+        // 2. Add to Queue
+        try {
+            await this.transferQueue.add('process-external-transfer', {
+                transactionId: transaction.id,
+                destination,
+                amount,
+                narration,
+            });
+        } catch (error) {
+            logger.error('Failed to queue transfer', error);
+            // In a real system, we might want to reverse the debit here or have a reconciliation job pick it up
+            // For now, we'll rely on the reconciliation job
+        }
+
+        return {
+            message: 'Transfer processing',
+            transactionId: transaction.id,
+            status: 'PENDING',
+            amount,
+            recipient: destination.accountName,
+        };
+    }
+}
+
+export const transferService = new TransferService();
