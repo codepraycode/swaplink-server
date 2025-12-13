@@ -110,7 +110,12 @@ Authenticates a user and returns access tokens.
             "firstName": "John",
             "lastName": "Doe",
             "kycLevel": "NONE",
-            "isVerified": false
+            "isVerified": false,
+            "wallet": {
+                "id": "wallet-uuid",
+                "balance": 0,
+                "lockedBalance": 0
+            }
         },
         "tokens": {
             "accessToken": "jwt-token-string",

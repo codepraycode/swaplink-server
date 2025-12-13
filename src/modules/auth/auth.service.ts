@@ -5,6 +5,7 @@ import { JwtUtils } from '../../lib/utils/jwt-utils';
 import { otpService } from '../../lib/services/otp.service';
 import walletService from '../../lib/services/wallet.service';
 import logger from '../../lib/utils/logger';
+import { formatUserInfo } from '../../lib/utils/functions';
 
 // DTOs
 interface AuthDTO {
@@ -117,10 +118,8 @@ class AuthService {
         // Generate Tokens via Utils
         const tokens = this.generateTokens(user);
 
-        const { password: _, ...userWithoutPassword } = user;
-
         return {
-            user: userWithoutPassword,
+            user: formatUserInfo(user),
             ...tokens,
         };
     }
@@ -135,8 +134,7 @@ class AuthService {
             throw new NotFoundError('User not found');
         }
 
-        const { password, ...safeUser } = user;
-        return safeUser;
+        return formatUserInfo(user);
     }
 
     async sendOtp(identifier: string, type: 'phone' | 'email') {
