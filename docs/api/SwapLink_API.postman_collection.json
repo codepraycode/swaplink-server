@@ -1,167 +1,615 @@
 {
-    "info": {
-        "_postman_id": "swaplink-api-collection",
-        "name": "SwapLink API",
-        "description": "API Collection for SwapLink Server, including Auth and Webhooks.",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-    },
-    "item": [
-        {
-            "name": "Auth",
-            "item": [
-                {
-                    "name": "Register",
-                    "request": {
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+2348000000001\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/auth/register",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["auth", "register"]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Login",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "var jsonData = pm.response.json();",
-                                    "pm.environment.set(\"accessToken\", jsonData.data.accessToken);",
-                                    "pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/auth/login",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["auth", "login"]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get Me",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{accessToken}}",
-                                "type": "text"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{baseUrl}}/auth/me",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["auth", "me"]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Refresh Token",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "var jsonData = pm.response.json();",
-                                    "pm.environment.set(\"accessToken\", jsonData.data.accessToken);"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/auth/refresh-token",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["auth", "refresh-token"]
-                        }
-                    },
-                    "response": []
-                }
-            ]
-        },
-        {
-            "name": "Webhooks",
-            "item": [
-                {
-                    "name": "Globus Credit Notification",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "x-globus-signature",
-                                "value": "{{signature}}",
-                                "type": "text",
-                                "description": "HMAC-SHA256 Signature of the payload using GLOBUS_WEBHOOK_SECRET"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"type\": \"credit_notification\",\n    \"data\": {\n        \"accountNumber\": \"1234567890\",\n        \"amount\": 5000,\n        \"reference\": \"ref_123456\"\n    }\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/webhooks/globus",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["webhooks", "globus"]
-                        },
-                        "description": "Simulate a webhook call from Globus Bank. You must generate a valid signature for the payload using your local GLOBUS_WEBHOOK_SECRET."
-                    },
-                    "response": []
-                }
-            ]
-        }
-    ],
-    "variable": [
-        {
-            "key": "baseUrl",
-            "value": "http://localhost:8080/api/v1",
-            "type": "string"
-        }
-    ]
+	"info": {
+		"_postman_id": "swaplink-api-collection",
+		"name": "SwapLink API",
+		"description": "Comprehensive API documentation for the SwapLink Server. This collection covers Authentication, Wallet Transfers, P2P Trading, and Admin Dispute Resolution.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"phone\": \"+2348012345678\",\n    \"password\": \"Password123!\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user account."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"token\", jsonData.token);",
+									"pm.environment.set(\"refreshToken\", jsonData.refreshToken);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"Password123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login and retrieve access/refresh tokens. Automatically saves 'token' to environment."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile (Me)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						},
+						"description": "Get the currently authenticated user's profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Send Phone OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"+2348012345678\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/otp/phone",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"otp",
+								"phone"
+							]
+						},
+						"description": "Send an OTP to the specified phone number."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Phone OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"+2348012345678\",\n    \"code\": \"123456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/verify/phone",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"verify",
+								"phone"
+							]
+						},
+						"description": "Verify the OTP sent to the phone number."
+					},
+					"response": []
+				},
+				{
+					"name": "Submit KYC",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "document",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "type",
+									"value": "NIN",
+									"type": "text"
+								},
+								{
+									"key": "number",
+									"value": "12345678901",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/kyc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"kyc"
+							]
+						},
+						"description": "Upload KYC documents (Multipart Form Data)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Transfers & Wallet",
+			"item": [
+				{
+					"name": "Name Enquiry",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bankCode\": \"058\",\n    \"accountNumber\": \"0123456789\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/transfers/name-enquiry",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transfers",
+								"name-enquiry"
+							]
+						},
+						"description": "Resolve an account name before transfer."
+					},
+					"response": []
+				},
+				{
+					"name": "Process Transfer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": 5000,\n    \"bankCode\": \"058\",\n    \"accountNumber\": \"0123456789\",\n    \"accountName\": \"John Doe\",\n    \"pin\": \"1234\",\n    \"narration\": \"Payment for services\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/transfers/process",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transfers",
+								"process"
+							]
+						},
+						"description": "Initiate a fund transfer."
+					},
+					"response": []
+				},
+				{
+					"name": "Set/Update PIN",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"pin\": \"1234\",\n    \"oldPin\": \"0000\" \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/transfers/pin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transfers",
+								"pin"
+							]
+						},
+						"description": "Set or update the transaction PIN. `oldPin` is required for updates."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. P2P Trading",
+			"item": [
+				{
+					"name": "Get Ads (Feed)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/p2p/ads?type=BUY&currency=NGN",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"p2p",
+								"ads"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "BUY"
+								},
+								{
+									"key": "currency",
+									"value": "NGN"
+								}
+							]
+						},
+						"description": "Get a list of active P2P ads."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Ad",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"SELL\",\n    \"asset\": \"USDT\",\n    \"fiat\": \"NGN\",\n    \"priceType\": \"FIXED\",\n    \"price\": 1500,\n    \"totalAmount\": 100,\n    \"minLimit\": 1000,\n    \"maxLimit\": 150000,\n    \"paymentMethodIds\": [\"uuid-1\", \"uuid-2\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/p2p/ads",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"p2p",
+								"ads"
+							]
+						},
+						"description": "Create a new P2P advertisement."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"adId\": \"uuid-of-ad\",\n    \"amount\": 5000\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/p2p/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"p2p",
+								"orders"
+							]
+						},
+						"description": "Place an order on an ad."
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Paid (Buyer)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/p2p/orders/:id/pay",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"p2p",
+								"orders",
+								":id",
+								"pay"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "order-uuid"
+								}
+							]
+						},
+						"description": "Buyer marks the order as paid."
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm/Release (Seller)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/p2p/orders/:id/confirm",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"p2p",
+								"orders",
+								":id",
+								"confirm"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "order-uuid"
+								}
+							]
+						},
+						"description": "Seller confirms receipt and releases crypto."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Admin & Disputes",
+			"item": [
+				{
+					"name": "Get Disputes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/disputes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"disputes"
+							]
+						},
+						"description": "List all disputed orders (Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Resolve Dispute",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"decision\": \"RELEASE\",\n    \"notes\": \"Buyer provided valid proof.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/disputes/:id/resolve",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"disputes",
+								":id",
+								"resolve"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "order-uuid"
+								}
+							]
+						},
+						"description": "Resolve a dispute by releasing or refunding funds. Decision: 'RELEASE' or 'REFUND'."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"newadmin@swaplink.com\",\n    \"password\": \"SecurePass123!\",\n    \"firstName\": \"Admin\",\n    \"lastName\": \"User\",\n    \"role\": \"ADMIN\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"users"
+							]
+						},
+						"description": "Create a new admin user (Super Admin only)."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000/api/v1"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
 }

@@ -27,6 +27,43 @@ services:
     networks:
       - swaplink-network
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: swaplink-api
+    profiles: ["app"]
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://swaplink_user:swaplink_password@postgres:5432/swaplink_mvp
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=supersecret
+      - NODE_ENV=development
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - swaplink-network
+    command: sh -c "npx prisma migrate deploy && node dist/api/server.js"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: swaplink-worker
+    profiles: ["app"]
+    environment:
+      - DATABASE_URL=postgresql://swaplink_user:swaplink_password@postgres:5432/swaplink_mvp
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - swaplink-network
+    command: node dist/worker/index.js
+
 volumes:
   postgres_data:
   redis_data:
