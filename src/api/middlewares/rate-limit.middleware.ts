@@ -1,6 +1,7 @@
-import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
+import rateLimit, { RateLimitRequestHandler, ipKeyGenerator } from 'express-rate-limit';
 import { Request, Response } from 'express';
 import { rateLimitConfig, rateLimitKeyGenerator } from '../../shared/config/security.config';
+import { envConfig } from '../../shared/config/env.config';
 
 /**
  * Standard JSON Response Handler
@@ -14,8 +15,6 @@ const standardHandler = (req: Request, res: Response, next: any, options: any) =
     });
 };
 
-import { envConfig } from '../../shared/config/env.config';
-
 // ======================================================
 // Global Rate Limiter
 // ======================================================
@@ -28,6 +27,7 @@ export const globalRateLimiter: RateLimitRequestHandler = rateLimit({
     keyGenerator: rateLimitKeyGenerator, // Imported from config
     handler: standardHandler,
     skip: () => envConfig.NODE_ENV === 'test',
+    validate: { ip: false },
 });
 
 // ======================================================
@@ -43,12 +43,12 @@ export const authRateLimiter: RateLimitRequestHandler = rateLimit({
     keyGenerator: rateLimitKeyGenerator, // Imported from config
     handler: standardHandler,
     skip: () => envConfig.NODE_ENV === 'test',
+    validate: { ip: false },
 });
 
 // ======================================================
 // OTP Rate Limiters
 // ======================================================
-
 /**
  * Layer 1: Target Limiter
  * Prevents spamming a SINGLE phone number/email.
@@ -59,12 +59,17 @@ export const otpTargetLimiter: RateLimitRequestHandler = rateLimit({
     message: rateLimitConfig.otpTarget.message,
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: req => {
+    keyGenerator: (req: any) => {
         // Special generator just for this limiter
-        return `otp_target:${req.body?.phone || req.body?.email || req.ip}`;
+        const target = req.body?.phone || req.body?.email;
+        if (target) return `otp_target:${target}`;
+
+        // Fallback to IP using the helper function
+        return `otp_target:${ipKeyGenerator(req)}`;
     },
     handler: standardHandler,
     skip: () => envConfig.NODE_ENV === 'test',
+    validate: { ip: false },
 });
 
 /**
@@ -80,6 +85,7 @@ export const otpSourceLimiter: RateLimitRequestHandler = rateLimit({
     keyGenerator: rateLimitKeyGenerator, // Imported from config
     handler: standardHandler,
     skip: () => envConfig.NODE_ENV === 'test',
+    validate: { ip: false },
 });
 
 export default {

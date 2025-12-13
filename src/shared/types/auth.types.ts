@@ -6,6 +6,8 @@ export interface TokenPayload extends JwtPayload {
     userId: User['id'];
     email?: User['email'];
     role: UserRole;
+    iat?: number;
+    exp?: number;
 }
 
 // Payload for Password Reset

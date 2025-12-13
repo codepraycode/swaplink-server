@@ -8,9 +8,7 @@ import {
 } from '../../../shared/lib/utils/api-error';
 import { JwtUtils } from '../../../shared/lib/utils/jwt-utils';
 import { otpService } from '../../../shared/lib/services/otp.service';
-import { bankingQueue } from '../../../shared/lib/queues/banking.queue';
 import { onboardingQueue } from '../../../shared/lib/queues/onboarding.queue';
-import walletService from '../../../shared/lib/services/wallet.service';
 import logger from '../../../shared/lib/utils/logger';
 import { formatUserInfo } from '../../../shared/lib/utils/functions';
 

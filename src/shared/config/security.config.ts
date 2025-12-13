@@ -1,5 +1,6 @@
 import { CorsOptions } from 'cors';
 import { HelmetOptions } from 'helmet';
+import { ipKeyGenerator } from 'express-rate-limit';
 import { envConfig } from './env.config';
 import { CorsError } from '../lib/utils/api-error';
 import { Request } from 'express';
@@ -20,7 +21,8 @@ export const rateLimitKeyGenerator = (req: Request | any): string => {
     if (req.headers['x-device-id']) return `device:${req.headers['x-device-id']}`;
 
     // 3. Fallback to IP (Least accurate on mobile data)
-    return req.ip || '127.0.0.1';
+    // Use ipKeyGenerator helper to properly handle IPv6
+    return ipKeyGenerator(req);
 };
 
 // ======================================================
