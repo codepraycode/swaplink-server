@@ -2,6 +2,7 @@ import app from './app';
 import { envConfig } from './config/env.config';
 import logger from './lib/utils/logger';
 import { prisma, checkDatabaseConnection } from './database';
+import { socketService } from './lib/services/socket.service';
 
 let server: any;
 const SERVER_URL = envConfig.SERVER_URL;
@@ -24,6 +25,9 @@ const startServer = async () => {
         server = app.listen(PORT, () => {
             logger.info(`🚀 Server running in ${envConfig.NODE_ENV} mode on port ${PORT}`);
             logger.debug(`🔗 Health: ${SERVER_URL}:${PORT}/api/v1/health`);
+
+            // 3. Initialize Socket.io
+            socketService.initialize(server);
         });
     } catch (error) {
         logger.error('❌ Failed to start server:', error);

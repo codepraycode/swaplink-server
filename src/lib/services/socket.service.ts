@@ -1,0 +1,87 @@
+import { Server as HttpServer } from 'http';
+import { Server, Socket } from 'socket.io';
+import { JwtUtils } from '../utils/jwt-utils';
+import logger from '../utils/logger';
+import { envConfig } from '../../config/env.config';
+
+class SocketService {
+    private io: Server | null = null;
+    private userSockets: Map<string, string[]> = new Map(); // userId -> socketIds[]
+
+    initialize(httpServer: HttpServer) {
+        this.io = new Server(httpServer, {
+            cors: {
+                origin: envConfig.CORS_URLS.split(','),
+                methods: ['GET', 'POST'],
+                credentials: true,
+            },
+        });
+
+        this.io.use(async (socket, next) => {
+            try {
+                const token =
+                    socket.handshake.auth.token ||
+                    socket.handshake.headers.authorization?.split(' ')[1];
+                if (!token) {
+                    return next(new Error('Authentication error'));
+                }
+
+                const decoded = JwtUtils.verifyAccessToken(token);
+                socket.data.userId = decoded.userId;
+                next();
+            } catch (error) {
+                next(new Error('Authentication error'));
+            }
+        });
+
+        this.io.on('connection', (socket: Socket) => {
+            const userId = socket.data.userId;
+            logger.info(`🔌 User connected: ${userId} (${socket.id})`);
+
+            this.addUserSocket(userId, socket.id);
+
+            socket.on('disconnect', () => {
+                this.removeUserSocket(userId, socket.id);
+                logger.info(`🔌 User disconnected: ${userId}`);
+            });
+        });
+
+        logger.info('✅ Socket.io initialized');
+    }
+
+    private addUserSocket(userId: string, socketId: string) {
+        if (!this.userSockets.has(userId)) {
+            this.userSockets.set(userId, []);
+        }
+        this.userSockets.get(userId)?.push(socketId);
+    }
+
+    private removeUserSocket(userId: string, socketId: string) {
+        const sockets = this.userSockets.get(userId);
+        if (sockets) {
+            const updatedSockets = sockets.filter(id => id !== socketId);
+            if (updatedSockets.length === 0) {
+                this.userSockets.delete(userId);
+            } else {
+                this.userSockets.set(userId, updatedSockets);
+            }
+        }
+    }
+
+    emitToUser(userId: string, event: string, data: any) {
+        if (!this.io) {
+            logger.warn('Socket.io not initialized');
+            return;
+        }
+
+        const sockets = this.userSockets.get(userId);
+        if (sockets && sockets.length > 0) {
+            sockets.forEach(socketId => {
+                this.io?.to(socketId).emit(event, data);
+            });
+            logger.info(`📡 Emitted '${event}' to User ${userId}`);
+        }
+    }
+}
+
+export const socketService = new SocketService();

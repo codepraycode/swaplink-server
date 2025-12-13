@@ -2,6 +2,8 @@ import { prisma, Prisma } from '../../database'; // Singleton
 import { NotFoundError, BadRequestError, InternalError } from '../utils/api-error';
 import { TransactionType } from '../../database/generated/prisma';
 import { UserId } from '../../types/query.types';
+import { redisConnection } from '../../config/redis.config';
+import { socketService } from './socket.service';
 
 // DTOs
 interface FetchTransactionOptions {
@@ -16,6 +18,14 @@ export class WalletService {
 
     private calculateAvailableBalance(balance: number, lockedBalance: number): number {
         return Number(balance) - Number(lockedBalance);
+    }
+
+    private getCacheKey(userId: string) {
+        return `wallet:${userId}`;
+    }
+
+    private async invalidateCache(userId: string) {
+        await redisConnection.del(this.getCacheKey(userId));
     }
 
     // --- Main Methods ---
@@ -46,39 +56,46 @@ export class WalletService {
     }
 
     async getWalletBalance(userId: UserId) {
+        const cacheKey = this.getCacheKey(userId);
+
+        // 1. Try Cache
+        const cached = await redisConnection.get(cacheKey);
+        if (cached) {
+            return JSON.parse(cached);
+        }
+
+        // 2. Fetch DB
         const wallet = await prisma.wallet.findUnique({
             where: { userId },
+            include: { virtualAccount: true }, // Include Virtual Account
         });
 
         if (!wallet) {
             throw new NotFoundError('Wallet not found');
         }
 
-        return {
+        const result = {
             id: wallet.id,
             balance: Number(wallet.balance),
             lockedBalance: Number(wallet.lockedBalance),
             availableBalance: this.calculateAvailableBalance(wallet.balance, wallet.lockedBalance),
+            virtualAccount: wallet.virtualAccount
+                ? {
+                      accountNumber: wallet.virtualAccount.accountNumber,
+                      bankName: wallet.virtualAccount.bankName,
+                      accountName: wallet.virtualAccount.accountName,
+                  }
+                : null,
         };
+
+        // 3. Set Cache (TTL 30s)
+        await redisConnection.set(cacheKey, JSON.stringify(result), 'EX', 30);
+
+        return result;
     }
 
     async getWallet(userId: string) {
-        const wallet = await prisma.wallet.findUnique({
-            where: { userId },
-        });
-
-        if (!wallet) {
-            throw new NotFoundError('Wallet not found');
-        }
-
-        return {
-            id: wallet.id,
-            balance: Number(wallet.balance),
-            lockedBalance: Number(wallet.lockedBalance),
-            availableBalance: this.calculateAvailableBalance(wallet.balance, wallet.lockedBalance),
-            createdAt: wallet.createdAt,
-            updatedAt: wallet.updatedAt,
-        };
+        return this.getWalletBalance(userId);
     }
 
     async getTransactions(params: FetchTransactionOptions) {
@@ -122,14 +139,8 @@ export class WalletService {
     }
 
     async hasSufficientBalance(userId: UserId, amount: number): Promise<boolean> {
-        const wallet = await prisma.wallet.findUnique({
-            where: { userId },
-        });
-
-        if (!wallet) return false;
-
-        const availableBalance = Number(wallet.balance) - Number(wallet.lockedBalance);
-        return availableBalance >= amount;
+        const wallet = await this.getWalletBalance(userId);
+        return wallet.availableBalance >= amount;
     }
 
     // ==========================================
@@ -141,7 +152,7 @@ export class WalletService {
      * Atomically updates balance and creates a transaction record
      */
     async creditWallet(userId: string, amount: number, metadata: any = {}) {
-        return prisma.$transaction(async tx => {
+        const result = await prisma.$transaction(async tx => {
             // 1. Get Wallet (using unique constraint)
             const wallet = await tx.wallet.findUnique({
                 where: { userId },
@@ -180,6 +191,15 @@ export class WalletService {
 
             return transaction;
         });
+
+        // 4. Post-Transaction: Invalidate Cache & Notify User
+        await this.invalidateCache(userId);
+
+        // Fetch fresh balance to send to user
+        const newBalance = await this.getWalletBalance(userId);
+        socketService.emitToUser(userId, 'WALLET_UPDATED', newBalance);
+
+        return result;
     }
 
     /**
@@ -187,7 +207,7 @@ export class WalletService {
      * Atomically checks balance, deducts amount, and creates record
      */
     async debitWallet(userId: string, amount: number, metadata: any = {}) {
-        return prisma.$transaction(async tx => {
+        const result = await prisma.$transaction(async tx => {
             // 1. Get Wallet
             const wallet = await tx.wallet.findUnique({
                 where: { userId },
@@ -234,6 +254,15 @@ export class WalletService {
 
             return transaction;
         });
+
+        // 5. Post-Transaction: Invalidate Cache & Notify User
+        await this.invalidateCache(userId);
+
+        // Fetch fresh balance to send to user
+        const newBalance = await this.getWalletBalance(userId);
+        socketService.emitToUser(userId, 'WALLET_UPDATED', newBalance);
+
+        return result;
     }
 }
 

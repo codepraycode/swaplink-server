@@ -3,6 +3,7 @@ import { prisma, KycLevel, KycStatus, OtpType, User } from '../../database'; // 
 import { ConflictError, NotFoundError, UnauthorizedError } from '../../lib/utils/api-error';
 import { JwtUtils } from '../../lib/utils/jwt-utils';
 import { otpService } from '../../lib/services/otp.service';
+import { bankingQueue } from '../../lib/queues/banking.queue';
 import walletService from '../../lib/services/wallet.service';
 import logger from '../../lib/utils/logger';
 import { formatUserInfo } from '../../lib/utils/functions';
@@ -75,15 +76,30 @@ class AuthService {
                 },
             });
 
-            await walletService.setUpWallet(user.id, tx);
+            const wallet = await walletService.setUpWallet(user.id, tx);
 
-            return user;
+            // 4. Add to Banking Queue (Background)
+            // We do this AFTER the transaction commits (conceptually), but here we are inside it.
+            // Ideally, we should use an "afterCommit" hook or just fire it here.
+            // Since Redis is outside the SQL Tx, if SQL fails, we shouldn't add to Redis.
+            // But Prisma doesn't have afterCommit easily.
+            // We will return the walletId and add to queue OUTSIDE the transaction block.
+
+            return { user, wallet };
         });
 
-        // 4. Generate Tokens via Utils
-        const tokens = this.generateTokens(result);
+        // 5. Add to Queue (Non-blocking)
+        bankingQueue
+            .add('create-virtual-account', {
+                userId: result.user.id,
+                walletId: result.wallet.id,
+            })
+            .catch(err => logger.error('Failed to add banking job', err));
 
-        return { user: result, ...tokens };
+        // 6. Generate Tokens via Utils
+        const tokens = this.generateTokens(result.user);
+
+        return { user: result.user, ...tokens };
     }
 
     async login(dto: LoginDto) {
