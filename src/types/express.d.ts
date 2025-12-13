@@ -13,6 +13,7 @@ declare global {
          * Extended Request interface with custom properties
          */
         interface Request {
+            rawBody?: Buffer;
             /**
              * Authenticated user information from JWT token
              * Populated by authentication middleware after token verification

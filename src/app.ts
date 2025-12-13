@@ -69,7 +69,15 @@ app.use(API_ROUTE, globalRateLimiter);
 // ======================================================
 // NOTE: If you integrate webhooks (Paystack/Stripe) later,
 // you might need raw body access here for signature verification.
-app.use(express.json({ limit: bodySizeLimits.json }));
+app.use(
+    express.json({
+        limit: bodySizeLimits.json,
+        verify: (req: any, res: any, buf: any) => {
+            // Store the raw buffer for signature verification later
+            req.rawBody = buf;
+        },
+    })
+);
 app.use(express.urlencoded({ extended: true, limit: bodySizeLimits.urlencoded }));
 
 // ======================================================

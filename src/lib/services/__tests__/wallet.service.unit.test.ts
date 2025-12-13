@@ -21,6 +21,14 @@ jest.mock('../../../database', () => ({
     Prisma: {},
 }));
 
+jest.mock('../../../config/redis.config', () => ({
+    redisConnection: {
+        get: jest.fn(),
+        set: jest.fn(),
+        del: jest.fn(),
+    },
+}));
+
 describe('WalletService - Unit Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -88,6 +96,7 @@ describe('WalletService - Unit Tests', () => {
 
             expect(prisma.wallet.findUnique).toHaveBeenCalledWith({
                 where: { userId },
+                include: { virtualAccount: true },
             });
 
             expect(result).toEqual({
@@ -95,6 +104,8 @@ describe('WalletService - Unit Tests', () => {
                 balance: 100000,
                 lockedBalance: 20000,
                 availableBalance: 80000,
+                currency: 'NGN',
+                virtualAccount: null,
             });
         });
 
@@ -292,7 +303,13 @@ describe('WalletService - Unit Tests', () => {
                 return callback(tx);
             });
 
-            const result = await walletService.creditWallet(userId, amount, metadata);
+            // Mock getWalletBalance call after transaction
+            (prisma.wallet.findUnique as jest.Mock).mockResolvedValue({
+                ...mockWallet,
+                balance: 100000,
+            });
+
+            const result = await walletService.creditWallet(userId, amount, { metadata });
 
             expect(result.type).toBe('DEPOSIT');
             expect(result.amount).toBe(amount);
@@ -356,7 +373,13 @@ describe('WalletService - Unit Tests', () => {
                 return callback(tx);
             });
 
-            const result = await walletService.debitWallet(userId, amount, metadata);
+            // Mock getWalletBalance call after transaction
+            (prisma.wallet.findUnique as jest.Mock).mockResolvedValue({
+                ...mockWallet,
+                balance: 20000,
+            });
+
+            const result = await walletService.debitWallet(userId, amount, { metadata });
 
             expect(result.type).toBe('WITHDRAWAL');
             expect(result.amount).toBe(amount);

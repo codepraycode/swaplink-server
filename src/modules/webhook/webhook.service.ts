@@ -6,33 +6,29 @@ import logger from '../../lib/utils/logger';
 
 export class WebhookService {
     /**
-     * Verifies the signature of the webhook request from Globus.
-     * @param payload - The raw request body.
-     * @param signature - The signature header (x-globus-signature).
+     * Verifies the signature using the RAW BUFFER.
+     * Do not use req.body (parsed JSON) for this.
      */
-    verifySignature(payload: any, signature: string): boolean {
+    verifySignature(rawBody: Buffer, signature: string): boolean {
+        // Security: In Prod, reject if secret is missing
         if (!envConfig.GLOBUS_WEBHOOK_SECRET) {
-            logger.warn('⚠️ GLOBUS_WEBHOOK_SECRET is not set. Skipping signature verification.');
-            return true; // Allow in dev/test if secret is missing (or return false based on strictness)
+            if (envConfig.NODE_ENV === 'production') {
+                logger.error('❌ GLOBUS_WEBHOOK_SECRET missing in production!');
+                return false;
+            }
+            return true;
         }
 
         const hash = crypto
             .createHmac('sha256', envConfig.GLOBUS_WEBHOOK_SECRET)
-            .update(JSON.stringify(payload))
+            .update(rawBody) // <--- Use Buffer, not JSON string
             .digest('hex');
 
         return hash === signature;
     }
 
-    /**
-     * Handles the webhook payload.
-     * @param payload - The webhook data.
-     */
     async handleGlobusWebhook(payload: any) {
         logger.info('🪝 Received Globus Webhook:', payload);
-
-        // Example Payload Structure (Hypothetical - adjust based on actual Globus docs)
-        // { type: 'credit_notification', data: { accountNumber: '123', amount: 1000, reference: 'ref_123' } }
 
         const { type, data } = payload;
 
@@ -47,35 +43,56 @@ export class WebhookService {
         accountNumber: string;
         amount: number;
         reference: string;
+        sessionId?: string; // Often provided by banks
     }) {
         const { accountNumber, amount, reference } = data;
 
-        // 1. Find Wallet by Virtual Account Number
+        // ====================================================
+        // 1. IDEMPOTENCY CHECK (CRITICAL)
+        // ====================================================
+        // Check if we have already processed this specific bank reference.
+        // If yes, stop immediately.
+        const existingTx = await prisma.transaction.findUnique({
+            where: { reference: reference },
+        });
+
+        if (existingTx) {
+            logger.warn(`⚠️ Duplicate Webhook detected (Idempotency): ${reference}`);
+            return; // Return successfully so the Bank stops retrying
+        }
+
+        // ====================================================
+        // 2. Find Wallet
+        // ====================================================
         const virtualAccount = await prisma.virtualAccount.findUnique({
             where: { accountNumber },
             include: { wallet: true },
         });
 
         if (!virtualAccount) {
-            logger.error(`❌ Virtual Account not found for number: ${accountNumber}`);
+            // If account doesn't exist, we can't credit.
+            // We log error but DO NOT throw, or the bank will retry forever.
+            logger.error(`❌ Virtual Account not found: ${accountNumber}`);
             return;
         }
 
-        // 2. Credit Wallet
+        // ====================================================
+        // 3. Atomic Credit
+        // ====================================================
         try {
+            // Ensure creditWallet handles the DB transaction internally
+            // and creates the Transaction record with the 'reference' provided.
             await walletService.creditWallet(virtualAccount.wallet.userId, amount, {
                 type: 'DEPOSIT',
-                reference,
+                reference, // <--- Must use the BANK'S reference, not a new UUID
                 description: 'Deposit via Globus Bank',
-                source: 'GLOBUS_WEBHOOK',
+                metadata: data,
             });
-            logger.info(`✅ Wallet credited for User ${virtualAccount.wallet.userId}: +₦${amount}`);
+
+            logger.info(`✅ Wallet credited: User ${virtualAccount.wallet.userId} +₦${amount}`);
         } catch (error) {
-            logger.error(
-                `❌ Failed to credit wallet for User ${virtualAccount.wallet.userId}`,
-                error
-            );
-            throw error; // Retry via webhook provider usually
+            logger.error(`❌ Credit Failed for User ${virtualAccount.wallet.userId}`, error);
+            throw error; // Throwing here causes 500, triggering Bank Retry (Good behavior for DB errors)
         }
     }
 }

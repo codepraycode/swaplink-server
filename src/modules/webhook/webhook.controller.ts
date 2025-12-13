@@ -6,23 +6,29 @@ export class WebhookController {
     async handleGlobusWebhook(req: Request, res: Response) {
         try {
             const signature = req.headers['x-globus-signature'] as string;
-            const payload = req.body;
 
-            // 1. Verify Signature
-            if (!webhookService.verifySignature(payload, signature)) {
+            // 1. Access Raw Body (Buffer)
+            // Ensure your app.ts middleware is configured as shown above!
+            const rawBody = req.rawBody;
+
+            if (!rawBody) {
+                logger.error('❌ Raw body missing. Middleware misconfiguration.');
+                return res.status(500).json({ message: 'Internal Server Error' });
+            }
+
+            // 2. Verify Signature
+            if (!webhookService.verifySignature(rawBody, signature)) {
                 logger.warn('⚠️ Invalid Webhook Signature');
+                // Return 401/403 to tell Bank to stop (or verify credentials)
                 return res.status(401).json({ message: 'Invalid signature' });
             }
 
-            // 2. Process Webhook (Async)
-            // We await here to ensure we return 200 only if processed,
-            // or we could fire-and-forget if we want fast response.
-            // Usually, providers want a 200 OK quickly.
-            await webhookService.handleGlobusWebhook(payload);
+            // 3. Process
+            await webhookService.handleGlobusWebhook(req.body);
 
             return res.status(200).json({ message: 'Webhook received' });
         } catch (error) {
-            logger.error('❌ Webhook Error:', error);
+            logger.error('❌ Webhook Controller Error:', error);
             return res.status(500).json({ message: 'Internal Server Error' });
         }
     }

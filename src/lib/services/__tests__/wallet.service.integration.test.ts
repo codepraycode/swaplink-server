@@ -248,7 +248,7 @@ describe('WalletService - Integration Tests', () => {
             const { user } = await TestUtils.createUserWithWallets();
 
             const metadata = { source: 'bank_transfer', reference: 'BNK-123' };
-            const transaction = await walletService.creditWallet(user.id, 50000, metadata);
+            const transaction = await walletService.creditWallet(user.id, 50000, { metadata });
 
             expect(transaction.metadata).toEqual(metadata);
         });
