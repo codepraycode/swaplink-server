@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import authRoutes from './auth/auth.routes';
+import webhookRoutes from './webhook/webhook.route';
 
 const router: Router = Router();
 
@@ -13,7 +14,11 @@ const router: Router = Router();
  */
 
 // Mount Auth Module Routes
+// Mount Auth Module Routes
 router.use('/auth', authRoutes);
+
+// Mount Webhook Routes
+router.use('/webhooks', webhookRoutes);
 
 // TODO: Add more module routes as they are created
 // Example:

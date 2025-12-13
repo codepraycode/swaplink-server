@@ -11,7 +11,7 @@ class SocketService {
     initialize(httpServer: HttpServer) {
         this.io = new Server(httpServer, {
             cors: {
-                origin: envConfig.CORS_URLS.split(','),
+                origin: '*', // Allow all origins as requested
                 methods: ['GET', 'POST'],
                 credentials: true,
             },
@@ -21,16 +21,25 @@ class SocketService {
             try {
                 const token =
                     socket.handshake.auth.token ||
+                    socket.handshake.query.token || // Also check query params
                     socket.handshake.headers.authorization?.split(' ')[1];
+
                 if (!token) {
-                    return next(new Error('Authentication error'));
+                    return next(new Error('Authentication error: Token missing'));
                 }
 
                 const decoded = JwtUtils.verifyAccessToken(token);
+                if (!decoded) {
+                    return next(new Error('Authentication error: Invalid token'));
+                }
+
                 socket.data.userId = decoded.userId;
                 next();
             } catch (error) {
-                next(new Error('Authentication error'));
+                // Graceful error for client
+                const err = new Error('Authentication error: Session invalid');
+                (err as any).data = { code: 'INVALID_TOKEN', message: 'Please log in again' };
+                next(err);
             }
         });
 
@@ -79,7 +88,7 @@ class SocketService {
             sockets.forEach(socketId => {
                 this.io?.to(socketId).emit(event, data);
             });
-            logger.info(`📡 Emitted '${event}' to User ${userId}`);
+            logger.debug(`📡 Emitted '${event}' to User ${userId}`);
         }
     }
 }

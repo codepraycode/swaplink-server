@@ -83,5 +83,16 @@ export const bankingWorker = new Worker<CreateAccountJob>(
 
 // Handle Worker Errors
 bankingWorker.on('failed', (job, err) => {
-    logger.error(`🔥 [BankingWorker] Job ${job?.id} failed: ${err.message}`);
+    logger.error(
+        `🔥 [BankingWorker] Job ${job?.id} failed attempt ${job?.attemptsMade}: ${err.message}`
+    );
+
+    // Check if this was the last attempt (Dead Letter Logic)
+    if (job && job.attemptsMade >= (job.opts.attempts || 3)) {
+        logger.error(
+            `💀 [DEAD LETTER] Job ${job.id} permanently failed. Manual intervention required.`
+        );
+        logger.error(`💀 Payload: ${JSON.stringify(job.data)}`);
+        // In a production system, you would push this to a separate 'dead-letter-queue' in Redis here
+    }
 });
