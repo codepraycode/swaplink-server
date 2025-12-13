@@ -3,6 +3,7 @@ import { envConfig } from '../shared/config/env.config';
 import logger from '../shared/lib/utils/logger';
 import { prisma, checkDatabaseConnection } from '../shared/database';
 import { socketService } from '../shared/lib/services/socket.service';
+import { P2PChatGateway } from './modules/p2p/chat/p2p-chat.gateway';
 
 let server: any;
 const SERVER_URL = envConfig.SERVER_URL;
@@ -28,6 +29,13 @@ const startServer = async () => {
 
             // 3. Initialize Socket.io
             socketService.initialize(server);
+
+            // 4. Initialize P2P Chat Gateway
+            const io = socketService.getIO();
+            if (io) {
+                new P2PChatGateway(io);
+                logger.info('✅ P2P Chat Gateway initialized');
+            }
         });
     } catch (error) {
         logger.error('❌ Failed to start server:', error);

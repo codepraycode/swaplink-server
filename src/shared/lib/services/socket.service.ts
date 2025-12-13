@@ -91,6 +91,10 @@ class SocketService {
             logger.debug(`📡 Emitted '${event}' to User ${userId}`);
         }
     }
+
+    getIO(): Server | null {
+        return this.io;
+    }
 }
 
 export const socketService = new SocketService();

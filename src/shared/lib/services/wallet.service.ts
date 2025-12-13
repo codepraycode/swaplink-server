@@ -294,6 +294,59 @@ export class WalletService {
 
         return result;
     }
+    /**
+     * Lock funds (P2P Escrow)
+     * Moves funds from Available to Locked. Balance remains same.
+     */
+    async lockFunds(userId: string, amount: number) {
+        const result = await prisma.$transaction(async tx => {
+            const wallet = await tx.wallet.findUnique({ where: { userId } });
+            if (!wallet) throw new NotFoundError('Wallet not found');
+
+            const balance = Number(wallet.balance);
+            const locked = Number(wallet.lockedBalance);
+            const available = balance - locked;
+
+            if (available < amount) {
+                throw new BadRequestError('Insufficient funds to lock');
+            }
+
+            // Increment Locked Balance
+            return await tx.wallet.update({
+                where: { id: wallet.id },
+                data: { lockedBalance: { increment: amount } },
+            });
+        });
+
+        await this.invalidateCache(userId);
+        return result;
+    }
+
+    /**
+     * Unlock funds (P2P Cancel/Release)
+     * Moves funds from Locked back to Available.
+     */
+    async unlockFunds(userId: string, amount: number) {
+        const result = await prisma.$transaction(async tx => {
+            const wallet = await tx.wallet.findUnique({ where: { userId } });
+            if (!wallet) throw new NotFoundError('Wallet not found');
+
+            const locked = Number(wallet.lockedBalance);
+
+            if (locked < amount) {
+                // Should not happen if logic is correct, but safety first
+                throw new BadRequestError('Cannot unlock more than is locked');
+            }
+
+            return await tx.wallet.update({
+                where: { id: wallet.id },
+                data: { lockedBalance: { decrement: amount } },
+            });
+        });
+
+        await this.invalidateCache(userId);
+        return result;
+    }
 }
 
 export const walletService = new WalletService();

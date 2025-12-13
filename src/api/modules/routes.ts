@@ -2,6 +2,7 @@ import { Router } from 'express';
 import authRoutes from './auth/auth.routes';
 import transferRoutes from './transfer/transfer.routes';
 import webhookRoutes from './webhook/webhook.route';
+import p2pRoutes from './p2p/p2p.routes';
 
 const router: Router = Router();
 
@@ -16,6 +17,8 @@ const router: Router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/webhooks', webhookRoutes);
+router.use('/webhooks', webhookRoutes);
 router.use('/transfers', transferRoutes);
+router.use('/p2p', p2pRoutes);
 
 export default router;
