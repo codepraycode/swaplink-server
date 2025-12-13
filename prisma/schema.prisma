@@ -52,6 +52,10 @@ model User {
   makerOrders       P2POrder[]        @relation("MakerOrders")
   takerOrders       P2POrder[]        @relation("TakerOrders")
   p2pChats          P2PChat[]
+  
+  // Admin
+  role             UserRole          @default(USER)
+  adminLogs        AdminLog[]
 
   @@map("users")
 }
@@ -285,6 +289,12 @@ model P2POrder {
   status          OrderStatus @default(PENDING)
   paymentProofUrl String?
   
+  // Dispute Meta
+  disputeReason   String?
+  resolvedBy      String?
+  resolutionNotes String?
+  resolvedAt      DateTime?
+  
   expiresAt       DateTime    // 15 mins TTL
   completedAt     DateTime?
   
@@ -297,6 +307,23 @@ model P2POrder {
   messages        P2PChat[]
 
   @@map("p2p_orders")
+}
+
+// ==========================================
+// ADMIN & AUDIT
+// ==========================================
+
+model AdminLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String   // e.g., "RESOLVE_RELEASE", "RESOLVE_REFUND", "CREATE_ADMIN"
+  targetId  String   // Order ID or User ID
+  metadata  Json?    // Snapshot of decision/notes
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  admin     User     @relation(fields: [adminId], references: [id])
+  @@map("admin_logs")
 }
 
 model P2PChat {
@@ -316,6 +343,13 @@ model P2PChat {
 // ==========================================
 // ENUMS
 // ==========================================
+
+enum UserRole {
+  USER
+  SUPPORT
+  ADMIN
+  SUPER_ADMIN
+}
 
 enum KycLevel {
   NONE

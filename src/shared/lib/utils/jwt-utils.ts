@@ -1,14 +1,14 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { UnauthorizedError, BadRequestError } from './api-error';
 import { envConfig } from '../../config/env.config';
-import { User } from '../../database';
+import { User, UserRole } from '../../database';
 import { type Request } from 'express';
 
 // Standard payload interface for Access/Refresh tokens
 export interface TokenPayload extends JwtPayload {
     userId: User['id'];
     email?: User['email'];
-    role?: string;
+    role: UserRole;
 }
 
 // Payload for Password Reset

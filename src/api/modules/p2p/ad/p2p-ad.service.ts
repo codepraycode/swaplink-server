@@ -1,7 +1,6 @@
-import { prisma } from '../../../../shared/database';
+import { prisma, AdType, AdStatus } from '../../../../shared/database';
 import { walletService } from '../../../../shared/lib/services/wallet.service';
 import { BadRequestError, NotFoundError } from '../../../../shared/lib/utils/api-error';
-import { AdType, AdStatus } from '../../../../shared/database/generated/prisma';
 
 export class P2PAdService {
     static async createAd(userId: string, data: any) {

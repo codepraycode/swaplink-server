@@ -1,6 +1,5 @@
 import cron from 'node-cron';
-import { prisma } from '../shared/database';
-import { TransactionStatus } from '../shared/database/generated/prisma';
+import { prisma, TransactionStatus } from '../shared/database';
 import logger from '../shared/lib/utils/logger';
 
 /**

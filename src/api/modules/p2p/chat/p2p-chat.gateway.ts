@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { P2PChatService } from './p2p-chat.service';
 import { redisConnection } from '../../../../shared/config/redis.config';
-import { ChatType } from '../../../../shared/database/generated/prisma';
+import { ChatType } from '../../../../shared/database';
 import logger from '../../../../shared/lib/utils/logger';
 
 // This should be initialized in the main server setup

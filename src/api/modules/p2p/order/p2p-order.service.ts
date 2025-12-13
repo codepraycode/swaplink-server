@@ -1,4 +1,4 @@
-import { prisma } from '../../../../shared/database';
+import { prisma, OrderStatus, AdType, AdStatus } from '../../../../shared/database';
 import { walletService } from '../../../../shared/lib/services/wallet.service';
 import {
     BadRequestError,
@@ -7,7 +7,7 @@ import {
     ForbiddenError,
     InternalError,
 } from '../../../../shared/lib/utils/api-error';
-import { OrderStatus, AdType, AdStatus } from '../../../../shared/database/generated/prisma';
+
 import { p2pOrderQueue } from '../../../../shared/lib/queues/p2p-order.queue';
 import { P2PChatService } from '../chat/p2p-chat.service';
 import { envConfig } from '../../../../shared/config/env.config';

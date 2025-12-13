@@ -1,7 +1,6 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../shared/config/redis.config';
-import { prisma } from '../shared/database';
-import { OrderStatus, AdType } from '../shared/database/generated/prisma';
+import { prisma, OrderStatus, AdType } from '../shared/database';
 import logger from '../shared/lib/utils/logger';
 
 interface CheckOrderExpirationData {

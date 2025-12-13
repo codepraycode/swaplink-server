@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '../../../../api/app';
-import { prisma } from '../../../database';
+import { prisma, UserRole } from '../../../database';
 import { JwtUtils } from '../../utils/jwt-utils';
 import bcrypt from 'bcrypt';
 
@@ -37,7 +37,7 @@ describe('Transfer Module Integration Tests', () => {
         senderToken = JwtUtils.signAccessToken({
             userId: sender.id,
             email: sender.email,
-            role: 'user',
+            role: UserRole.USER,
         });
 
         // Create Receiver (Internal)
@@ -66,7 +66,7 @@ describe('Transfer Module Integration Tests', () => {
         receiverToken = JwtUtils.signAccessToken({
             userId: receiver.id,
             email: receiver.email,
-            role: 'user',
+            role: UserRole.USER,
         });
     });
 

@@ -1,8 +1,7 @@
 import { P2PAdService } from '../api/modules/p2p/ad/p2p-ad.service';
 import { P2POrderService } from '../api/modules/p2p/order/p2p-order.service';
 import { walletService } from '../shared/lib/services/wallet.service';
-import { prisma } from '../shared/database';
-import { AdType } from '../shared/database/generated/prisma';
+import { prisma, AdType } from '../shared/database';
 import { P2PPaymentMethodService } from '../api/modules/p2p/payment-method/p2p-payment-method.service';
 
 describe('P2P Concurrency Tests', () => {

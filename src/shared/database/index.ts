@@ -2,8 +2,8 @@ import logger from '../lib/utils/logger';
 import { envConfig } from '../config/env.config';
 import { PrismaClient } from './generated/prisma';
 
-export * from './database.types';
 export * from './database.errors';
+export * from './generated/prisma';
 
 const isDevelopment = envConfig.NODE_ENV === 'development';
 

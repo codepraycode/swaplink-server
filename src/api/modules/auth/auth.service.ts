@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
-import { prisma, KycLevel, KycStatus, OtpType, User } from '../../../shared/database'; // Adjust imports based on your index.ts
+import { prisma, KycLevel, KycStatus, OtpType, User } from '../../../shared/database';
+import { UserRole } from '../../../shared/database/generated/prisma';
 import {
     ConflictError,
     NotFoundError,
@@ -27,8 +28,8 @@ type LoginDto = Pick<AuthDTO, 'email' | 'password'>;
 class AuthService {
     // --- Helpers ---
 
-    private generateTokens(user: Pick<User, 'email' | 'id'>) {
-        const tokenPayload = { userId: user.id, email: user.email };
+    private generateTokens(user: Pick<User, 'email' | 'id'> & { role: UserRole }) {
+        const tokenPayload = { userId: user.id, email: user.email, role: user.role };
 
         const token = JwtUtils.signAccessToken(tokenPayload);
         const refreshToken = JwtUtils.signRefreshToken({ userId: user.id });
@@ -76,7 +77,9 @@ class AuthService {
                 lastName: true,
                 kycLevel: true,
                 isVerified: true,
+
                 createdAt: true,
+                role: true,
             },
         });
 
@@ -251,7 +254,8 @@ class AuthService {
         // since the last token was issued.
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId },
-            select: { id: true, email: true, isActive: true },
+
+            select: { id: true, email: true, isActive: true, role: true },
         });
 
         if (!user) {

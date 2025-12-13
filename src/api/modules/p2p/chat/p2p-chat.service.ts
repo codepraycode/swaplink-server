@@ -1,5 +1,5 @@
 import { prisma } from '../../../../shared/database';
-import { ChatType } from '../../../../shared/database/generated/prisma';
+import { ChatType } from '../../../../shared/database';
 
 export class P2PChatService {
     static async saveMessage(

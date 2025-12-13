@@ -1,7 +1,6 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../shared/config/redis.config';
-import { prisma } from '../shared/database';
-import { TransactionStatus, TransactionType } from '../shared/database/generated/prisma';
+import { prisma, TransactionStatus, TransactionType } from '../shared/database';
 import logger from '../shared/lib/utils/logger';
 
 interface TransferJobData {

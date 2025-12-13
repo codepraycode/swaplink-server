@@ -1,4 +1,3 @@
-import { PrismaClient, P2PPaymentMethod } from '../../../../shared/database/generated/prisma';
 import { prisma } from '../../../../shared/database';
 import { BadRequestError, NotFoundError } from '../../../../shared/lib/utils/api-error';
 
