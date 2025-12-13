@@ -1,7 +1,7 @@
 import cron from 'node-cron';
-import { prisma } from '../database';
-import { TransactionStatus } from '../database/generated/prisma';
-import logger from '../lib/utils/logger';
+import { prisma } from '../shared/database';
+import { TransactionStatus } from '../shared/database/generated/prisma';
+import logger from '../shared/lib/utils/logger';
 
 /**
  * Reconciliation Job

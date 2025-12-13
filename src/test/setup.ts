@@ -1,5 +1,5 @@
-import prisma from '../lib/utils/database';
-import logger from '../lib/utils/logger';
+import prisma from '../shared/lib/utils/database';
+import logger from '../shared/lib/utils/logger';
 
 jest.setTimeout(30000);
 

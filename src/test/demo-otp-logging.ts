@@ -3,8 +3,8 @@
  * Run with: ts-node src/test/demo-otp-logging.ts
  */
 
-import { smsService } from '../lib/services/sms.service';
-import { emailService } from '../lib/services/email.service';
+import { smsService } from '../shared/lib/services/sms.service';
+import { emailService } from '../shared/lib/services/email.service';
 
 async function demoOtpLogging() {
     console.log('\n🎯 Demonstrating OTP Logging in Development/Test Mode\n');

@@ -1,6 +1,8 @@
 import { transferWorker } from './transfer.worker';
+import { bankingWorker } from './banking.worker';
+import { onboardingWorker } from './onboarding.worker';
 import { startReconciliationJob } from './reconciliation.job';
-import logger from '../lib/utils/logger';
+import logger from '../shared/lib/utils/logger';
 
 logger.info('🚀 Background Workers Started');
 
@@ -10,12 +12,12 @@ startReconciliationJob();
 // Keep process alive
 process.on('SIGTERM', async () => {
     logger.info('SIGTERM received. Closing workers...');
-    await transferWorker.close();
+    await Promise.all([transferWorker.close(), bankingWorker.close(), onboardingWorker.close()]);
     process.exit(0);
 });
 
 process.on('SIGINT', async () => {
     logger.info('SIGINT received. Closing workers...');
-    await transferWorker.close();
+    await Promise.all([transferWorker.close(), bankingWorker.close(), onboardingWorker.close()]);
     process.exit(0);
 });
