@@ -14,6 +14,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swaplink_user -d swaplink_mvp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - swaplink-network
 
@@ -24,6 +29,11 @@ services:
       - "6381:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - swaplink-network
 
@@ -41,8 +51,10 @@ services:
       - JWT_SECRET=supersecret
       - NODE_ENV=development
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - swaplink-network
     command: sh -c "npx prisma migrate deploy && node dist/api/server.js"
@@ -58,8 +70,10 @@ services:
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=development
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - swaplink-network
     command: node dist/worker/index.js
