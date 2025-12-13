@@ -13,6 +13,7 @@ Records every fund movement.
 -   **`type`**: `DEPOSIT`, `WITHDRAWAL`, `TRANSFER`, `BILL_PAYMENT`, `FEE`, `REVERSAL`.
 -   **`status`**: `PENDING`, `COMPLETED`, `FAILED`, `CANCELLED`.
 -   **`reference`**: Unique transaction reference.
+-   **`sessionId`**: NIBSS Session ID (for external transfers).
 -   **`idempotencyKey`**: Unique key to prevent duplicate processing.
 -   **`metadata`**: JSON field for storing external gateway responses (e.g., Paystack/Flutterwave refs).
 
@@ -39,7 +40,9 @@ The core orchestrator.
     -   Verifies Transaction PIN.
     -   Checks for duplicate `idempotencyKey`.
     -   Resolves destination (Internal vs External).
-    -   **Internal**: Executes atomic `prisma.$transaction` to debit sender and credit receiver instantly.
+    -   **Internal**:
+        -   **Self-Transfer Check**: Blocks transfers where sender and receiver are the same user.
+        -   Executes atomic `prisma.$transaction` to debit sender and credit receiver instantly.
     -   **External**: Debits sender, creates `PENDING` transaction, and adds job to `transfer-queue` (BullMQ).
     -   Auto-saves beneficiary if `saveBeneficiary` is true.
 
@@ -51,7 +54,8 @@ The core orchestrator.
 
 ### `PinService` (`src/shared/lib/services/pin.service.ts`)
 
--   **`verifyPin`**: Checks hash against stored PIN. Implements lockout policy (3 failed attempts = 15 min lock).
+-   **`verifyPin`**: Checks hash against stored PIN.
+    -   **Redis Lockout**: Uses Redis to track failed attempts. 3 failed attempts = 15 min lockout.
 -   **`setPin` / `updatePin`**: Manages PIN lifecycle.
 
 ### `NameEnquiryService` (`src/shared/lib/services/name-enquiry.service.ts`)
@@ -65,7 +69,7 @@ The core orchestrator.
 ### Internal Transfer (P2P)
 
 1.  **Request**: User submits amount, account number, PIN.
-2.  **Validation**: PIN verified, Balance checked.
+2.  **Validation**: PIN verified, Balance checked, **Self-Transfer checked**.
 3.  **Execution**:
     -   Debit Sender Wallet.
     -   Credit Receiver Wallet.
@@ -84,8 +88,8 @@ The core orchestrator.
 5.  **Background Worker**:
     -   Picks up job.
     -   Calls External Bank API.
-    -   **Success**: Updates Transaction to `COMPLETED`.
-    -   **Failure**: Updates Transaction to `FAILED` and **Refunds** Sender.
+    -   **Success**: Updates Transaction to `COMPLETED` and saves **Session ID**.
+    -   **Failure**: Updates Transaction to `FAILED` and triggers **Auto-Reversal** (Creates `REVERSAL` transaction and refunds wallet).
 
 ## 4. API Endpoints
 
@@ -99,6 +103,6 @@ The core orchestrator.
 ## 5. Security Measures
 
 -   **PIN Hashing**: All PINs are hashed using `bcrypt`.
--   **Rate Limiting**: PIN verification has strict rate limiting and lockout.
+-   **Rate Limiting**: PIN verification uses Redis-backed rate limiting (3 attempts/15 mins).
 -   **Idempotency**: Critical for preventing double-debiting on network retries.
 -   **Atomic Transactions**: Internal transfers use database transactions to ensure data integrity.

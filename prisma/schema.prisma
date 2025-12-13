@@ -99,6 +99,7 @@ model Transaction {
   balanceAfter   Float
   status         TransactionStatus @default(PENDING)
   reference      String            @unique
+  sessionId      String?           // NIBSS Session ID for external transfers
   description    String?           // E.g., "Transfer to John Doe"
   metadata       Json?             // Store external gateway refs (Paystack/Flutterwave)
 
@@ -106,7 +107,7 @@ model Transaction {
   destinationBankCode String?
   destinationAccount  String?
   destinationName     String?
-  sessionId           String?  // NIBSS Session ID from Globus
+  // sessionId           String?  // Removed duplicate
   fee                 Float    @default(0)
   
   // Idempotency

@@ -1,7 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../shared/config/redis.config';
 import { prisma } from '../shared/database';
-import { TransactionStatus } from '../shared/database/generated/prisma';
+import { TransactionStatus, TransactionType } from '../shared/database/generated/prisma';
 import logger from '../shared/lib/utils/logger';
 
 interface TransferJobData {
@@ -45,14 +45,14 @@ const processTransfer = async (job: Job<TransferJobData>) => {
                 where: { id: transactionId },
                 data: {
                     status: TransactionStatus.COMPLETED,
-                    sessionId: `SESSION-${Date.now()}`, // Mock Session ID
+                    sessionId: `SESSION-${Date.now()}-${Math.random().toString(36).substring(7)}`, // Mock Session ID
                 },
             });
             logger.info(`Transfer ${transactionId} completed successfully`);
         } else {
-            // 3b. Handle Failure (Refund)
+            // 3b. Handle Failure (Auto-Reversal)
             await prisma.$transaction(async tx => {
-                // Update Transaction Status
+                // A. Mark Original as Failed
                 await tx.transaction.update({
                     where: { id: transactionId },
                     data: {
@@ -64,13 +64,29 @@ const processTransfer = async (job: Job<TransferJobData>) => {
                     },
                 });
 
-                // Refund Wallet
+                // B. Create Reversal Transaction
+                await tx.transaction.create({
+                    data: {
+                        userId: transaction.userId,
+                        walletId: transaction.walletId,
+                        type: TransactionType.REVERSAL,
+                        amount: Math.abs(transaction.amount), // Credit back
+                        balanceBefore: transaction.balanceAfter, // It was debited, so current balance is balanceAfter
+                        balanceAfter: transaction.balanceAfter + Math.abs(transaction.amount),
+                        status: TransactionStatus.COMPLETED,
+                        reference: `REV-${transactionId}`,
+                        description: `Reversal for ${transaction.reference}`,
+                        metadata: { originalTransactionId: transactionId },
+                    },
+                });
+
+                // C. Refund Wallet
                 await tx.wallet.update({
                     where: { id: transaction.walletId },
                     data: { balance: { increment: Math.abs(transaction.amount) } },
                 });
             });
-            logger.info(`Transfer ${transactionId} failed. Wallet refunded.`);
+            logger.info(`Transfer ${transactionId} failed. Auto-Reversal executed.`);
         }
     } catch (error) {
         logger.error(`Error processing transfer ${transactionId}`, error);

@@ -53,6 +53,22 @@ export class TransferService {
         // 3. Resolve Destination (Internal vs External)
         const destination = await nameEnquiryService.resolveAccount(accountNumber, bankCode);
 
+        // Prevent Self-Transfer (Internal)
+        if (destination.isInternal) {
+            // We need to check if this internal account belongs to the sender
+            // destination likely has accountName, but maybe not userId.
+            // Let's rely on processInternalTransfer's check, OR fetch the account here.
+            // Better: processInternalTransfer already checks wallet IDs.
+            // But to be safe and fail fast:
+            const receiverVirtualAccount = await prisma.virtualAccount.findUnique({
+                where: { accountNumber },
+                include: { wallet: true },
+            });
+            if (receiverVirtualAccount && receiverVirtualAccount.wallet.userId === userId) {
+                throw new BadRequestError('Cannot transfer to self');
+            }
+        }
+
         if (destination.isInternal) {
             const result = await this.processInternalTransfer(payload, destination);
             if (payload.saveBeneficiary) {

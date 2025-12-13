@@ -1,10 +1,11 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { prisma } from '../../database';
+import { redisConnection } from '../../config/redis.config';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../utils/api-error';
 
 export class PinService {
     private readonly MAX_ATTEMPTS = 3;
-    private readonly LOCKOUT_DURATION_MS = 60 * 60 * 1000; // 1 hour
+    private readonly LOCKOUT_DURATION_SEC = 60 * 15; // 15 Minutes
 
     /**
      * Set a new PIN for a user (only if not already set)
@@ -28,35 +29,44 @@ export class PinService {
     }
 
     /**
-     * Verify PIN for a transaction
+     * Verify PIN for a transaction with Redis Rate Limiting
      */
     async verifyPin(userId: string, pin: string): Promise<boolean> {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
+        const attemptKey = `pin_attempts:${userId}`;
+
+        // 1. Check if Locked
+        const attempts = await redisConnection.get(attemptKey);
+        if (attempts && parseInt(attempts) >= this.MAX_ATTEMPTS) {
+            const ttl = await redisConnection.ttl(attemptKey);
+            throw new ForbiddenError(`PIN locked. Try again in ${Math.ceil(ttl / 60)} minutes.`);
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { transactionPin: true },
+        });
+
         if (!user) throw new NotFoundError('User not found');
         if (!user.transactionPin) throw new BadRequestError('Transaction PIN not set');
-
-        // Check Lockout
-        if (user.pinLockedUntil && user.pinLockedUntil > new Date()) {
-            throw new ForbiddenError(
-                `PIN is locked. Try again after ${user.pinLockedUntil.toISOString()}`
-            );
-        }
 
         const isValid = await bcrypt.compare(pin, user.transactionPin);
 
         if (!isValid) {
-            await this.handleFailedAttempt(userId, user.pinAttempts);
-            throw new ForbiddenError('Invalid Transaction PIN');
+            // Increment Failed Attempts
+            const newCount = await redisConnection.incr(attemptKey);
+            if (newCount === 1) {
+                await redisConnection.expire(attemptKey, this.LOCKOUT_DURATION_SEC);
+            }
+
+            const remaining = this.MAX_ATTEMPTS - newCount;
+            if (remaining <= 0) {
+                throw new ForbiddenError('PIN locked due to too many failed attempts.');
+            }
+            throw new BadRequestError(`Invalid PIN. ${remaining} attempts remaining.`);
         }
 
-        // Reset attempts on success
-        if (user.pinAttempts > 0 || user.pinLockedUntil) {
-            await prisma.user.update({
-                where: { id: userId },
-                data: { pinAttempts: 0, pinLockedUntil: null },
-            });
-        }
-
+        // Success? Clear attempts
+        await redisConnection.del(attemptKey);
         return true;
     }
 
@@ -71,7 +81,7 @@ export class PinService {
 
         await prisma.user.update({
             where: { id: userId },
-            data: { transactionPin: hashedPin, pinAttempts: 0, pinLockedUntil: null },
+            data: { transactionPin: hashedPin },
         });
 
         return { message: 'Transaction PIN updated successfully' };
@@ -83,30 +93,6 @@ export class PinService {
     private async validatePinFormat(pin: string) {
         if (!/^\d{4}$/.test(pin)) {
             throw new BadRequestError('PIN must be exactly 4 digits');
-        }
-    }
-
-    /**
-     * Handle failed PIN attempt
-     */
-    private async handleFailedAttempt(userId: string, currentAttempts: number) {
-        const newAttempts = currentAttempts + 1;
-        let lockUntil: Date | null = null;
-
-        if (newAttempts >= this.MAX_ATTEMPTS) {
-            lockUntil = new Date(Date.now() + this.LOCKOUT_DURATION_MS);
-        }
-
-        await prisma.user.update({
-            where: { id: userId },
-            data: {
-                pinAttempts: newAttempts,
-                pinLockedUntil: lockUntil,
-            },
-        });
-
-        if (lockUntil) {
-            throw new ForbiddenError('Too many failed attempts. PIN locked for 1 hour.');
         }
     }
 }
