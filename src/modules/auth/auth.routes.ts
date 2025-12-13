@@ -30,6 +30,13 @@ router.post(
     authController.login
 );
 
+router.post(
+    '/refresh-token',
+    rateLimiters.auth,
+    validateBody(AuthSchema),
+    authController.refreshToken
+);
+
 router.get('/me', authenticate, authController.me);
 
 // ======================================================

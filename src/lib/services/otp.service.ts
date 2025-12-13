@@ -1,6 +1,6 @@
 import { prisma, OtpType } from '../../database';
 
-import { BadRequestError, InternalError } from '../utils/api-error';
+import { BadRequestError } from '../utils/api-error';
 import logger from '../utils/logger';
 import { ISmsService } from './sms.service';
 import { IEmailService } from './email.service';

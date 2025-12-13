@@ -1,1 +1,1 @@
-export { OtpType, KycLevel, KycStatus, type Prisma } from './generated/prisma';
+export { OtpType, KycLevel, KycStatus, User, type Prisma } from './generated/prisma';

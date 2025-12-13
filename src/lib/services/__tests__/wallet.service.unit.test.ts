@@ -29,11 +29,15 @@ describe('WalletService - Unit Tests', () => {
     describe('setUpWallet', () => {
         it('should create wallet for a new user', async () => {
             const userId = 'user-123';
-            (prisma.wallet.create as jest.Mock).mockResolvedValue({ id: 'wallet-123' });
+            const mockTx = {
+                wallet: {
+                    create: jest.fn().mockResolvedValue({ id: 'wallet-123' }),
+                },
+            } as any;
 
-            await walletService.setUpWallet(userId);
+            await walletService.setUpWallet(userId, mockTx);
 
-            expect(prisma.wallet.create).toHaveBeenCalledWith({
+            expect(mockTx.wallet.create).toHaveBeenCalledWith({
                 data: {
                     userId,
                     balance: 0,
@@ -58,9 +62,13 @@ describe('WalletService - Unit Tests', () => {
 
         it('should throw InternalError on failure', async () => {
             const userId = 'user-123';
-            (prisma.wallet.create as jest.Mock).mockRejectedValue(new Error('DB Error'));
+            const mockTx = {
+                wallet: {
+                    create: jest.fn().mockRejectedValue(new Error('DB Error')),
+                },
+            } as any;
 
-            await expect(walletService.setUpWallet(userId)).rejects.toThrow(InternalError);
+            await expect(walletService.setUpWallet(userId, mockTx)).rejects.toThrow(InternalError);
         });
     });
 

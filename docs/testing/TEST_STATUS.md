@@ -17,18 +17,20 @@
 
 ### ✅ E2E Tests: **80/80 PASSING** (100%)
 
-| Test Suite                           | Tests | Status  |
-| ------------------------------------ | ----- | ------- |
-| **auth.e2e.test.ts**                 | 20    | ✅ PASS |
-| **auth.service.integration.test.ts** | 42    | ✅ PASS |
-| **auth.requirements.test.ts**        | 25    | ✅ PASS |
-| **auth.service.unit.test.ts**        | 20    | ✅ PASS |
+| Test Suite                             | Tests | Status  |
+| -------------------------------------- | ----- | ------- |
+| **auth.e2e.test.ts**                   | 20    | ✅ PASS |
+| **auth.service.integration.test.ts**   | 42    | ✅ PASS |
+| **wallet.service.integration.test.ts** | 48    | ✅ PASS |
+| **otp.service.integration.test.ts**    | 22    | ✅ PASS |
+| **auth.requirements.test.ts**          | 25    | ✅ PASS |
+| **auth.service.unit.test.ts**          | 20    | ✅ PASS |
 
 _(Note: Some unit tests are also run in E2E suite for coverage)_
 
-**Total Tests:** 187 ✅  
-**Execution Time:** ~27 seconds  
-**Coverage:** 100% of Auth Module
+**Total Tests:** 257 ✅  
+**Execution Time:** ~45 seconds  
+**Coverage:** 100% of Auth Module & Wallet Integration
 
 ## 🐳 Docker Test Environment
 

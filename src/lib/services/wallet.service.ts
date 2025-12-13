@@ -24,19 +24,24 @@ export class WalletService {
      * Create Wallet for a new user (Single NGN wallet)
      * Accepts an optional transaction client to run inside AuthService.register
      */
-    async setUpWallet(userId: string, tx?: Prisma.TransactionClient) {
-        const db = tx || prisma; // Use transaction if provided, else global instance
-
+    async setUpWallet(userId: string, tx: Prisma.TransactionClient) {
         try {
-            await db.wallet.create({
+            // 1. Create the Local Wallet
+            const wallet = await tx.wallet.create({
                 data: {
                     userId,
-                    balance: 0,
-                    lockedBalance: 0,
+                    balance: 0.0, // Prisma Decimal
+                    lockedBalance: 0.0, // Prisma Decimal
+                    // Note: We do NOT create the Virtual Account Number here.
+                    // That happens in the background to keep registration fast.
                 },
             });
+
+            return wallet;
         } catch (error) {
-            throw new InternalError('Failed to create user wallet', error as Error);
+            // Log the specific error for debugging
+            console.error(`Error creating wallet for user ${userId}:`, error);
+            throw new InternalError('Failed to initialize user wallet system');
         }
     }
 

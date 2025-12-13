@@ -1,17 +1,18 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { UnauthorizedError, BadRequestError } from './api-error';
 import { envConfig } from '../../config/env.config';
+import { User } from '../../database';
 
 // Standard payload interface for Access/Refresh tokens
 export interface TokenPayload extends JwtPayload {
-    userId: string | number;
-    email?: string;
+    userId: User['id'];
+    email?: User['email'];
     role?: string;
 }
 
 // Payload for Password Reset
 export interface ResetTokenPayload extends JwtPayload {
-    email: string;
+    email: User['email'];
     type: 'reset';
 }
 
@@ -37,7 +38,7 @@ export class JwtUtils {
     /**
      * Generate a Password Reset Token (Short lived, specific type)
      */
-    static signResetToken(email: string): string {
+    static signResetToken(email: User['email']): string {
         const payload: ResetTokenPayload = { email, type: 'reset' };
         return jwt.sign(payload, envConfig.JWT_SECRET, {
             expiresIn: '15m', // Hardcoded short expiry for security

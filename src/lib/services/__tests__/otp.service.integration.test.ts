@@ -1,5 +1,7 @@
 import prisma from '../../../lib/utils/database';
 import { otpService } from '../otp.service';
+import authService from '../../../modules/auth/auth.service';
+import { TestUtils } from '../../../test/utils';
 import { OtpType } from '../../../database';
 import { BadRequestError } from '../../utils/api-error';
 
@@ -7,6 +9,61 @@ describe('OtpService - Integration Tests', () => {
     beforeEach(async () => {
         // Clean up database before each test
         await prisma.otp.deleteMany();
+        await prisma.user.deleteMany();
+    });
+
+    describe('Integration with AuthService', () => {
+        it('should generate OTP when AuthService.sendOtp is called', async () => {
+            const userData = TestUtils.generateUserData();
+            // We need a user for some flows, but sendOtp might work without one depending on implementation
+            // In this app, sendOtp checks for user existence for some types, but let's assume registration flow
+
+            // Register user first
+            await authService.register(userData);
+
+            await authService.sendOtp(userData.email, 'email');
+
+            const otpRecord = await prisma.otp.findFirst({
+                where: {
+                    identifier: userData.email,
+                    type: OtpType.EMAIL_VERIFICATION,
+                },
+            });
+
+            expect(otpRecord).toBeDefined();
+            expect(otpRecord?.code).toBeDefined();
+            expect(otpRecord?.isUsed).toBe(false);
+        });
+
+        it('should verify OTP via AuthService.verifyOtp', async () => {
+            const userData = TestUtils.generateUserData();
+            await authService.register(userData);
+
+            // Send OTP
+            await authService.sendOtp(userData.phone, 'phone');
+
+            // Get OTP from DB
+            const otpRecord = await prisma.otp.findFirst({
+                where: {
+                    identifier: userData.phone,
+                    type: OtpType.PHONE_VERIFICATION,
+                },
+            });
+
+            expect(otpRecord).toBeDefined();
+
+            // Verify via AuthService
+            const result = await authService.verifyOtp(userData.phone, otpRecord!.code, 'phone');
+
+            expect(result.success).toBe(true);
+
+            // Check if OTP is marked as used in DB
+            const updatedOtp = await prisma.otp.findUnique({
+                where: { id: otpRecord!.id },
+            });
+
+            expect(updatedOtp?.isUsed).toBe(true);
+        });
     });
 
     describe('generateOtp', () => {

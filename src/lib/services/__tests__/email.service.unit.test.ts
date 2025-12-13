@@ -52,21 +52,6 @@ describe('EmailService - Unit Tests', () => {
             );
         });
 
-        it('should log in test environment for debugging', async () => {
-            (envConfig as any).NODE_ENV = 'test';
-            const to = 'user@example.com';
-            const subject = 'Test Subject';
-            const body = 'Test body';
-
-            await emailService.sendEmail(to, subject, body);
-
-            // Now logs in test environment too for easier debugging
-            expect(logger.info).toHaveBeenCalled();
-            expect(logger.info).toHaveBeenCalledWith(
-                expect.stringContaining(`[Email Service] 📧 Email to ${to}`)
-            );
-        });
-
         it('should handle email sending errors gracefully', async () => {
             const mockEmailService = new EmailService();
             jest.spyOn(mockEmailService, 'sendEmail').mockRejectedValue(

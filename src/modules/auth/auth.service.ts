@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { prisma, KycLevel, KycStatus, OtpType } from '../../database'; // Adjust imports based on your index.ts
+import { prisma, KycLevel, KycStatus, OtpType, User } from '../../database'; // Adjust imports based on your index.ts
 import { ConflictError, NotFoundError, UnauthorizedError } from '../../lib/utils/api-error';
 import { JwtUtils } from '../../lib/utils/jwt-utils';
 import { otpService } from '../../lib/services/otp.service';
@@ -20,7 +20,7 @@ type LoginDto = Pick<AuthDTO, 'email' | 'password'>;
 class AuthService {
     // --- Helpers ---
 
-    private generateTokens(user: { id: number | string; email: string }) {
+    private generateTokens(user: Pick<User, 'email' | 'id'>) {
         const tokenPayload = { userId: user.id, email: user.email };
 
         const token = JwtUtils.signAccessToken(tokenPayload);
@@ -202,6 +202,35 @@ class AuthService {
             kycLevel: updatedUser.kycLevel,
             status: updatedUser.kycStatus,
         };
+    }
+
+    async refreshToken(incomingRefreshToken: string) {
+        // 1. Verify the incoming token signature & expiry
+        // JwtUtils should throw a specific error if verification fails,
+        // which globalErrorHandler will catch.
+        const decoded = JwtUtils.verifyRefreshToken(incomingRefreshToken);
+
+        // 2. Check if user still exists and is allowed to login
+        // We fetch the user to ensure they weren't banned/deleted
+        // since the last token was issued.
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: { id: true, email: true, isActive: true },
+        });
+
+        if (!user) {
+            throw new UnauthorizedError('User no longer exists');
+        }
+
+        if (!user.isActive) {
+            throw new UnauthorizedError('Account is deactivated');
+        }
+
+        // 3. Generate NEW set of tokens (Rotation)
+        // This ensures the old refresh token is effectively discarded by the client
+        const newTokens = this.generateTokens(user);
+
+        return newTokens;
     }
 }
 
