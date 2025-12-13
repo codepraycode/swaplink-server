@@ -1,92 +1,64 @@
-# P2P Dispute Resolution Module Implementation Plan
+# P2P Dispute Resolution Module Documentation
 
-## Goal Description
+## Overview
 
-Implement a Dispute Resolution module for the SwapLink Fintech App. This allows Administrators to intervene in P2P orders where Buyer and Seller disagree. Admins can review evidence (chat, images) and force "Release" (Buyer wins) or "Refund" (Seller wins) of funds.
+The **Dispute Resolution Module** enables Administrators to intervene in P2P orders where the Buyer and Seller are in disagreement. Admins can review evidence (chat history, payment receipts) and force-resolve disputes by either releasing funds to the buyer or refunding the seller.
 
-## User Review Required
+## Core Features
 
-> [!IMPORTANT] > **Irreversible Actions**: The resolution actions (Force Release / Force Refund) are irreversible.
-> **Security**:
->
-> -   `ADMIN` access: Dispute resolution.
-> -   `SUPER_ADMIN` access: Manage other admins.
->     **Seeding**: A default Super Admin will be seeded. All other admins must be created by a Super Admin.
+1.  **Dispute Dashboard**: List all orders with `DISPUTE` status.
+2.  **Evidence Review**: Access full chat history and order details.
+3.  **Force Resolution**:
+    -   **RELEASE**: Funds moved from Escrow (Locked) to Buyer/Receiver. Order -> `COMPLETED`.
+    -   **REFUND**: Funds moved from Escrow (Locked) back to Seller/Payer. Order -> `CANCELLED`.
+4.  **Audit Logging**: All admin actions are logged immutably with IP addresses.
+5.  **Role-Based Access**: Strict separation of `USER`, `SUPPORT`, `ADMIN`, and `SUPER_ADMIN`.
 
-## Proposed Changes
+## Architecture & Implementation
 
-### Database (Prisma)
+### 1. Database Schema (Prisma)
 
-#### [MODIFY] [schema.prisma](file:///home/codepraycode/projects/open-source/swaplink/swaplink-server/prisma/schema.prisma)
+-   **User Model**: Added `role` field (`UserRole` enum).
+-   **P2POrder Model**: Added dispute metadata:
+    -   `disputeReason`: Reason provided by the user.
+    -   `resolvedBy`: ID of the admin who resolved it.
+    -   `resolutionNotes`: Admin's justification.
+    -   `resolvedAt`: Timestamp of resolution.
+-   **AdminLog Model**: New table for audit trails.
+    -   `action`: e.g., `RESOLVE_RELEASE`, `RESOLVE_REFUND`, `CREATE_ADMIN`.
+    -   `metadata`: JSON snapshot of the decision.
+    -   `ipAddress`: IP of the admin at the time of action.
 
--   Update `User` model:
-    -   Add `role` field: `role UserRole @default(USER)`
--   Create `UserRole` enum:
-    -   `USER`, `SUPPORT`, `ADMIN`, `SUPER_ADMIN`
--   Update `P2POrder` model:
-    -   Add `disputeReason` (String?)
-    -   Add `resolvedBy` (String?)
-    -   Add `resolutionNotes` (String?)
-    -   Add `resolvedAt` (DateTime?)
--   Create `AdminLog` model:
-    -   Fields: `id`, `adminId`, `action`, `targetId`, `metadata`, `ipAddress`, `createdAt`
-    -   Relation to `User` (admin)
+### 2. API Endpoints
 
-### Backend Services
+Base URL: `/api/v1/admin`
 
-#### [NEW] [src/modules/admin/admin.service.ts](file:///home/codepraycode/projects/open-source/swaplink/swaplink-server/src/modules/admin/admin.service.ts)
+| Method | Endpoint                | Role                   | Description                                         |
+| :----- | :---------------------- | :--------------------- | :-------------------------------------------------- |
+| `GET`  | `/disputes`             | `ADMIN`, `SUPER_ADMIN` | List paginated disputed orders.                     |
+| `GET`  | `/disputes/:id`         | `ADMIN`, `SUPER_ADMIN` | Get order details, chat history, and evidence.      |
+| `POST` | `/disputes/:id/resolve` | `ADMIN`, `SUPER_ADMIN` | Resolve dispute (`decision`: `RELEASE` / `REFUND`). |
+| `POST` | `/users`                | `SUPER_ADMIN`          | Create a new Admin or Support user.                 |
+| `GET`  | `/users`                | `SUPER_ADMIN`          | List all admin users.                               |
 
--   Implement `AdminService` class.
--   **Dispute Resolution**:
-    -   `resolveDispute(adminId, orderId, decision, notes)`: Handles `RELEASE` or `REFUND` atomically. Logs to `AdminLog`.
-    -   `getDisputes(filters)`: Returns paginated list of disputed orders.
-    -   `getDisputeDetails(orderId)`: Returns order details, chat history, and images.
--   **Admin Management (Super Admin Only)**:
-    -   `createAdmin(email, password, role, firstName, lastName)`: Creates a new user with `ADMIN` or `SUPPORT` role.
-    -   `getAdmins()`: Lists all admin users.
-    -   `revokeAdmin(adminId)`: Sets an admin's role back to `USER` or deactivates them.
+### 3. Security & Access Control
 
-#### [NEW] [src/modules/admin/admin.controller.ts](file:///home/codepraycode/projects/open-source/swaplink/swaplink-server/src/modules/admin/admin.controller.ts)
+-   **Middleware**: `requireRole` ensures only authorized users can access admin routes.
+-   **Token Security**: JWT payloads now include the `role` field for efficient checks.
+-   **IP Logging**: Every critical action captures the admin's IP address for accountability.
 
--   Endpoints:
-    -   `GET /admin/disputes` (Admin+)
-    -   `GET /admin/disputes/:id` (Admin+)
-    -   `POST /admin/disputes/:id/resolve` (Admin+)
-    -   `POST /admin/users` (Super Admin) - Create new Admin
-    -   `GET /admin/users` (Super Admin) - List Admins
+### 4. Real-time Notifications
 
-#### [NEW] [src/modules/admin/admin.routes.ts](file:///home/codepraycode/projects/open-source/swaplink/swaplink-server/src/modules/admin/admin.routes.ts)
+-   **Socket Event**: `ORDER_RESOLVED` is emitted to both the Buyer and Seller immediately upon resolution.
 
--   Define routes.
--   Apply `requireAdmin` for disputes.
--   Apply `requireSuperAdmin` for admin management.
+## Setup & Seeding
 
-#### [MODIFY] [src/types/express.d.ts](file:///home/codepraycode/projects/open-source/swaplink/swaplink-server/src/types/express.d.ts)
+A seeding script (`prisma/seed.ts`) ensures a **Super Admin** exists on startup.
 
--   Update `UserPayload` (or equivalent interface) to include `role: UserRole`.
+-   **Credentials**: Configured via `ADMIN_EMAIL` and `ADMIN_PASSWORD` environment variables.
+-   **Default**: `admin@swaplink.com` / `SuperSecretAdmin123!` (if env not set).
 
-#### [MODIFY] [src/lib/services/socket.service.ts](file:///home/codepraycode/projects/open-source/swaplink/swaplink-server/src/lib/services/socket.service.ts)
+## Verification
 
--   Ensure `ORDER_RESOLVED` event is supported/emitted.
-
-### Seeding (New Admin)
-
-#### [NEW] [prisma/seed.ts](file:///home/codepraycode/projects/open-source/swaplink/swaplink-server/prisma/seed.ts)
-
--   Check if _any_ user with `role: SUPER_ADMIN` exists.
--   If NOT, create one using `ADMIN_EMAIL` and `ADMIN_PASSWORD` from env.
--   Log the creation.
-
-## Verification Plan
-
-### Automated Tests
-
--   Create unit tests for `AdminService` to verify:
-    -   `resolveDispute` correctly moves funds for RELEASE.
-    -   `resolveDispute` correctly moves funds for REFUND.
-    -   `resolveDispute` creates `AdminLog`.
-    -   `resolveDispute` fails for non-disputed orders.
-
-### Manual Verification
-
--   Since this is a backend-only task in this context, I will simulate API calls using a test script or `curl` commands (if server running) or rely on unit tests.
+-   **Automated Tests**: Integration tests ensure fund movements and status updates are atomic.
+-   **Manual Verification**: Walkthrough available in `walkthrough.md`.
