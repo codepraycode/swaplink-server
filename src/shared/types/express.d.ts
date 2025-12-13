@@ -5,7 +5,7 @@
  * used throughout the application (user, device info, etc.)
  */
 
-import { TokenPayload } from '../lib/utils/jwt-utils';
+import { TokenPayload } from './auth.types';
 
 declare global {
     namespace Express {

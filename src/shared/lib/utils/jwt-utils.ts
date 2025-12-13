@@ -1,21 +1,10 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { UnauthorizedError, BadRequestError } from './api-error';
 import { envConfig } from '../../config/env.config';
-import { User, UserRole } from '../../database';
+import { User } from '../../database';
 import { type Request } from 'express';
 
-// Standard payload interface for Access/Refresh tokens
-export interface TokenPayload extends JwtPayload {
-    userId: User['id'];
-    email?: User['email'];
-    role: UserRole;
-}
-
-// Payload for Password Reset
-export interface ResetTokenPayload extends JwtPayload {
-    email: User['email'];
-    type: 'reset';
-}
+import { TokenPayload, ResetTokenPayload } from '../../types/auth.types';
 
 export class JwtUtils {
     /**
@@ -94,7 +83,7 @@ export class JwtUtils {
     }
 
     static ensureAuthentication(req: Request) {
-        const user = req.user;
+        const user = (req as any).user;
         if (!user) {
             throw new UnauthorizedError('No authentication token provided');
         }

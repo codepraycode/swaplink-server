@@ -50,8 +50,8 @@ export class P2POrderService {
 
         // 3. Funds Locking Logic
         const totalNgn = amount * ad.price;
-        let makerId = ad.userId;
-        let takerId = userId;
+        const makerId = ad.userId;
+        const takerId = userId;
 
         // Snapshot Bank Details
         let bankSnapshot: any = {};
