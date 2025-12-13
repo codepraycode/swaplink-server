@@ -90,7 +90,34 @@ GLOBUS_SECRET_KEY="your_secret_key"
 -   `src/modules/auth/__tests__/auth.service.integration.test.ts`: Verifies that registering a user correctly triggers the background job.
 -   `src/lib/queues/__tests__/banking.queue.test.ts`: Verifies the end-to-end flow from Queue -> Worker -> Database -> Socket Event.
 
-## 7. Future Improvements
+## 7. Security & Robustness
 
--   **Dead Letter Queue:** Handle jobs that fail permanently after all retries.
--   **Webhook Handling:** Implement a webhook endpoint to receive credit notifications from Globus Bank.
+### 7.1 Socket.io Security
+-   **CORS:** Configured to allow all origins (`*`) to support various client environments (Mobile, Web).
+-   **Authentication:** Enforced strict JWT verification on connection.
+    -   Checks `auth.token`, `query.token`, and `Authorization` header.
+    -   Invalid tokens trigger a graceful error message (`Authentication error: Session invalid`) before disconnection, allowing the client to handle re-login logic.
+
+### 7.2 Dead Letter Queue (DLQ)
+-   **Monitoring:** The `BankingQueue` worker listens for `failed` events.
+-   **Permanent Failures:** If a job fails after all retries (default: 3), it is logged with a `[DEAD LETTER]` tag.
+-   **Action:** These logs can be monitored (e.g., via CloudWatch/Datadog) for manual intervention.
+
+## 8. Webhook Handling
+
+### 8.1 Overview
+-   **Endpoint:** `POST /api/v1/webhooks/globus`
+-   **Purpose:** Receive real-time credit notifications from Globus Bank when a user funds their virtual account.
+
+### 8.2 Security
+-   **Signature Verification:** Validates the `x-globus-signature` header using HMAC-SHA256 and the `GLOBUS_WEBHOOK_SECRET`.
+
+### 8.3 Flow
+1.  **Receive Payload:** Globus sends a JSON payload with transaction details.
+2.  **Verify Signature:** `WebhookController` verifies the request authenticity.
+3.  **Process Credit:** `WebhookService` finds the wallet associated with the virtual account number.
+4.  **Fund Wallet:** The wallet is credited, and a transaction record is created.
+
+## 9. Future Improvements
+-   **Admin Dashboard:** UI to view and retry Dead Letter jobs.
+-   **Webhook Idempotency:** Ensure the same webhook event isn't processed twice using the `reference` field.
