@@ -3,7 +3,7 @@ import { pinService } from '../lib/services/pin.service';
 import { nameEnquiryService } from '../lib/services/name-enquiry.service';
 import { transferService } from '../lib/services/transfer.service';
 import { beneficiaryService } from '../lib/services/beneficiary.service';
-import { AuthenticatedRequest } from '../types/express/index';
+import { JwtUtils } from '../lib/utils/jwt-utils';
 
 export class TransferController {
     /**
@@ -11,7 +11,7 @@ export class TransferController {
      */
     static async setOrUpdatePin(req: Request, res: Response, next: NextFunction) {
         try {
-            const { userId } = (req as AuthenticatedRequest).user;
+            const userId = JwtUtils.ensureAuthentication(req).userId;
             const { oldPin, newPin, confirmPin } = req.body;
 
             if (newPin !== confirmPin) {
@@ -38,7 +38,7 @@ export class TransferController {
      */
     static async processTransfer(req: Request, res: Response, next: NextFunction) {
         try {
-            const { userId } = (req as AuthenticatedRequest).user;
+            const userId = JwtUtils.ensureAuthentication(req).userId;
             const payload = { ...req.body, userId };
 
             // TODO: Validate payload (Joi/Zod)
@@ -68,7 +68,7 @@ export class TransferController {
      */
     static async getBeneficiaries(req: Request, res: Response, next: NextFunction) {
         try {
-            const { userId } = (req as AuthenticatedRequest).user;
+            const userId = JwtUtils.ensureAuthentication(req).userId;
             const beneficiaries = await beneficiaryService.getBeneficiaries(userId);
             res.status(200).json(beneficiaries);
         } catch (error) {

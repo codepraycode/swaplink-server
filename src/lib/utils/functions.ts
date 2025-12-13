@@ -11,6 +11,9 @@ export function formatUserInfo(user: any) {
                   id: wallet.id,
                   balance: Number(wallet.balance),
                   lockedBalance: Number(wallet.lockedBalance),
+                  accountNumber: wallet.virtualAccount?.accountNumber,
+                  bankName: wallet.virtualAccount?.bankName,
+                  accountName: wallet.virtualAccount?.accountName,
               }
             : null,
     };

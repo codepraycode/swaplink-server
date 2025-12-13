@@ -2,6 +2,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { UnauthorizedError, BadRequestError } from './api-error';
 import { envConfig } from '../../config/env.config';
 import { User } from '../../database';
+import { type Request } from 'express';
 
 // Standard payload interface for Access/Refresh tokens
 export interface TokenPayload extends JwtPayload {
@@ -90,5 +91,13 @@ export class JwtUtils {
      */
     static decode(token: string): JwtPayload | null {
         return jwt.decode(token) as JwtPayload;
+    }
+
+    static ensureAuthentication(req: Request) {
+        const user = req.user;
+        if (!user) {
+            throw new UnauthorizedError('No authentication token provided');
+        }
+        return user;
     }
 }
