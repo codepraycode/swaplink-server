@@ -1,23 +1,29 @@
 import { Request, Response, NextFunction } from 'express';
 import { sendSuccess } from '../../../../shared/lib/utils/api-response';
+import { storageService } from '../../../../shared/lib/services/storage.service';
+import { P2PChatService } from './p2p-chat.service';
 
 export class P2PChatController {
     static async uploadImage(req: Request, res: Response, next: NextFunction) {
         try {
-            // Assuming upload middleware puts file in req.file
-            // and returns a URL or path.
-            // If using local upload, we might need to construct URL.
-            // For now, let's assume req.file.path or req.file.location (S3)
-
             if (!req.file) {
                 throw new Error('No file uploaded');
             }
 
-            // Return the file URL/Path so client can send it via socket
-            // In a real app, we'd return the full URL.
-            // Let's assume we return `req.file.path` for now.
+            // Upload to S3/R2
+            const url = await storageService.uploadFile(req.file, 'p2p-chat');
 
-            return sendSuccess(res, { url: req.file.path }, 'Image uploaded successfully');
+            return sendSuccess(res, { url }, 'Image uploaded successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async getMessages(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { orderId } = req.params;
+            const messages = await P2PChatService.getMessages(orderId);
+            return sendSuccess(res, messages, 'Messages retrieved successfully');
         } catch (error) {
             next(error);
         }

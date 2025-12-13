@@ -36,6 +36,16 @@ interface EnvConfig {
     EMAIL_TIMEOUT: number;
     FROM_EMAIL: string;
     FRONTEND_URL: string;
+
+    // Storage (S3/Cloudflare R2)
+    AWS_ACCESS_KEY_ID: string;
+    AWS_SECRET_ACCESS_KEY: string;
+    AWS_REGION: string;
+    AWS_BUCKET_NAME: string;
+    AWS_ENDPOINT: string; // For Cloudflare R2
+
+    // System
+    SYSTEM_USER_ID: string;
 }
 
 const loadEnv = () => {
@@ -97,6 +107,14 @@ export const envConfig: EnvConfig = {
     EMAIL_TIMEOUT: parseInt(getEnv('EMAIL_TIMEOUT', '10000'), 10),
     FROM_EMAIL: getEnv('FROM_EMAIL', 'no-reply@example.com'),
     FRONTEND_URL: getEnv('FRONTEND_URL', 'http://localhost:3000'),
+
+    AWS_ACCESS_KEY_ID: getEnv('AWS_ACCESS_KEY_ID', 'minioadmin'),
+    AWS_SECRET_ACCESS_KEY: getEnv('AWS_SECRET_ACCESS_KEY', 'minioadmin'),
+    AWS_REGION: getEnv('AWS_REGION', 'us-east-1'),
+    AWS_BUCKET_NAME: getEnv('AWS_BUCKET_NAME', 'swaplink'),
+    AWS_ENDPOINT: getEnv('AWS_ENDPOINT', 'http://localhost:9000'),
+
+    SYSTEM_USER_ID: getEnv('SYSTEM_USER_ID', 'system-wallet-user'),
 };
 
 /**

@@ -9,7 +9,8 @@ import { NotFoundError } from '../shared/lib/utils/api-error';
 import { sendSuccess } from '../shared/lib/utils/api-response';
 import routes from './modules/routes';
 import { randomUUID } from 'crypto';
-import { globalRateLimiter } from './middlewares/rate-limit.middleware';
+import rateLimiters from './middlewares/rate-limit.middleware';
+import path from 'path';
 
 const app: Application = express();
 const API_ROUTE = '/api/v1';
@@ -31,6 +32,9 @@ if (envConfig.NODE_ENV === 'production') {
 // 2a. Security Headers & CORS (Always first)
 app.use(helmet(helmetConfig));
 app.use(cors(corsConfig));
+
+// Serve Static Files (Uploads)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // 2b. Request ID (Early tagging for logs)
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -62,7 +66,7 @@ app.get('/health', (req: Request, res: Response) => {
 // ======================================================
 // Apply global limits ONLY to API routes, or globally after health check.
 // Using it before body parser saves CPU on blocked requests.
-app.use(API_ROUTE, globalRateLimiter);
+app.use(API_ROUTE, rateLimiters.global);
 
 // ======================================================
 // 5. Body Parsing

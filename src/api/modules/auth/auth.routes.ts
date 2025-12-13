@@ -93,12 +93,12 @@ router.post(
     authController.submitKyc
 );
 
-// router.post(
-//     '/profile/avatar',
-//     authenticate,
-//     uploadAvatar.single('avatar'),
-//     authController.updateAvatar
-// );
+router.post(
+    '/profile/avatar',
+    authenticate,
+    uploadAvatar.single('avatar'),
+    authController.updateAvatar
+);
 
 router.get('/verification-status', authenticate, authController.getVerificationStatus);
 

@@ -11,5 +11,6 @@ router.use(authenticate);
 // Ideally should have a generic `uploadImage` middleware.
 // Let's assume `uploadKyc` is fine or we should check `upload.middleware.ts`.
 router.post('/upload', uploadKyc.single('image'), P2PChatController.uploadImage);
+router.get('/:orderId/messages', P2PChatController.getMessages);
 
 export default router;

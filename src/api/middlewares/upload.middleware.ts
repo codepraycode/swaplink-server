@@ -7,40 +7,16 @@ import path from 'path';
 import fs from 'fs';
 
 // ======================================================
-// 1. Storage Strategy (Dev vs Prod)
+// 1. Storage Strategy
 // ======================================================
 
 /**
- * PRODUCTION: Memory Storage
- * We keep the file in Buffer (RAM) so we can stream it directly
- * to S3/Cloudinary/Azure without writing to the insecure server disk.
+ * We ALWAYS use Memory Storage here.
+ * The decision to save to Disk (Dev) or Cloud (Prod) is handled
+ * by the StorageService, not Multer.
+ * This gives us a unified interface (Buffer) to work with.
  */
-const memoryStorage = multer.memoryStorage();
-
-/**
- * DEVELOPMENT: Disk Storage
- * Saves files locally to 'uploads/' for easy debugging without internet.
- */
-const diskStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = 'uploads/temp';
-        // Ensure directory exists
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-        }
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-        // Generate unique filename: fieldname-timestamp-random.ext
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        const ext = path.extname(file.originalname);
-        cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
-    },
-});
-
-// Select storage based on environment
-// For Fintech, ALWAYS use memory/cloud storage in production.
-const storage = envConfig.NODE_ENV === 'production' ? memoryStorage : diskStorage;
+const storage = multer.memoryStorage();
 
 // ======================================================
 // 2. Filter Logic

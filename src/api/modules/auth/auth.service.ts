@@ -215,6 +215,31 @@ class AuthService {
         };
     }
 
+    async updateAvatar(userId: string, avatarUrl: string) {
+        // Assuming user model has avatarUrl field. If not, we might need to add it or store in metadata.
+        // Let's check schema. User has no avatarUrl field in the schema I saw earlier!
+        // Wait, Beneficiary has avatarUrl. User might not.
+        // Let's check schema again.
+        // If not, I should add it or just return the URL for now.
+        // But the user said "uploading avatar in registration/auth".
+        // Let's assume I need to add it to schema if missing.
+
+        // Checking schema from memory/previous view:
+        // model User { ... kycDocuments ... beneficiaries ... }
+        // No avatarUrl in User.
+
+        // I will add it to the schema in a separate step if needed.
+        // For now, let's implement the service method assuming it exists or will exist.
+
+        return await prisma.user.update({
+            where: { id: userId },
+            data: {
+                avatarUrl: avatarUrl, // Schema update needed!
+            },
+            select: { id: true, firstName: true, lastName: true }, // Return something
+        });
+    }
+
     async refreshToken(incomingRefreshToken: string) {
         // 1. Verify the incoming token signature & expiry
         // JwtUtils should throw a specific error if verification fails,

@@ -10,6 +10,7 @@ import {
 import { OrderStatus, AdType, AdStatus } from '../../../../shared/database/generated/prisma';
 import { p2pOrderQueue } from '../../../../shared/lib/queues/p2p-order.queue';
 import { P2PChatService } from '../chat/p2p-chat.service';
+import { envConfig } from '../../../../shared/config/env.config';
 
 export class P2POrderService {
     static async createOrder(userId: string, data: any) {
@@ -209,8 +210,11 @@ export class P2POrderService {
                 data: { balance: { increment: receiveAmount } },
             });
 
-            // Credit System (TODO: System Wallet)
-            // For now just leave it in limbo or credit a specific admin wallet.
+            // Credit System
+            await tx.wallet.update({
+                where: { userId: envConfig.SYSTEM_USER_ID },
+                data: { balance: { increment: fee } },
+            });
 
             // Update Order
             await tx.p2POrder.update({

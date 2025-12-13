@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { sendCreated, sendSuccess } from '../../../shared/lib/utils/api-response';
 import { HttpStatusCode } from '../../../shared/lib/utils/http-status-codes';
 import authService from './auth.service';
+import { storageService } from '../../../shared/lib/services/storage.service';
 
 class AuthController {
     register = async (req: Request, res: Response, next: NextFunction) => {
@@ -139,8 +140,28 @@ class AuthController {
     submitKyc = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const userId = (req as any).user.userId;
-            const result = await authService.submitKyc(userId, req.body);
+
+            if (!req.file) throw new Error('KYC Document is required');
+
+            const documentUrl = await storageService.uploadFile(req.file, 'kyc');
+
+            const result = await authService.submitKyc(userId, { ...req.body, documentUrl });
             sendSuccess(res, result, 'KYC submitted successfully');
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    updateAvatar = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userId = (req as any).user.userId;
+
+            if (!req.file) throw new Error('Avatar image is required');
+
+            const avatarUrl = await storageService.uploadFile(req.file, 'avatars');
+
+            const result = await authService.updateAvatar(userId, avatarUrl);
+            sendSuccess(res, result, 'Avatar updated successfully');
         } catch (error) {
             next(error);
         }
