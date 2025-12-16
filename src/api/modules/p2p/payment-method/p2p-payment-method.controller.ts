@@ -21,7 +21,7 @@ export class P2PPaymentMethodController {
 
     static async getAll(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req as any).user.id;
+            const { userId } = JwtUtils.ensureAuthentication(req);
             const methods = await P2PPaymentMethodService.getPaymentMethods(userId);
 
             return sendSuccess(res, methods, 'Payment methods retrieved successfully');
@@ -32,7 +32,7 @@ export class P2PPaymentMethodController {
 
     static async delete(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req as any).user.id;
+            const { userId } = JwtUtils.ensureAuthentication(req);
             const { id } = req.params;
 
             await P2PPaymentMethodService.deletePaymentMethod(userId, id);

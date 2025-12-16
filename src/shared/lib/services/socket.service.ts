@@ -2,6 +2,7 @@ import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { JwtUtils } from '../utils/jwt-utils';
 import logger from '../utils/logger';
+import { UnauthorizedError } from '../utils/api-error';
 
 class SocketService {
     private io: Server | null = null;
@@ -36,8 +37,10 @@ class SocketService {
                 next();
             } catch (error) {
                 // Graceful error for client
-                const err = new Error('Authentication error: Session invalid');
-                (err as any).data = { code: 'INVALID_TOKEN', message: 'Please log in again' };
+                const err = new UnauthorizedError('Authentication error: Session invalid', {
+                    code: 'INVALID_TOKEN',
+                    message: 'Please log in again',
+                });
                 next(err);
             }
         });
@@ -78,7 +81,7 @@ class SocketService {
 
     emitToUser(userId: string, event: string, data: any) {
         if (!this.io) {
-            logger.warn('Socket.io not initialized');
+            logger.error('Socket.io not initialized');
             return;
         }
 

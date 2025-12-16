@@ -11,6 +11,7 @@ import {
 import { p2pOrderQueue } from '../../../../shared/lib/queues/p2p-order.queue';
 import { P2PChatService } from '../chat/p2p-chat.service';
 import { envConfig } from '../../../../shared/config/env.config';
+import { logDebug } from '../../../../shared/lib/utils/logger';
 
 export class P2POrderService {
     static async createOrder(userId: string, data: any) {

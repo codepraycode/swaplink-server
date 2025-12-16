@@ -36,7 +36,6 @@ const startServer = async () => {
             const io = socketService.getIO();
             if (io) {
                 new P2PChatGateway(io);
-                logger.info('✅ P2P Chat Gateway initialized');
             }
         });
     } catch (error) {

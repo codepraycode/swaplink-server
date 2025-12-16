@@ -1,4 +1,4 @@
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { P2PChatService } from './p2p-chat.service';
 import { redisConnection } from '../../../../shared/config/redis.config';
 import { ChatType } from '../../../../shared/database';
@@ -16,18 +16,20 @@ export class P2PChatGateway {
     private initialize() {
         // Auth is handled by global SocketService middleware
 
+        logger.info('✅ P2P Chat Gateway initialized');
+
         this.io.on('connection', socket => {
             const userId = (socket as any).data?.userId || (socket as any).user?.id;
             if (!userId) return; // Should not happen if auth middleware works
 
-            logger.debug(`User connected to P2P Chat: ${userId}`);
+            logger.debug(`User connected to P2P Chat`, { userId });
 
             // Track Presence
             this.setUserOnline(userId, socket.id);
 
             socket.on('join_order', (orderId: string) => {
                 socket.join(`order:${orderId}`);
-                logger.debug(`User ${userId} joined order ${orderId}`);
+                logger.debug(`User ${userId} joined order`, { orderId });
             });
 
             socket.on(
@@ -69,7 +71,7 @@ export class P2PChatGateway {
 
             socket.on('disconnect', () => {
                 this.setUserOffline(userId);
-                logger.debug(`User disconnected: ${userId}`);
+                logger.debug(`User disconnected`, { userId });
             });
         });
     }
