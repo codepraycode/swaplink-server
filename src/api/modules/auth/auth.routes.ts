@@ -37,7 +37,9 @@ router.post(
     authController.refreshToken
 );
 
-router.get('/me', authenticate, authController.me);
+router.use(authenticate);
+
+router.get('/me', authController.me);
 
 // ======================================================
 // 2. OTP Services (Dual Layer Protection)

@@ -10,3 +10,6 @@ dist
 # Test Output
 test_output.txt
 test_output*.txt
+
+# User data
+uploads
