@@ -3,6 +3,7 @@ import paymentMethodRoutes from './payment-method/p2p-payment-method.route';
 import adRoutes from './ad/p2p-ad.route';
 import orderRoutes from './order/p2p-order.route';
 import chatRoutes from './chat/p2p-chat.route';
+// import { authenticate } from '../../middlewares/auth.middleware';
 
 const router: Router = Router();
 

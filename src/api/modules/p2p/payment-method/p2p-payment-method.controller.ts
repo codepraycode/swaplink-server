@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { P2PPaymentMethodService } from './p2p-payment-method.service';
 import { sendSuccess, sendCreated } from '../../../../shared/lib/utils/api-response';
+import { JwtUtils } from '../../../../shared/lib/utils/jwt-utils';
 
 export class P2PPaymentMethodController {
     static async create(req: Request, res: Response, next: NextFunction) {
         try {
             // Assuming req.user is populated by auth middleware
-            const userId = (req as any).user.id;
+            const { userId } = JwtUtils.ensureAuthentication(req);
             const paymentMethod = await P2PPaymentMethodService.createPaymentMethod(
                 userId,
                 req.body

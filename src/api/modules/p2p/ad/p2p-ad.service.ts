@@ -1,11 +1,12 @@
 import { prisma, AdType, AdStatus } from '../../../../shared/database';
 import { walletService } from '../../../../shared/lib/services/wallet.service';
 import { BadRequestError, NotFoundError } from '../../../../shared/lib/utils/api-error';
+import logger from '../../../../shared/lib/utils/logger';
 
 export class P2PAdService {
     static async createAd(userId: string, data: any) {
         const {
-            type,
+            type: givenType,
             currency,
             totalAmount,
             price,
@@ -23,7 +24,10 @@ export class P2PAdService {
             throw new BadRequestError('Max limit cannot be greater than Total amount');
 
         // Logic based on Type
+        const type: AdType = givenType === 'BUY' ? AdType.BUY_FX : AdType.SELL_FX;
         if (type === AdType.BUY_FX) {
+            if (!paymentMethodId)
+                throw new BadRequestError('Payment method is required for Buy FX ads');
             // Maker is GIVING NGN. Must lock funds.
             const totalNgnRequired = totalAmount * price;
 
@@ -150,10 +154,13 @@ export class P2PAdService {
             // BUY_FX Ad (Maker wants FX): Needs Payment Method.
             // SELL_FX Ad (Maker has FX): No Payment Method in Ad. Taker provides it in Order.
 
-            if (type === AdType.BUY_FX) {
-                if (!paymentMethodId)
-                    throw new BadRequestError('Payment method is required for Buy FX ads');
-            }
+            // if (type === AdType.BUY_FX) {
+            //     if (!paymentMethodId)
+            //         throw new BadRequestError('Payment method is required for Buy FX ads');
+            // }
+            // if (!paymentMethodId)
+            //     throw new BadRequestError('Payment method is required for Buy FX ads');
+            logger.debug('Nothing to do!');
         }
 
         return await prisma.p2PAd.create({
@@ -165,7 +172,7 @@ export class P2PAdService {
                 remainingAmount: totalAmount,
                 price,
                 minLimit,
-                maxLimit,
+                maxLimit: maxLimit || totalAmount,
                 paymentMethodId,
                 terms,
                 autoReply,
@@ -186,7 +193,17 @@ export class P2PAdService {
             where,
             orderBy: { price: type === AdType.SELL_FX ? 'asc' : 'desc' }, // Best rates first
             include: {
-                user: { select: { id: true, firstName: true, lastName: true, kycLevel: true } },
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        kycLevel: true,
+                        avatarUrl: true,
+                        email: true,
+                        // phoneNumber: true,
+                    },
+                },
                 paymentMethod: { select: { bankName: true } }, // Don't expose full details in feed
             },
         });

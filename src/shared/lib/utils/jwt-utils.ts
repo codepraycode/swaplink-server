@@ -83,7 +83,7 @@ export class JwtUtils {
     }
 
     static ensureAuthentication(req: Request) {
-        const user = (req as any).user;
+        const user = req.user;
         if (!user) {
             throw new UnauthorizedError('No authentication token provided');
         }
