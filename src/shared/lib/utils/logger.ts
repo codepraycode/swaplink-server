@@ -39,11 +39,17 @@ winston.addColors(logLevels.colors);
  * Recursively masks sensitive keys in the log object before writing.
  */
 const redactor = winston.format(info => {
-    const maskSensitiveData = (obj: any): any => {
+    const maskSensitiveData = (obj: any, seen = new WeakSet(), depth = 0): any => {
         if (!obj || typeof obj !== 'object') return obj;
+        if (depth > 10) return '[Depth Limit Exceeded]'; // Prevent deep recursion
+        if (seen.has(obj)) return '[Circular]'; // Prevent circular references
+
+        seen.add(obj);
 
         // Handle Arrays
-        if (Array.isArray(obj)) return obj.map(maskSensitiveData);
+        if (Array.isArray(obj)) {
+            return obj.map(item => maskSensitiveData(item, seen, depth + 1));
+        }
 
         // Handle Objects
         const newObj: any = {};
@@ -52,7 +58,7 @@ const redactor = winston.format(info => {
                 if (SENSITIVE_KEYS.includes(key)) {
                     newObj[key] = '*****'; // Mask the value
                 } else if (typeof obj[key] === 'object') {
-                    newObj[key] = maskSensitiveData(obj[key]); // Recurse
+                    newObj[key] = maskSensitiveData(obj[key], seen, depth + 1); // Recurse
                 } else {
                     newObj[key] = obj[key];
                 }

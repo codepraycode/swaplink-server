@@ -95,10 +95,10 @@ export const envConfig: EnvConfig = {
     JWT_ACCESS_EXPIRATION: getEnv('JWT_ACCESS_EXPIRATION', 'JWT_ACCESS_EXPIRATION'),
     JWT_REFRESH_SECRET: getEnv('JWT_REFRESH_SECRET', 'JWT_REFRESH_SECRET'),
     JWT_REFRESH_EXPIRATION: getEnv('JWT_REFRESH_EXPIRATION', 'JWT_REFRESH_EXPIRATION'),
-    GLOBUS_SECRET_KEY: getEnv('GLOBUS_SECRET_KEY', 'GLOBUS_KEY'),
-    GLOBUS_WEBHOOK_SECRET: getEnv('GLOBUS_WEBHOOK_SECRET', 'GLOBUS_WEBHOOK_SECRET'),
-    GLOBUS_BASE_URL: getEnv('GLOBUS_BASE_URL', "'https://sandbox.globusbank.com/api'"),
-    GLOBUS_CLIENT_ID: getEnv('GLOBUS_CLIENT_ID', 'GLOBUS_CLIENT_ID'),
+    GLOBUS_SECRET_KEY: getEnv('GLOBUS_SECRET_KEY'),
+    GLOBUS_WEBHOOK_SECRET: getEnv('GLOBUS_WEBHOOK_SECRET'),
+    GLOBUS_BASE_URL: getEnv('GLOBUS_BASE_URL'),
+    GLOBUS_CLIENT_ID: getEnv('GLOBUS_CLIENT_ID'),
     CORS_URLS: getEnv('CORS_URLS', 'http://localhost:3000'),
     SMTP_HOST: getEnv('SMTP_HOST', 'smtp.example.com'),
     SMTP_PORT: parseInt(getEnv('SMTP_PORT', '587'), 10),
@@ -128,10 +128,7 @@ export const validateEnv = (): void => {
         'JWT_ACCESS_EXPIRATION',
         'JWT_REFRESH_SECRET',
         'JWT_REFRESH_EXPIRATION',
-        'GLOBUS_SECRET_KEY',
-        'GLOBUS_WEBHOOK_SECRET',
-        'GLOBUS_BASE_URL',
-        'GLOBUS_CLIENT_ID',
+
         'CORS_URLS',
         'SMTP_HOST',
         'SMTP_PORT',
@@ -139,6 +136,15 @@ export const validateEnv = (): void => {
         'SMTP_PASSWORD',
         'FROM_EMAIL',
     ];
+
+    if (process.env.NODE_ENV === 'production') {
+        requiredKeys.push(
+            'GLOBUS_SECRET_KEY',
+            'GLOBUS_WEBHOOK_SECRET',
+            'GLOBUS_BASE_URL',
+            'GLOBUS_CLIENT_ID'
+        );
+    }
 
     const missingKeys = requiredKeys.filter(key => !process.env[key]);
 

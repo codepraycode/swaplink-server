@@ -4,7 +4,11 @@ import authService from '../auth.service';
 import { otpService } from '../../../../shared/lib/services/otp.service';
 import walletService from '../../../../shared/lib/services/wallet.service';
 import { JwtUtils } from '../../../../shared/lib/utils/jwt-utils';
-import { ConflictError, NotFoundError, UnauthorizedError } from '../../../../shared/lib/utils/api-error';
+import {
+    ConflictError,
+    NotFoundError,
+    UnauthorizedError,
+} from '../../../../shared/lib/utils/api-error';
 
 // Mock dependencies
 jest.mock('../../../database', () => ({
@@ -59,7 +63,7 @@ describe('AuthService - Unit Tests', () => {
             };
 
             const mockTokens = {
-                token: 'access_token',
+                accessToken: 'access_token',
                 refreshToken: 'refresh_token',
                 expiresIn: 86400,
             };
@@ -73,7 +77,7 @@ describe('AuthService - Unit Tests', () => {
                     },
                 });
             });
-            (JwtUtils.signAccessToken as jest.Mock).mockReturnValue(mockTokens.token);
+            (JwtUtils.signAccessToken as jest.Mock).mockReturnValue(mockTokens.accessToken);
             (JwtUtils.signRefreshToken as jest.Mock).mockReturnValue(mockTokens.refreshToken);
             (walletService.setUpWallet as jest.Mock).mockResolvedValue(undefined);
 
@@ -84,7 +88,7 @@ describe('AuthService - Unit Tests', () => {
             });
             expect(bcrypt.hash).toHaveBeenCalledWith(mockUserData.password, 12);
             expect(result.user).toEqual(mockUser);
-            expect(result.token).toBe(mockTokens.token);
+            expect(result.accessToken).toBe(mockTokens.accessToken);
             expect(result.refreshToken).toBe(mockTokens.refreshToken);
         });
 
@@ -128,7 +132,7 @@ describe('AuthService - Unit Tests', () => {
             expect(bcrypt.compare).toHaveBeenCalledWith(mockLoginData.password, mockUser.password);
             expect(result.user).toBeDefined();
             expect('password' in result.user).toBe(false);
-            expect(result.token).toBe('access_token');
+            expect(result.accessToken).toBe('access_token');
         });
 
         it('should throw UnauthorizedError if user not found', async () => {

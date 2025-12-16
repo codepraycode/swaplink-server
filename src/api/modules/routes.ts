@@ -19,7 +19,6 @@ const router: Router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/webhooks', webhookRoutes);
-router.use('/webhooks', webhookRoutes);
 router.use('/transfers', transferRoutes);
 router.use('/p2p', p2pRoutes);
 router.use('/admin', adminRoutes);

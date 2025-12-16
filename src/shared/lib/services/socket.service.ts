@@ -2,7 +2,6 @@ import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { JwtUtils } from '../utils/jwt-utils';
 import logger from '../utils/logger';
-import { envConfig } from '../../config/env.config';
 
 class SocketService {
     private io: Server | null = null;

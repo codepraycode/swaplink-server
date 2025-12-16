@@ -14,7 +14,7 @@ class AuthController {
                 {
                     user: result.user,
                     tokens: {
-                        accessToken: result.token,
+                        accessToken: result.accessToken,
                         refreshToken: result.refreshToken,
                         expiresIn: result.expiresIn,
                     },
@@ -35,7 +35,7 @@ class AuthController {
                 {
                     user: result.user,
                     tokens: {
-                        accessToken: result.token,
+                        accessToken: result.accessToken,
                         refreshToken: result.refreshToken,
                         expiresIn: result.expiresIn,
                     },
@@ -55,6 +55,16 @@ class AuthController {
             const user = await authService.getUser(userId);
 
             sendSuccess(res, { user }, 'User profile retrieved successfully');
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { refreshToken } = req.body;
+            const result = await authService.refreshToken(refreshToken);
+            sendSuccess(res, result, 'Token refreshed successfully');
         } catch (error) {
             next(error);
         }
@@ -181,16 +191,6 @@ class AuthController {
             };
 
             sendSuccess(res, statusData, 'Verification status retrieved');
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    refreshToken = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const { refreshToken } = req.body;
-            const result = await authService.refreshToken(refreshToken);
-            sendSuccess(res, result, 'Token refreshed successfully');
         } catch (error) {
             next(error);
         }

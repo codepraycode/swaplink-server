@@ -10,13 +10,15 @@ export class WebhookService {
      * Do not use req.body (parsed JSON) for this.
      */
     verifySignature(rawBody: Buffer, signature: string): boolean {
+        if (envConfig.NODE_ENV !== 'production') {
+            logger.warn('ℹ️ Globus Signature skipped!');
+            return true;
+        }
+
         // Security: In Prod, reject if secret is missing
         if (!envConfig.GLOBUS_WEBHOOK_SECRET) {
-            if (envConfig.NODE_ENV === 'production') {
-                logger.error('❌ GLOBUS_WEBHOOK_SECRET missing in production!');
-                return false;
-            }
-            return true;
+            logger.error('❌ GLOBUS_WEBHOOK_SECRET missing in production!');
+            return false;
         }
 
         const hash = crypto

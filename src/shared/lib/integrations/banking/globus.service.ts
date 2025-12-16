@@ -19,7 +19,11 @@ export class GlobusService {
     }) {
         try {
             // MOCK MODE: If no credentials or in test/dev without explicit keys
-            if (!envConfig.GLOBUS_CLIENT_ID || envConfig.NODE_ENV === 'test') {
+            if (
+                !envConfig.GLOBUS_CLIENT_ID ||
+                envConfig.NODE_ENV === 'test' ||
+                envConfig.NODE_ENV === 'development'
+            ) {
                 logger.warn(`⚠️ [GlobusService] Running in MOCK MODE for user ${user.id}`);
 
                 // Simulate network latency

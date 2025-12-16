@@ -4,6 +4,8 @@ import { nameEnquiryService } from '../../shared/lib/services/name-enquiry.servi
 import { transferService } from '../../shared/lib/services/transfer.service';
 import { beneficiaryService } from '../../shared/lib/services/beneficiary.service';
 import { JwtUtils } from '../../shared/lib/utils/jwt-utils';
+import { sendCreated, sendSuccess } from '../../shared/lib/utils/api-response';
+import { BadRequestError } from '../../shared/lib/utils/api-error';
 
 export class TransferController {
     /**
@@ -12,21 +14,22 @@ export class TransferController {
     static async setOrUpdatePin(req: Request, res: Response, next: NextFunction) {
         try {
             const userId = JwtUtils.ensureAuthentication(req).userId;
-            const { oldPin, newPin, confirmPin } = req.body;
-
-            if (newPin !== confirmPin) {
-                res.status(400).json({ error: 'New PIN and confirmation do not match' });
-                return;
-            }
+            const { oldPin, newPin } = req.body;
 
             if (oldPin) {
+                if (!newPin) {
+                    throw new BadRequestError('New PIN is required');
+                }
+                if (newPin === oldPin) {
+                    throw new BadRequestError('New PIN cannot be the same as old PIN');
+                }
                 // Update existing PIN
                 const result = await pinService.updatePin(userId, oldPin, newPin);
-                res.status(200).json(result);
+                sendSuccess(res, result);
             } else {
                 // Set new PIN
                 const result = await pinService.setPin(userId, newPin);
-                res.status(201).json(result);
+                sendCreated(res, result);
             }
         } catch (error) {
             next(error);
@@ -39,12 +42,19 @@ export class TransferController {
     static async processTransfer(req: Request, res: Response, next: NextFunction) {
         try {
             const userId = JwtUtils.ensureAuthentication(req).userId;
-            const payload = { ...req.body, userId };
+            const idempotencyKey =
+                (req.headers['idempotency-key'] as string) || req.body.idempotencyKey;
+
+            if (!idempotencyKey) {
+                throw new BadRequestError('Idempotency-Key header is required');
+            }
+
+            const payload = { ...req.body, userId, idempotencyKey };
 
             // TODO: Validate payload (Joi/Zod)
 
             const result = await transferService.processTransfer(payload);
-            res.status(200).json(result);
+            sendSuccess(res, result);
         } catch (error) {
             next(error);
         }
@@ -57,7 +67,7 @@ export class TransferController {
         try {
             const { accountNumber, bankCode } = req.body;
             const result = await nameEnquiryService.resolveAccount(accountNumber, bankCode);
-            res.status(200).json(result);
+            sendSuccess(res, result);
         } catch (error) {
             next(error);
         }
@@ -70,7 +80,7 @@ export class TransferController {
         try {
             const userId = JwtUtils.ensureAuthentication(req).userId;
             const beneficiaries = await beneficiaryService.getBeneficiaries(userId);
-            res.status(200).json(beneficiaries);
+            sendSuccess(res, beneficiaries);
         } catch (error) {
             next(error);
         }

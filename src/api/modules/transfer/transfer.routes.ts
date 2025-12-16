@@ -4,16 +4,18 @@ import { authenticate } from '../../middlewares/auth.middleware';
 
 const router: Router = Router();
 
+router.use(authenticate);
+
 // PIN Management
-router.post('/pin', authenticate, TransferController.setOrUpdatePin);
+router.post('/pin', TransferController.setOrUpdatePin);
 
 // Name Enquiry
-router.post('/name-enquiry', authenticate, TransferController.nameEnquiry);
+router.post('/name-enquiry', TransferController.nameEnquiry);
 
 // Process Transfer
-router.post('/process', authenticate, TransferController.processTransfer);
+router.post('/process', TransferController.processTransfer);
 
 // Beneficiaries
-router.get('/beneficiaries', authenticate, TransferController.getBeneficiaries);
+router.get('/beneficiaries', TransferController.getBeneficiaries);
 
 export default router;

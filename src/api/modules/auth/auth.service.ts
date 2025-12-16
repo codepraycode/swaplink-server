@@ -29,11 +29,11 @@ class AuthService {
     private generateTokens(user: Pick<User, 'email' | 'id'> & { role: UserRole }) {
         const tokenPayload = { userId: user.id, email: user.email, role: user.role };
 
-        const token = JwtUtils.signAccessToken(tokenPayload);
+        const accessToken = JwtUtils.signAccessToken(tokenPayload);
         const refreshToken = JwtUtils.signRefreshToken({ userId: user.id });
 
         return {
-            token,
+            accessToken,
             refreshToken,
             expiresIn: 86400, // 24h in seconds
         };

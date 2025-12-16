@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "swaplink-api-collection",
         "name": "SwapLink API",
-        "description": "Comprehensive API documentation for the SwapLink Server. This collection covers Authentication, Wallet Transfers, P2P Trading, and Admin Dispute Resolution.",
+        "description": "Comprehensive API documentation for the SwapLink Server. This collection covers Authentication, Wallet Transfers, P2P Trading, Admin Dispute Resolution, and Socket.io Real-time Chat.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
@@ -223,6 +223,12 @@
                                 "key": "Authorization",
                                 "value": "Bearer {{token}}",
                                 "type": "text"
+                            },
+                            {
+                                "key": "Idempotency-Key",
+                                "value": "{{$guid}}",
+                                "type": "text",
+                                "description": "Unique key to prevent duplicate transactions"
                             }
                         ],
                         "body": {
@@ -542,6 +548,164 @@
                             "path": ["system", "info"]
                         },
                         "description": "Get detailed system information (Admin only)."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "6. P2P Chat (Socket.io)",
+            "description": "Documentation for Socket.io events. Connect to the base URL using a Socket.io client. Authentication requires the 'token' in the handshake auth, query, or headers.",
+            "item": [
+                {
+                    "name": "Connect",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/?token={{token}}",
+                            "host": ["{{baseUrl}}"],
+                            "query": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}"
+                                }
+                            ]
+                        },
+                        "description": "Connect to the Socket.io server. Requires 'token' in query param or auth handshake."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Emit: join_order",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "socket.io/emit/join_order",
+                            "host": ["socket.io"],
+                            "path": ["emit", "join_order"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"orderId\": \"uuid-order-id\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "description": "Emit this event to join a chat room for a specific order."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Emit: send_message",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "socket.io/emit/send_message",
+                            "host": ["socket.io"],
+                            "path": ["emit", "send_message"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"orderId\": \"uuid-order-id\",\n    \"message\": \"Hello, I have made the payment.\",\n    \"type\": \"TEXT\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "description": "Emit this event to send a message to the order room."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Emit: typing",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "socket.io/emit/typing",
+                            "host": ["socket.io"],
+                            "path": ["emit", "typing"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"orderId\": \"uuid-order-id\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "description": "Emit this event to indicate the user is typing."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Emit: stop_typing",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "socket.io/emit/stop_typing",
+                            "host": ["socket.io"],
+                            "path": ["emit", "stop_typing"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"orderId\": \"uuid-order-id\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "description": "Emit this event to indicate the user stopped typing."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "7. Webhooks",
+            "item": [
+                {
+                    "name": "Globus Credit Notification",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "const uuid = require('uuid');",
+                                    "pm.environment.set('globusReference', uuid.v4());"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "x-globus-signature",
+                                "value": "ignored-in-dev",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"type\": \"credit_notification\",\n    \"data\": {\n        \"accountNumber\": \"0123456789\",\n        \"amount\": 5000,\n        \"reference\": \"{{globusReference}}\",\n        \"sessionId\": \"session-{{globusReference}}\"\n    }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/webhooks/globus",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["webhooks", "globus"]
+                        },
+                        "description": "Simulate a credit notification webhook from Globus Bank. Uses a pre-request script to generate a unique reference."
                     },
                     "response": []
                 }

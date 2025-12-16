@@ -87,7 +87,7 @@ describe('Authentication Module - Requirements Validation', () => {
 
             expect(result.user.email).toBe(registrationData.email);
             expect(result.user.phone).toBe(registrationData.phone);
-            expect(result.token).toBeDefined();
+            expect(result.accessToken).toBeDefined();
         });
     });
 
@@ -231,7 +231,7 @@ describe('Authentication Module - Requirements Validation', () => {
                 include: { wallet: true },
             });
             expect(bcrypt.compare).toHaveBeenCalledWith(loginData.password, mockUser.password);
-            expect(result.token).toBeDefined();
+            expect(result.accessToken).toBeDefined();
             expect(result.refreshToken).toBeDefined();
         });
 
@@ -311,7 +311,7 @@ describe('Authentication Module - Requirements Validation', () => {
 
             const result = await authService.login(loginData);
 
-            expect(result.token).toBe('access_token_xyz');
+            expect(result.accessToken).toBe('access_token_xyz');
             expect(result.refreshToken).toBe('refresh_token_xyz');
             expect(result.expiresIn).toBe(86400);
         });
