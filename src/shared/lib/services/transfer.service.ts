@@ -33,7 +33,8 @@ export class TransferService {
      * Process a transfer request (Hybrid: Internal or External)
      */
     async processTransfer(payload: TransferRequest) {
-        const { userId, amount, accountNumber, bankCode, pin, idempotencyKey } = payload;
+        const { userId, amount, accountNumber, bankCode, pin, idempotencyKey, saveBeneficiary } =
+            payload;
 
         // 1. Idempotency Check
         const existingTx = await prisma.transaction.findUnique({
@@ -71,24 +72,14 @@ export class TransferService {
 
         if (destination.isInternal) {
             const result = await this.processInternalTransfer(payload, destination);
-            if (payload.saveBeneficiary) {
-                await this.saveBeneficiary(
-                    userId,
-                    destination,
-                    payload.accountNumber,
-                    payload.bankCode
-                );
+            if (saveBeneficiary) {
+                await this.saveBeneficiary(userId, destination, accountNumber, bankCode);
             }
             return result;
         } else {
             const result = await this.initiateExternalTransfer(payload, destination);
-            if (payload.saveBeneficiary) {
-                await this.saveBeneficiary(
-                    userId,
-                    destination,
-                    payload.accountNumber,
-                    payload.bankCode
-                );
+            if (saveBeneficiary) {
+                await this.saveBeneficiary(userId, destination, accountNumber, bankCode);
             }
             return result;
         }
