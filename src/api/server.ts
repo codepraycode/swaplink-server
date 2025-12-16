@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../shared/types/express.d.ts" />
+/// <reference path="../shared/types/express/index.d.ts" />
 import app from './app';
 import { envConfig } from '../shared/config/env.config';
 import logger from '../shared/lib/utils/logger';

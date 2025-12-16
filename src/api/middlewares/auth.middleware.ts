@@ -63,7 +63,7 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
         req.user = decoded;
 
         next();
-    } catch (error) {
+    } catch {
         // Invalid token, but don't block request
         // Just continue without user
         next();

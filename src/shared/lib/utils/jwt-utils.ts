@@ -41,7 +41,7 @@ export class JwtUtils {
     static verifyAccessToken(token: string): TokenPayload {
         try {
             return jwt.verify(token, envConfig.JWT_SECRET) as TokenPayload;
-        } catch (error) {
+        } catch {
             throw new UnauthorizedError('Invalid or expired access token');
         }
     }
@@ -52,7 +52,7 @@ export class JwtUtils {
     static verifyRefreshToken(token: string): TokenPayload {
         try {
             return jwt.verify(token, envConfig.JWT_REFRESH_SECRET) as TokenPayload;
-        } catch (error) {
+        } catch {
             throw new UnauthorizedError('Invalid or expired refresh token');
         }
     }
@@ -70,7 +70,7 @@ export class JwtUtils {
             }
 
             return decoded;
-        } catch (error) {
+        } catch {
             throw new BadRequestError('Invalid or expired reset token');
         }
     }

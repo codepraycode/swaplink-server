@@ -1,8 +1,10 @@
-import { TokenPayload } from './auth.types';
+import { TokenPayload } from '../auth.types';
+
+export {};
 
 declare global {
     namespace Express {
-        interface Request {
+        export interface Request {
             rawBody?: Buffer;
 
             // Custom User Property
@@ -15,5 +17,3 @@ declare global {
         }
     }
 }
-
-export {};
