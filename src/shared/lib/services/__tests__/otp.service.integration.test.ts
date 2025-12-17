@@ -1,4 +1,4 @@
-import prisma from '../../../lib/utils/database';
+import prisma from '../../utils/database';
 import { otpService } from '../otp.service';
 import authService from '../../../../api/modules/auth/auth.service';
 import { TestUtils } from '../../../../test/utils';
@@ -404,7 +404,7 @@ describe('OtpService - Integration Tests', () => {
             });
 
             expect(allOtps).toHaveLength(2);
-            expect(allOtps.every(otp => otp.isUsed)).toBe(true);
+            expect(allOtps.every((otp: any) => otp.isUsed)).toBe(true);
         });
     });
 });

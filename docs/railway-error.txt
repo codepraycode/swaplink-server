@@ -1,146 +1,152 @@
-2025-12-17T14:43:49.920188689Z [inf]  
-2025-12-17T14:43:52.636873617Z [inf]  [35m[Region: europe-west4][0m
-2025-12-17T14:43:52.723645629Z [inf]  
-2025-12-17T14:43:52.723685964Z [inf]  [38;2;125;86;243m╭─────────────────╮[0m
-2025-12-17T14:43:52.723690390Z [inf]  [38;2;125;86;243m│[0m Railpack 0.15.1 [38;2;125;86;243m│[0m
-2025-12-17T14:43:52.723693656Z [inf]  [38;2;125;86;243m╰─────────────────╯[0m
-2025-12-17T14:43:52.723702849Z [inf]  
-2025-12-17T14:43:52.723706425Z [inf]  [97m↳ Detected Node[0m
-2025-12-17T14:43:52.723709402Z [inf]  [97m↳ Using pnpm package manager[0m
-2025-12-17T14:43:52.723713200Z [inf]  [97m↳ Installing pnpm@10.18.0 with Corepack[0m
-2025-12-17T14:43:52.723716215Z [inf]  
-2025-12-17T14:43:52.723719836Z [inf]  [1mPackages[0m
-2025-12-17T14:43:52.723722691Z [inf]  [38;5;238m──────────[0m
-2025-12-17T14:43:52.723725492Z [inf]  [95mnode[0m  [38;5;238m│[0m  [96m22.21.1[0m  [38;5;238m│[0m  railpack default (22)
-2025-12-17T14:43:52.723728320Z [inf]  [95mpnpm[0m  [38;5;238m│[0m  [96m10.18.0[0m  [38;5;238m│[0m  package.json > packageManager (10.18.0)
-2025-12-17T14:43:52.723731402Z [inf]  
-2025-12-17T14:43:52.723734222Z [inf]  [1mSteps[0m
-2025-12-17T14:43:52.723737057Z [inf]  [38;5;238m──────────[0m
-2025-12-17T14:43:52.723740155Z [inf]  [95m▸ install[0m
-2025-12-17T14:43:52.723742995Z [inf]  [38;5;245m$[0m [1mnpm i -g corepack@latest && corepack enable && corepack prepare --activate[0m
-2025-12-17T14:43:52.723745731Z [inf]  [38;5;245m$[0m [1mpnpm install --frozen-lockfile --prefer-offline[0m
-2025-12-17T14:43:52.723748352Z [inf]  
-2025-12-17T14:43:52.723751049Z [inf]  [95m▸ build[0m
-2025-12-17T14:43:52.723753676Z [inf]  [38;5;245m$[0m [1mpnpm run build[0m
-2025-12-17T14:43:52.723756587Z [inf]  
-2025-12-17T14:43:52.723759493Z [inf]  [1mDeploy[0m
-2025-12-17T14:43:52.723762308Z [inf]  [38;5;238m──────────[0m
-2025-12-17T14:43:52.723764968Z [inf]  [38;5;245m$[0m [1mpnpm run start[0m
-2025-12-17T14:43:52.723770825Z [inf]  
-2025-12-17T14:43:52.723773532Z [inf]  
-2025-12-17T14:43:52.724970249Z [inf]  Successfully prepared Railpack plan for build
-2025-12-17T14:43:52.725006490Z [inf]  
-2025-12-17T14:43:52.725014127Z [inf]  
-2025-12-17T14:43:52.725277592Z [inf]  context: l4f4-mR
-2025-12-17T14:43:52.897787091Z [inf]  [internal] load build definition from railpack-plan.json
-2025-12-17T14:43:52.897835378Z [inf]  [internal] load build definition from railpack-plan.json
-2025-12-17T14:43:52.897846738Z [inf]  [internal] load build definition from railpack-plan.json
-2025-12-17T14:43:52.907354861Z [inf]  [internal] load build definition from railpack-plan.json
-2025-12-17T14:43:52.909115791Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1
-2025-12-17T14:43:53.211521896Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1
-2025-12-17T14:43:53.211564098Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
-2025-12-17T14:43:53.211584821Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
-2025-12-17T14:43:53.216814964Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
-2025-12-17T14:43:53.217037504Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
-2025-12-17T14:43:53.313590633Z [inf]  load build definition from railpack-plan.json
-2025-12-17T14:43:53.313647200Z [inf]  load build definition from railpack-plan.json
-2025-12-17T14:43:53.313659170Z [inf]  load build definition from railpack-plan.json
-2025-12-17T14:43:53.324546735Z [inf]  load build definition from railpack-plan.json
-2025-12-17T14:43:53.338421077Z [inf]  loading .
-2025-12-17T14:43:53.338456821Z [inf]  copy /root/.local/state/mise
-2025-12-17T14:43:53.338464105Z [inf]  copy /etc/mise/config.toml
-2025-12-17T14:43:53.338470184Z [inf]  copy /mise/shims
-2025-12-17T14:43:53.338477255Z [inf]  copy /mise/installs
-2025-12-17T14:43:53.338488960Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
-2025-12-17T14:43:53.338495208Z [inf]  copy package.json
-2025-12-17T14:43:53.338501309Z [inf]  create mise config
-2025-12-17T14:43:53.338506765Z [inf]  mkdir /etc/mise
-2025-12-17T14:43:53.338511936Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
-2025-12-17T14:43:53.338517474Z [inf]  install apt packages: libatomic1
-2025-12-17T14:43:53.338532078Z [inf]  copy package.json
-2025-12-17T14:43:53.338537654Z [inf]  mkdir -p /app/node_modules/.cache
-2025-12-17T14:43:53.338543225Z [inf]  install mise packages: node
-2025-12-17T14:43:53.338548100Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
-2025-12-17T14:43:53.338553621Z [inf]  copy /usr/local/bin/mise
-2025-12-17T14:43:53.338585978Z [inf]  [railpack] merge $packages:apt:runtime, $packages:mise, $build, $build
-2025-12-17T14:43:53.338600826Z [inf]  copy /opt/corepack
-2025-12-17T14:43:53.338606112Z [inf]  copy /app
-2025-12-17T14:43:53.338611337Z [inf]  copy /root/.cache
-2025-12-17T14:43:53.338622876Z [inf]  copy /app/node_modules
-2025-12-17T14:43:53.338628686Z [inf]  pnpm run build
-2025-12-17T14:43:53.338634153Z [inf]  [railpack] secrets hash
-2025-12-17T14:43:53.338639387Z [inf]  copy / /app
-2025-12-17T14:43:53.338645219Z [inf]  pnpm install --frozen-lockfile --prefer-offline
-2025-12-17T14:43:53.338650112Z [inf]  copy prisma
-2025-12-17T14:43:53.338654954Z [inf]  copy pnpm-lock.yaml
-2025-12-17T14:43:53.338667780Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
-2025-12-17T14:43:53.338672803Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
-2025-12-17T14:43:53.338686090Z [inf]  loading .
-2025-12-17T14:43:53.338770625Z [inf]  [railpack] secrets hash
-2025-12-17T14:43:53.639127457Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
-2025-12-17T14:43:53.639440746Z [inf]  loading .
-2025-12-17T14:43:53.639494756Z [inf]  mkdir /etc/mise
-2025-12-17T14:43:53.639514454Z [inf]  create mise config
-2025-12-17T14:43:53.639524941Z [inf]  [railpack] secrets hash
-2025-12-17T14:43:53.639662877Z [inf]  create mise config
-2025-12-17T14:43:53.639915656Z [inf]  install mise packages: node
-2025-12-17T14:43:53.653188416Z [inf]  [railpack] secrets hash
-2025-12-17T14:43:53.668692709Z [inf]  loading .
-2025-12-17T14:43:53.827660097Z [inf]  mise node@22.21.1    install
+2025-12-17T15:52:58.346508051Z [inf]  
+2025-12-17T15:53:01.251979804Z [inf]  [35m[Region: europe-west4][0m
+2025-12-17T15:53:01.316665191Z [inf]  
+2025-12-17T15:53:01.316699222Z [inf]  [38;2;125;86;243m╭─────────────────╮[0m
+2025-12-17T15:53:01.316703429Z [inf]  [38;2;125;86;243m│[0m Railpack 0.15.1 [38;2;125;86;243m│[0m
+2025-12-17T15:53:01.316706716Z [inf]  [38;2;125;86;243m╰─────────────────╯[0m
+2025-12-17T15:53:01.316711537Z [inf]  
+2025-12-17T15:53:01.316715445Z [inf]  [97m↳ Detected Node[0m
+2025-12-17T15:53:01.316718579Z [inf]  [97m↳ Using pnpm package manager[0m
+2025-12-17T15:53:01.316721409Z [inf]  [97m↳ Installing pnpm@10.18.0 with Corepack[0m
+2025-12-17T15:53:01.316724352Z [inf]  
+2025-12-17T15:53:01.316727252Z [inf]  [1mPackages[0m
+2025-12-17T15:53:01.316730573Z [inf]  [38;5;238m──────────[0m
+2025-12-17T15:53:01.316733547Z [inf]  [95mnode[0m  [38;5;238m│[0m  [96m22.21.1[0m  [38;5;238m│[0m  railpack default (22)
+2025-12-17T15:53:01.316736383Z [inf]  [95mpnpm[0m  [38;5;238m│[0m  [96m10.18.0[0m  [38;5;238m│[0m  package.json > packageManager (10.18.0)
+2025-12-17T15:53:01.316739259Z [inf]  
+2025-12-17T15:53:01.316741997Z [inf]  [1mSteps[0m
+2025-12-17T15:53:01.316744825Z [inf]  [38;5;238m──────────[0m
+2025-12-17T15:53:01.316747621Z [inf]  [95m▸ install[0m
+2025-12-17T15:53:01.316750286Z [inf]  [38;5;245m$[0m [1mnpm i -g corepack@latest && corepack enable && corepack prepare --activate[0m
+2025-12-17T15:53:01.316753525Z [inf]  [38;5;245m$[0m [1mpnpm install --frozen-lockfile --prefer-offline[0m
+2025-12-17T15:53:01.316756225Z [inf]  
+2025-12-17T15:53:01.316758977Z [inf]  [95m▸ build[0m
+2025-12-17T15:53:01.316761907Z [inf]  [38;5;245m$[0m [1mpnpm run build[0m
+2025-12-17T15:53:01.316764562Z [inf]  
+2025-12-17T15:53:01.316767282Z [inf]  [1mDeploy[0m
+2025-12-17T15:53:01.316770293Z [inf]  [38;5;238m──────────[0m
+2025-12-17T15:53:01.316773033Z [inf]  [38;5;245m$[0m [1mpnpm run start[0m
+2025-12-17T15:53:01.316775891Z [inf]  
+2025-12-17T15:53:01.316778599Z [inf]  
+2025-12-17T15:53:01.317808969Z [inf]  Successfully prepared Railpack plan for build
+2025-12-17T15:53:01.317841126Z [inf]  
+2025-12-17T15:53:01.317848690Z [inf]  
+2025-12-17T15:53:01.318251657Z [inf]  context: nhgs-lXm8
+2025-12-17T15:53:01.483353323Z [inf]  [internal] load build definition from railpack-plan.json
+2025-12-17T15:53:01.483395595Z [inf]  [internal] load build definition from railpack-plan.json
+2025-12-17T15:53:01.483411630Z [inf]  [internal] load build definition from railpack-plan.json
+2025-12-17T15:53:01.483422009Z [inf]  [internal] load build definition from railpack-plan.json
+2025-12-17T15:53:01.494320202Z [inf]  [internal] load build definition from railpack-plan.json
+2025-12-17T15:53:01.496557678Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1
+2025-12-17T15:53:01.813122964Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1
+2025-12-17T15:53:01.813174397Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
+2025-12-17T15:53:01.813382854Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
+2025-12-17T15:53:01.817219955Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
+2025-12-17T15:53:01.817455696Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
+2025-12-17T15:53:01.886586759Z [inf]  load build definition from railpack-plan.json
+2025-12-17T15:53:01.886633744Z [inf]  load build definition from railpack-plan.json
+2025-12-17T15:53:01.886910275Z [inf]  load build definition from railpack-plan.json
+2025-12-17T15:53:01.897232004Z [inf]  load build definition from railpack-plan.json
+2025-12-17T15:53:01.909524177Z [inf]  loading .
+2025-12-17T15:53:01.909566798Z [inf]  copy /root/.local/state/mise
+2025-12-17T15:53:01.909578296Z [inf]  copy /etc/mise/config.toml
+2025-12-17T15:53:01.909595975Z [inf]  copy /usr/local/bin/mise
+2025-12-17T15:53:01.909643575Z [inf]  copy /mise/installs
+2025-12-17T15:53:01.909666985Z [inf]  copy /mise/shims
+2025-12-17T15:53:01.909673952Z [inf]  install mise packages: node
+2025-12-17T15:53:01.909679905Z [inf]  create mise config
+2025-12-17T15:53:01.909686110Z [inf]  mkdir /etc/mise
+2025-12-17T15:53:01.909692277Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2025-12-17T15:53:01.909698046Z [inf]  install apt packages: libatomic1
+2025-12-17T15:53:01.909705739Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
+2025-12-17T15:53:01.909730664Z [inf]  copy package.json
+2025-12-17T15:53:01.909738657Z [inf]  mkdir -p /app/node_modules/.cache
+2025-12-17T15:53:01.909744732Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
+2025-12-17T15:53:01.909751979Z [inf]  copy package.json
+2025-12-17T15:53:01.909793339Z [inf]  [railpack] merge $packages:apt:runtime, $packages:mise, $build, $build
+2025-12-17T15:53:01.909800125Z [inf]  copy /opt/corepack
+2025-12-17T15:53:01.909807192Z [inf]  copy /app
+2025-12-17T15:53:01.909815548Z [inf]  copy /root/.cache
+2025-12-17T15:53:01.909821011Z [inf]  copy /app/node_modules
+2025-12-17T15:53:01.909826474Z [inf]  pnpm run build
+2025-12-17T15:53:01.909831797Z [inf]  [railpack] secrets hash
+2025-12-17T15:53:01.909836936Z [inf]  copy / /app
+2025-12-17T15:53:01.909842641Z [inf]  pnpm install --frozen-lockfile --prefer-offline
+2025-12-17T15:53:01.909848524Z [inf]  copy prisma
+2025-12-17T15:53:01.909854078Z [inf]  copy pnpm-lock.yaml
+2025-12-17T15:53:01.909868301Z [inf]  [railpack] secrets hash
+2025-12-17T15:53:01.909874197Z [inf]  loading .
+2025-12-17T15:53:01.909879556Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
+2025-12-17T15:53:01.909891473Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2025-12-17T15:53:02.174933020Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
+2025-12-17T15:53:02.175176957Z [inf]  install apt packages: libatomic1
+2025-12-17T15:53:02.181539343Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2025-12-17T15:53:02.182578612Z [inf]  mkdir /etc/mise
+2025-12-17T15:53:02.182596457Z [inf]  create mise config
+2025-12-17T15:53:02.182603253Z [inf]  loading .
+2025-12-17T15:53:02.182610920Z [inf]  [railpack] secrets hash
+2025-12-17T15:53:02.182623747Z [inf]  create mise config
+2025-12-17T15:53:02.182634033Z [inf]  install mise packages: node
+2025-12-17T15:53:02.193281289Z [inf]  [railpack] secrets hash
+2025-12-17T15:53:02.209897004Z [inf]  loading .
+2025-12-17T15:53:02.386669367Z [inf]  mise node@22.21.1    install
 
-2025-12-17T14:43:53.828540872Z [inf]  mise node@22.21.1    download node-v22.21.1-linux-x64.tar.gz
+2025-12-17T15:53:02.387511611Z [inf]  mise node@22.21.1    download node-v22.21.1-linux-x64.tar.gz
 
-2025-12-17T14:43:54.59596781Z [inf]  mise node@22.21.1    extract node-v22.21.1-linux-x64.tar.gz
+2025-12-17T15:53:03.074630247Z [inf]  mise node@22.21.1    extract node-v22.21.1-linux-x64.tar.gz
 
-2025-12-17T14:43:55.611185391Z [inf]  mise node@22.21.1    node -v
+2025-12-17T15:53:04.065418749Z [inf]  mise node@22.21.1    node -v
 
-2025-12-17T14:43:55.615354853Z [inf]  mise node@22.21.1    v22.21.1
+2025-12-17T15:53:04.068997128Z [inf]  mise node@22.21.1    v22.21.1
 
-2025-12-17T14:43:55.616198586Z [inf]  mise node@22.21.1    npm -v
+2025-12-17T15:53:04.069761912Z [inf]  mise node@22.21.1    npm -v
 
-2025-12-17T14:43:55.703323163Z [inf]  mise node@22.21.1    10.9.4
+2025-12-17T15:53:04.152329368Z [inf]  mise node@22.21.1    10.9.4
 
-2025-12-17T14:43:55.711002168Z [inf]  mise node@22.21.1    enable corepack shims
+2025-12-17T15:53:04.159746334Z [inf]  mise node@22.21.1    enable corepack shims
 
-2025-12-17T14:43:55.791826972Z [inf]  mise node@22.21.1  ✓ installed
+2025-12-17T15:53:04.237332048Z [inf]  mise node@22.21.1  ✓ installed
 
-2025-12-17T14:43:55.892624088Z [inf]  install mise packages: node
-2025-12-17T14:43:55.894101380Z [inf]  copy package.json
-2025-12-17T14:43:55.937032834Z [inf]  copy package.json
-2025-12-17T14:43:55.938525777Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
-2025-12-17T14:43:56.1129145Z [inf]  npm warn config production Use `--omit=dev` instead.
+2025-12-17T15:53:04.339934306Z [inf]  install mise packages: node
+2025-12-17T15:53:04.341050329Z [inf]  copy package.json
+2025-12-17T15:53:04.383444005Z [inf]  copy package.json
+2025-12-17T15:53:04.385106146Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
+2025-12-17T15:53:04.565428874Z [inf]  npm warn config production Use `--omit=dev` instead.
 
-2025-12-17T14:43:56.627723877Z [inf]  
-changed 1 package in 540ms
+2025-12-17T15:53:05.043453494Z [inf]  
+changed 1 package in 500ms
 
-2025-12-17T14:43:56.66029413Z [inf]  Reshimming mise 22.21.1...
+2025-12-17T15:53:05.073812647Z [inf]  Reshimming mise 22.21.1...
 
-2025-12-17T14:43:56.832173189Z [inf]  Preparing pnpm@10.18.0 for immediate activation...
+2025-12-17T15:53:05.232412494Z [inf]  Preparing pnpm@10.18.0 for immediate activation...
 
-2025-12-17T14:43:57.721209403Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
-2025-12-17T14:43:57.723076932Z [inf]  mkdir -p /app/node_modules/.cache
-2025-12-17T14:43:57.826785168Z [inf]  mkdir -p /app/node_modules/.cache
-2025-12-17T14:43:57.828139275Z [inf]  copy package.json
-2025-12-17T14:43:57.843255030Z [inf]  copy package.json
-2025-12-17T14:43:57.845560458Z [inf]  copy pnpm-lock.yaml
-2025-12-17T14:43:57.913789759Z [inf]  copy pnpm-lock.yaml
-2025-12-17T14:43:57.915961059Z [inf]  copy prisma
-2025-12-17T14:43:57.939436693Z [inf]  copy prisma
-2025-12-17T14:43:57.941098168Z [inf]  pnpm install --frozen-lockfile --prefer-offline
-2025-12-17T14:43:58.464126276Z [inf]  Lockfile is up to date, resolution step is skipped
+2025-12-17T15:53:05.272768124Z [inf]  copy /mise/shims
+2025-12-17T15:53:05.272805612Z [inf]  copy /mise/installs
+2025-12-17T15:53:05.272818653Z [inf]  copy /usr/local/bin/mise
+2025-12-17T15:53:05.272829489Z [inf]  copy /etc/mise/config.toml
+2025-12-17T15:53:05.272838727Z [inf]  copy /root/.local/state/mise
+2025-12-17T15:53:06.099293913Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
+2025-12-17T15:53:06.100993951Z [inf]  mkdir -p /app/node_modules/.cache
+2025-12-17T15:53:06.195310934Z [inf]  mkdir -p /app/node_modules/.cache
+2025-12-17T15:53:06.197088993Z [inf]  copy package.json
+2025-12-17T15:53:06.212693135Z [inf]  copy package.json
+2025-12-17T15:53:06.215153504Z [inf]  copy pnpm-lock.yaml
+2025-12-17T15:53:06.280924577Z [inf]  copy pnpm-lock.yaml
+2025-12-17T15:53:06.282498076Z [inf]  copy prisma
+2025-12-17T15:53:06.296441399Z [inf]  copy prisma
+2025-12-17T15:53:06.298043062Z [inf]  pnpm install --frozen-lockfile --prefer-offline
+2025-12-17T15:53:06.788476681Z [inf]  Lockfile is up to date, resolution step is skipped
 
-2025-12-17T14:43:58.509126784Z [inf]  Progress: resolved 1, reused 0, downloaded 0, added 0
+2025-12-17T15:53:06.824499801Z [inf]  Progress: resolved 1, reused 0, downloaded 0, added 0
 
-2025-12-17T14:43:58.592216509Z [inf]  Packages: +586
+2025-12-17T15:53:06.910695878Z [inf]  Packages: +586
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-2025-12-17T14:43:59.51139684Z [inf]  Progress: resolved 586, reused 0, downloaded 296, added 150
+2025-12-17T15:53:07.827456053Z [inf]  Progress: resolved 586, reused 0, downloaded 430, added 358
 
-2025-12-17T14:44:00.512806575Z [inf]  Progress: resolved 586, reused 0, downloaded 585, added 585
+2025-12-17T15:53:08.146399092Z [inf]  Progress: resolved 586, reused 0, downloaded 586, added 586, done
 
-2025-12-17T14:44:00.579152844Z [inf]  Progress: resolved 586, reused 0, downloaded 586, added 586, done
-
-2025-12-17T14:44:00.814454121Z [inf]  
+2025-12-17T15:53:08.401794954Z [inf]  
 dependencies:
 + @prisma/client 7.1.0
 + @prisma/config 7.1.0
@@ -191,44 +197,45 @@ devDependencies:
 ╰──────────────────────────────────────────────────────────────────────────────╯
 
 
-2025-12-17T14:44:00.986493729Z [inf]  Done in 2.8s using pnpm v10.18.0
+2025-12-17T15:53:08.554690954Z [inf]  Done in 2.1s using pnpm v10.18.0
 
-2025-12-17T14:44:01.208906217Z [inf]  pnpm install --frozen-lockfile --prefer-offline
-2025-12-17T14:44:01.210208688Z [inf]  copy / /app
-2025-12-17T14:44:01.458120183Z [inf]  copy / /app
-2025-12-17T14:44:01.460690379Z [inf]  pnpm run build
-2025-12-17T14:44:01.862161237Z [inf]  
+2025-12-17T15:53:08.649380624Z [inf]  pnpm install --frozen-lockfile --prefer-offline
+2025-12-17T15:53:08.650481540Z [inf]  copy / /app
+2025-12-17T15:53:08.863269279Z [inf]  copy / /app
+2025-12-17T15:53:08.863853351Z [inf]  pnpm run build
+2025-12-17T15:53:09.226047191Z [inf]  
 > swaplink-server@1.0.0 build /app
 > tsc
 
 
-2025-12-17T14:44:03.658924353Z [inf]  src/database/database.errors.ts(1,24): error TS2307: Cannot find module './generated/prisma' or its corresponding type declarations.
+2025-12-17T15:53:11.059986462Z [inf]  src/database/database.errors.ts(1,24): error TS2307: Cannot find module './generated/prisma' or its corresponding type declarations.
 
-2025-12-17T14:44:03.659027105Z [inf]  src/database/database.types.ts(1,65): error TS2307: Cannot find module './generated/prisma' or its corresponding type declarations.
-src/database/index.ts(3,30): error TS2307: Cannot find module './generated/prisma' or its corresponding type declarations.
-src/lib/services/__tests__/otp.service.integration.test.ts(407,34): error TS7006: Parameter 'otp' implicitly has an 'any' type.
+2025-12-17T15:53:11.06009681Z [inf]  src/database/database.types.ts(1,65): error TS2307: Cannot find module './generated/prisma' or its corresponding type declarations.
 
-2025-12-17T14:44:03.659035063Z [inf]  src/lib/services/__tests__/wallet.service.integration.test.ts(6,33): error TS2307: Cannot find module '../../../database/generated/prisma' or its corresponding type declarations.
+2025-12-17T15:53:11.06010627Z [inf]  src/database/index.ts(3,30): error TS2307: Cannot find module './generated/prisma' or its corresponding type declarations.
 
-2025-12-17T14:44:03.659060679Z [inf]  src/lib/services/__tests__/wallet.service.integration.test.ts(20,45): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+2025-12-17T15:53:11.060138346Z [inf]  src/lib/services/__tests__/otp.service.integration.test.ts(407,34): error TS7006: Parameter 'otp' implicitly has an 'any' type.
+src/lib/services/__tests__/wallet.service.integration.test.ts(6,33): error TS2307: Cannot find module '../../../database/generated/prisma' or its corresponding type declarations.
 
-2025-12-17T14:44:03.659075138Z [inf]  src/lib/services/__tests__/wallet.service.integration.test.ts(36,45): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+2025-12-17T15:53:11.060145725Z [inf]  src/lib/services/__tests__/wallet.service.integration.test.ts(20,45): error TS7006: Parameter 'tx' implicitly has an 'any' type.
 
-2025-12-17T14:44:03.659090387Z [inf]  src/lib/services/__tests__/wallet.service.unit.test.ts(4,33): error TS2307: Cannot find module '../../../database/generated/prisma' or its corresponding type declarations.
+2025-12-17T15:53:11.060147997Z [inf]  src/lib/services/__tests__/wallet.service.integration.test.ts(36,45): error TS7006: Parameter 'tx' implicitly has an 'any' type.
 
-2025-12-17T14:44:03.659235708Z [inf]  src/lib/services/wallet.service.ts(3,33): error TS2307: Cannot find module '../../database/generated/prisma' or its corresponding type declarations.
+2025-12-17T15:53:11.060172566Z [inf]  src/lib/services/__tests__/wallet.service.unit.test.ts(4,33): error TS2307: Cannot find module '../../../database/generated/prisma' or its corresponding type declarations.
 
-2025-12-17T14:44:03.659335372Z [inf]  src/lib/services/wallet.service.ts(144,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+2025-12-17T15:53:11.060259185Z [inf]  src/lib/services/wallet.service.ts(3,33): error TS2307: Cannot find module '../../database/generated/prisma' or its corresponding type declarations.
 
-2025-12-17T14:44:03.659338642Z [inf]  src/lib/services/wallet.service.ts(190,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+2025-12-17T15:53:11.060390314Z [inf]  src/lib/services/wallet.service.ts(144,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
 
-2025-12-17T14:44:03.659366361Z [inf]  src/lib/utils/database.ts(2,30): error TS2307: Cannot find module '../../database/generated/prisma' or its corresponding type declarations.
+2025-12-17T15:53:11.060396949Z [inf]  src/lib/services/wallet.service.ts(190,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
 
-2025-12-17T14:44:03.659371954Z [inf]  src/modules/auth/auth.service.ts(55,56): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+2025-12-17T15:53:11.060412609Z [inf]  src/lib/utils/database.ts(2,30): error TS2307: Cannot find module '../../database/generated/prisma' or its corresponding type declarations.
 
-2025-12-17T14:44:03.659423404Z [inf]  src/modules/auth/auth.service.ts(116,20): error TS7006: Parameter 'err' implicitly has an 'any' type.
+2025-12-17T15:53:11.06044258Z [inf]  src/modules/auth/auth.service.ts(55,56): error TS7006: Parameter 'tx' implicitly has an 'any' type.
 
-2025-12-17T14:44:03.69074568Z [inf]   ELIFECYCLE  Command failed with exit code 2.
+2025-12-17T15:53:11.060478759Z [inf]  src/modules/auth/auth.service.ts(116,20): error TS7006: Parameter 'err' implicitly has an 'any' type.
 
-2025-12-17T14:44:03.731635871Z [err]  pnpm run build
-2025-12-17T14:44:03.745877634Z [err]  ERROR: failed to build: failed to solve: process "pnpm run build" did not complete successfully: exit code: 2
+2025-12-17T15:53:11.091150167Z [inf]   ELIFECYCLE  Command failed with exit code 2.
+
+2025-12-17T15:53:11.239924604Z [err]  pnpm run build
+2025-12-17T15:53:11.257239988Z [err]  ERROR: failed to build: failed to solve: process "pnpm run build" did not complete successfully: exit code: 2

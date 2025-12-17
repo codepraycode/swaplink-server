@@ -1,7 +1,7 @@
 import { prisma, Prisma } from '../../../database';
 import { walletService } from '../wallet.service';
 import { NotFoundError, BadRequestError, InternalError } from '../../utils/api-error';
-import { TransactionType } from '../../../database/generated/prisma';
+import { TransactionType } from '../../../../shared/database/generated/prisma';
 
 // Mock dependencies
 jest.mock('../../../database', () => ({
