@@ -11,7 +11,7 @@ import {
 } from '../../../../shared/lib/utils/api-error';
 
 // Mock dependencies
-jest.mock('../../../database', () => ({
+jest.mock('../../../../shared/database', () => ({
     prisma: {
         user: {
             findFirst: jest.fn(),
@@ -30,9 +30,14 @@ jest.mock('../../../database', () => ({
     },
 }));
 
-jest.mock('../../../lib/services/otp.service');
-jest.mock('../../../lib/services/wallet.service');
-jest.mock('../../../lib/utils/jwt-utils');
+jest.mock('../../../../shared/lib/services/otp.service');
+jest.mock('../../../../shared/lib/services/wallet.service');
+jest.mock('../../../../shared/lib/utils/jwt-utils');
+jest.mock('../../../../shared/lib/queues/onboarding.queue', () => ({
+    onboardingQueue: {
+        add: jest.fn().mockResolvedValue({}),
+    },
+}));
 jest.mock('bcryptjs');
 
 describe('AuthService - Unit Tests', () => {
@@ -232,7 +237,7 @@ describe('AuthService - Unit Tests', () => {
             );
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { phone: '+2341234567890' },
-                data: { isVerified: true },
+                data: { phoneVerified: true, isVerified: true },
             });
             expect(result.success).toBe(true);
         });
@@ -250,7 +255,7 @@ describe('AuthService - Unit Tests', () => {
             );
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { email: 'test@example.com' },
-                data: { isVerified: true },
+                data: { emailVerified: true, isVerified: true },
             });
             expect(result.success).toBe(true);
         });

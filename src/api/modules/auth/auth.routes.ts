@@ -37,10 +37,6 @@ router.post(
     authController.refreshToken
 );
 
-router.use(authenticate);
-
-router.get('/me', authController.me);
-
 // ======================================================
 // 2. OTP Services (Dual Layer Protection)
 // ======================================================
@@ -84,24 +80,26 @@ router.post(
 router.post('/password/reset', authController.resetPassword);
 
 // ======================================================
+// 4. Authentication
+// ======================================================
+
+router.use(authenticate);
+
+router.get('/me', authController.me);
+
+// ======================================================
 // 4. KYC & Compliance
 // ======================================================
 
 router.post(
     '/kyc',
-    authenticate,
     rateLimiters.global,
     uploadKyc.single('document'), // Expects form-data with key 'document'
     authController.submitKyc
 );
 
-router.post(
-    '/profile/avatar',
-    authenticate,
-    uploadAvatar.single('avatar'),
-    authController.updateAvatar
-);
+router.post('/profile/avatar', uploadAvatar.single('avatar'), authController.updateAvatar);
 
-router.get('/verification-status', authenticate, authController.getVerificationStatus);
+router.get('/verification-status', authController.getVerificationStatus);
 
 export default router;

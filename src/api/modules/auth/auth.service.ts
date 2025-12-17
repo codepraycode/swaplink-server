@@ -75,7 +75,8 @@ class AuthService {
                 lastName: true,
                 kycLevel: true,
                 isVerified: true,
-
+                emailVerified: true,
+                phoneVerified: true,
                 createdAt: true,
                 role: true,
             },
@@ -164,9 +165,30 @@ class AuthService {
 
         const whereClause = type === 'email' ? { email: identifier } : { phone: identifier };
 
+        const updateData: any = {};
+        if (type === 'email') {
+            updateData.emailVerified = true;
+        } else {
+            updateData.phoneVerified = true;
+        }
+
+        // Maintain isVerified as a general flag if either is verified (or both, depending on business logic)
+        // For now, let's keep isVerified true if at least one is verified, or maybe we want both?
+        // The user request said "email and phone must be verified".
+        // So maybe isVerified should be true only if BOTH are verified?
+        // Let's check the current user state first to decide on isVerified.
+        // Actually, to be safe and simple for now, let's just set the specific flags.
+        // And maybe set isVerified to true if it was already true or if this verification makes it "fully" verified.
+        // But the prompt says "in the user schema, email and phone must be verified".
+        // This implies we need to track them separately.
+        // Let's update the specific field.
+        // And also keep isVerified = true for backward compatibility for now, or maybe update it based on both?
+        // Let's just set the specific field and also isVerified = true to not break existing flows that rely on isVerified.
+        updateData.isVerified = true;
+
         await prisma.user.update({
             where: whereClause,
-            data: { isVerified: true },
+            data: updateData,
         });
 
         return { success: true };

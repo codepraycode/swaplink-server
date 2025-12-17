@@ -26,6 +26,8 @@ model User {
   kycLevel         KycLevel  @default(NONE)
   kycStatus        KycStatus @default(PENDING)
   isVerified       Boolean   @default(false)
+  emailVerified    Boolean   @default(false)
+  phoneVerified    Boolean   @default(false)
   isActive         Boolean   @default(true)
   twoFactorEnabled Boolean   @default(false)
   
