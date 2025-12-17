@@ -48,5 +48,7 @@ COPY --from=builder /app/prisma ./prisma
 # Expose API port
 EXPOSE 3000
 
+RUN pnpm db:deploy
+
 # Default command (can be overridden in docker-compose)
 CMD ["node", "dist/api/server.js"]
