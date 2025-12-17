@@ -144,12 +144,18 @@ export const validateEnv = (): void => {
     ];
 
     if (process.env.NODE_ENV === 'production') {
-        requiredKeys.push(
-            'GLOBUS_SECRET_KEY',
-            'GLOBUS_WEBHOOK_SECRET',
-            'GLOBUS_BASE_URL',
-            'GLOBUS_CLIENT_ID'
-        );
+        // Only require Globus credentials in true production
+        // In staging, we can use mock services for payment processing
+        const isStaging = process.env.STAGING === 'true';
+
+        if (!isStaging) {
+            requiredKeys.push(
+                'GLOBUS_SECRET_KEY',
+                'GLOBUS_WEBHOOK_SECRET',
+                'GLOBUS_BASE_URL',
+                'GLOBUS_CLIENT_ID'
+            );
+        }
     }
 
     const missingKeys = requiredKeys.filter(key => !process.env[key]);

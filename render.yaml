@@ -14,8 +14,10 @@ services:
       envVars:
           - key: NODE_ENV
             value: production
+          - key: STAGING
+            value: 'true'
           - key: PORT
-            value: 3000
+            value: \"3000\"
           - key: SERVER_URL
             fromService:
                 type: web
@@ -94,6 +96,8 @@ services:
       envVars:
           - key: NODE_ENV
             value: production
+          - key: STAGING
+            value: 'true'
           - key: ENABLE_FILE_LOGGING
             value: false
           - key: DATABASE_URL

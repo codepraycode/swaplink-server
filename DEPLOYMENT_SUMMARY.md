@@ -1,66 +1,221 @@
-# SwapLink Server - Render Deployment Summary
+# 🎉 SwapLink Server - Staging Deployment Ready!
 
-## 🎯 What Was Done
+## ✅ What's Been Done
 
-The SwapLink server has been prepared for deployment on Render with Resend email service integration. Here's what was implemented:
+Your SwapLink server is now ready for deployment to Render in **staging mode** - no Globus Bank credentials required!
 
-## ✅ Completed Tasks
+### 🌟 Key Achievement: Staging Mode
 
-### 1. **Resend Email Service Integration**
+You can now deploy to production infrastructure (Render) without having Globus Bank credentials. Perfect for:
+
+-   Testing the deployment process
+-   Verifying email integration with Resend
+-   Developing features before payment integration
+-   Demo and preview environments
+
+## 📦 What Was Implemented
+
+### 1. **Staging Mode Support**
+
+-   ✅ Added `STAGING` environment variable
+-   ✅ Modified validation to skip Globus credentials in staging
+-   ✅ Configured `render.yaml` with `STAGING=true`
+-   ✅ All services work except actual payment processing
+
+### 2. **Resend Email Integration**
 
 -   ✅ Installed `resend` package
--   ✅ Created `ResendEmailService` class with production-ready implementation
--   ✅ Implemented beautiful HTML email templates for:
-    -   OTP verification emails
-    -   Password reset emails
-    -   Welcome emails
--   ✅ Configured automatic service selection (Resend in production, mock in development)
+-   ✅ Created production-ready email service
+-   ✅ Beautiful HTML email templates (OTP, password reset, welcome)
+-   ✅ Auto-selects Resend in production, mock in development
 
-### 2. **Environment Configuration**
+### 3. **Render Deployment**
 
--   ✅ Added `RESEND_API_KEY` to environment configuration
--   ✅ Updated `.env.example` with Resend configuration
--   ✅ Created comprehensive environment variables documentation
-
-### 3. **Render Deployment Configuration**
-
--   ✅ Created `render.yaml` blueprint for automated deployment
--   ✅ Configured services:
-    -   API Server (Web Service)
-    -   Background Worker (Worker Service)
-    -   PostgreSQL Database
-    -   Redis Cache
--   ✅ Set up environment variables with proper defaults
--   ✅ Configured health checks and auto-deploy
+-   ✅ Complete `render.yaml` blueprint
+-   ✅ API Server, Worker, PostgreSQL, Redis configured
+-   ✅ Environment variables pre-configured
+-   ✅ Health checks and auto-deploy enabled
 
 ### 4. **Documentation**
 
--   ✅ Created `RENDER_DEPLOYMENT.md` - Complete deployment guide
--   ✅ Created `ENV_VARIABLES.md` - Environment variables reference
--   ✅ Created `DEPLOYMENT_CHECKLIST.md` - Step-by-step checklist
--   ✅ Updated `README.md` with deployment section
--   ✅ Created health check script (`scripts/health-check.sh`)
+-   ✅ **STAGING_DEPLOYMENT.md** - Staging-specific guide (⭐ Start here!)
+-   ✅ **RENDER_DEPLOYMENT.md** - Full production guide
+-   ✅ **ENV_VARIABLES.md** - All variables explained
+-   ✅ **DEPLOYMENT_CHECKLIST.md** - Step-by-step checklist
+-   ✅ **DEPLOYMENT_SUMMARY.md** - Quick reference
+-   ✅ Updated **README.md** with deployment info
+-   ✅ Health check script
 
-### 5. **Code Quality**
+## 🚀 How to Deploy (3 Simple Steps)
 
--   ✅ All TypeScript compilation checks pass
--   ✅ No lint errors
--   ✅ Proper error handling implemented
--   ✅ Production-ready logging
+### Step 1: Push to GitHub
 
-## 📁 New Files Created
+```bash
+git add .
+git commit -m "Deploy to Render staging"
+git push origin main
+```
+
+### Step 2: Deploy on Render
+
+1. Go to [Render Dashboard](https://dashboard.render.com)
+2. Click "New" → "Blueprint"
+3. Connect your repository
+4. Render auto-deploys everything!
+
+### Step 3: Configure Resend
+
+1. Sign up at [resend.com](https://resend.com)
+2. Verify your domain
+3. Generate API key
+4. Add `RESEND_API_KEY` to Render
+
+**That's it!** No Globus credentials needed! 🎉
+
+## 📧 What You Need
+
+### Required (Staging Mode)
+
+-   ✅ **Resend API Key** - For email service
+    -   Sign up at [resend.com](https://resend.com)
+    -   Verify your domain
+    -   Generate API key
+    -   Free tier: 3,000 emails/month
+
+### Optional
+
+-   ⚪ **AWS/R2 Credentials** - For file uploads
+    -   Can skip if not testing file uploads
+
+### NOT Required (Staging Mode)
+
+-   ❌ ~~Globus Bank credentials~~ - Mocked in staging
+-   ❌ ~~Payment processing setup~~ - Not needed yet
+
+## 🎯 What Works in Staging
+
+### ✅ Fully Functional
+
+-   User registration and authentication
+-   Email verification (via Resend)
+-   Phone verification
+-   Wallet creation
+-   Internal transfers
+-   P2P ad creation
+-   P2P order flow
+-   Chat functionality
+-   Admin features
+-   File uploads (if AWS/R2 configured)
+
+### 🔄 Mocked (For Testing)
+
+-   Virtual account funding
+-   External bank withdrawals
+-   Real payment processing
+-   Globus Bank webhooks
+
+## 📚 Documentation Guide
+
+**Start here based on your goal:**
+
+1. **Want to deploy to staging?**
+   → [STAGING_DEPLOYMENT.md](./STAGING_DEPLOYMENT.md) ⭐
+
+2. **Want full production with payments?**
+   → [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md)
+
+3. **Need environment variable reference?**
+   → [ENV_VARIABLES.md](./ENV_VARIABLES.md)
+
+4. **Want a step-by-step checklist?**
+   → [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)
+
+5. **Quick overview?**
+   → [DEPLOYMENT_SUMMARY.md](./DEPLOYMENT_SUMMARY.md)
+
+## 🔄 Upgrading to Production Later
+
+When you get Globus Bank credentials:
+
+1. Add credentials to Render environment variables:
+
+    - `GLOBUS_SECRET_KEY`
+    - `GLOBUS_WEBHOOK_SECRET`
+    - `GLOBUS_BASE_URL`
+    - `GLOBUS_CLIENT_ID`
+
+2. Set `STAGING=false` (or remove it)
+
+3. Redeploy
+
+That's it! Payment processing will be enabled.
+
+## 💰 Cost
+
+**Staging deployment is FREE!**
+
+All services on Render free tier:
+
+-   API Server: Free (750 hours/month)
+-   Worker: Free (750 hours/month)
+-   PostgreSQL: Free
+-   Redis: Free
+-   Resend: Free (3,000 emails/month)
+
+**Total: $0/month**
+
+## ✅ Verification
+
+After deployment, verify:
+
+```bash
+# Check health
+curl https://swaplink-api-staging.onrender.com/api/v1/health
+
+# Or use the script
+./scripts/health-check.sh https://swaplink-api-staging.onrender.com
+```
+
+Expected logs:
+
+```
+✅ Using Resend Email Service for production
+ℹ️ Running in STAGING mode - Globus Bank API mocked
+```
+
+## 🎯 Next Steps
+
+1. **Deploy to Staging**
+
+    - Follow [STAGING_DEPLOYMENT.md](./STAGING_DEPLOYMENT.md)
+    - Only need Resend API key!
+
+2. **Test Everything**
+
+    - User registration
+    - Email verification
+    - All features except payments
+
+3. **When Ready for Production**
+    - Get Globus Bank credentials
+    - Update environment variables
+    - Set `STAGING=false`
+    - Enable real payments
+
+## 📁 New Files
 
 ```
 swaplink-server/
 ├── src/shared/lib/services/
-│   └── resend-email.service.ts          # Resend email service implementation
+│   └── resend-email.service.ts          # Production email service
 ├── scripts/
-│   └── health-check.sh                   # Deployment verification script
-├── render.yaml                           # Render deployment blueprint
-├── RENDER_DEPLOYMENT.md                  # Complete deployment guide
-├── ENV_VARIABLES.md                      # Environment variables reference
-├── DEPLOYMENT_CHECKLIST.md               # Deployment checklist
-└── (Updated) README.md                   # Added deployment section
+│   └── health-check.sh                   # Deployment verification
+├── render.yaml                           # Render blueprint (with STAGING=true)
+├── STAGING_DEPLOYMENT.md                 # ⭐ Staging guide (start here!)
+├── RENDER_DEPLOYMENT.md                  # Full production guide
+├── ENV_VARIABLES.md                      # Environment variables
+├── DEPLOYMENT_CHECKLIST.md               # Step-by-step checklist
+└── DEPLOYMENT_SUMMARY.md                 # Quick reference
 ```
 
 ## 🔧 Modified Files
@@ -68,250 +223,34 @@ swaplink-server/
 ```
 swaplink-server/
 ├── src/shared/
-│   ├── config/env.config.ts             # Added RESEND_API_KEY
+│   ├── config/env.config.ts             # Added STAGING support
 │   └── lib/services/email.service.ts    # Auto-select email service
-├── .env.example                          # Added Resend configuration
-└── package.json                          # Added start:worker script
+├── .env.example                          # Added Resend config
+├── package.json                          # Added start:worker script
+└── README.md                             # Added deployment section
 ```
 
-## 🚀 How to Deploy
+## 🆘 Need Help?
 
-### Quick Start (3 Steps)
-
-1. **Push to GitHub**
-
-    ```bash
-    git add .
-    git commit -m "Prepare for Render deployment with Resend"
-    git push origin main
-    ```
-
-2. **Deploy on Render**
-
-    - Go to [Render Dashboard](https://dashboard.render.com)
-    - Click "New" → "Blueprint"
-    - Connect your GitHub repository
-    - Render will automatically deploy all services
-
-3. **Configure Secrets**
-   Set these environment variables in Render dashboard:
-    - `RESEND_API_KEY` - Get from [resend.com/api-keys](https://resend.com/api-keys)
-    - `GLOBUS_SECRET_KEY` - Your Globus Bank secret
-    - `GLOBUS_WEBHOOK_SECRET` - Your Globus webhook secret
-    - `GLOBUS_BASE_URL` - Globus API URL
-    - `GLOBUS_CLIENT_ID` - Your Globus client ID
-    - `AWS_ACCESS_KEY_ID` - Your AWS/R2 access key
-    - `AWS_SECRET_ACCESS_KEY` - Your AWS/R2 secret key
-    - `AWS_ENDPOINT` - Your S3/R2 endpoint
-
-### Detailed Instructions
-
-See [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md) for complete step-by-step instructions.
-
-## 📧 Resend Setup
-
-### 1. Create Account
-
--   Sign up at [resend.com](https://resend.com)
--   Verify your email
-
-### 2. Verify Domain
-
--   Add your domain (e.g., `swaplink.com`)
--   Add DNS records:
-    -   SPF: `v=spf1 include:_spf.resend.com ~all`
-    -   DKIM: (provided by Resend)
-    -   DMARC: `v=DMARC1; p=none`
-
-### 3. Generate API Key
-
--   Go to API Keys in Resend dashboard
--   Create new key with "Sending access"
--   Copy the key (starts with `re_`)
--   Add to Render as `RESEND_API_KEY`
-
-### 4. Update FROM_EMAIL
-
-```bash
-FROM_EMAIL=onboarding@yourdomain.com
-```
-
-Must use your verified domain!
-
-## 🏗️ Architecture
-
-### Services Deployed
-
-```
-┌─────────────────────────────────────────────────┐
-│                  Render Cloud                    │
-├─────────────────────────────────────────────────┤
-│                                                  │
-│  ┌──────────────┐      ┌──────────────┐        │
-│  │  API Server  │      │    Worker    │        │
-│  │  (Web)       │      │  (Background)│        │
-│  └──────┬───────┘      └──────┬───────┘        │
-│         │                     │                 │
-│         ├─────────────────────┤                 │
-│         │                     │                 │
-│  ┌──────▼───────┐      ┌─────▼────────┐       │
-│  │  PostgreSQL  │      │    Redis     │       │
-│  │  (Database)  │      │   (Cache)    │       │
-│  └──────────────┘      └──────────────┘       │
-│                                                  │
-└─────────────────────────────────────────────────┘
-                    │
-                    ▼
-         ┌──────────────────┐
-         │  Resend Email    │
-         │    Service       │
-         └──────────────────┘
-```
-
-## 📊 What Gets Deployed
-
-| Service                   | Type        | Purpose                     | Plan           |
-| ------------------------- | ----------- | --------------------------- | -------------- |
-| `swaplink-api-staging`    | Web Service | REST API & WebSocket server | Starter (Free) |
-| `swaplink-worker-staging` | Worker      | Background job processing   | Starter (Free) |
-| `swaplink-db-staging`     | PostgreSQL  | Primary database            | Starter (Free) |
-| `swaplink-redis-staging`  | Redis       | Cache & job queue           | Starter (Free) |
-
-**Total Cost:** $0/month (Free tier)
-
-## 🔐 Environment Variables
-
-### Required Secrets (Must Configure)
-
--   `RESEND_API_KEY` - Email service
--   `GLOBUS_SECRET_KEY` - Payment processing
--   `GLOBUS_WEBHOOK_SECRET` - Payment webhooks
--   `GLOBUS_BASE_URL` - Payment API URL
--   `GLOBUS_CLIENT_ID` - Payment client ID
--   `AWS_ACCESS_KEY_ID` - File storage
--   `AWS_SECRET_ACCESS_KEY` - File storage
--   `AWS_ENDPOINT` - File storage endpoint
-
-### Auto-Configured (By Render)
-
--   `DATABASE_URL` - PostgreSQL connection
--   `REDIS_URL` - Redis connection
--   `SERVER_URL` - API server URL
--   `JWT_SECRET` - Auto-generated
--   `JWT_REFRESH_SECRET` - Auto-generated
-
-### Pre-Configured (In render.yaml)
-
--   `NODE_ENV=production`
--   `PORT=3000`
--   `ENABLE_FILE_LOGGING=false`
--   `FROM_EMAIL=onboarding@swaplink.com`
--   `FRONTEND_URL=https://swaplink.app`
--   `CORS_URLS=https://swaplink.app,https://app.swaplink.com`
-
-See [ENV_VARIABLES.md](./ENV_VARIABLES.md) for complete reference.
-
-## ✅ Verification
-
-After deployment, verify everything works:
-
-### 1. Health Check
-
-```bash
-curl https://swaplink-api-staging.onrender.com/api/v1/health
-```
-
-Expected response:
-
-```json
-{
-    "status": "ok",
-    "timestamp": "2025-12-17T14:30:00.000Z",
-    "environment": "production"
-}
-```
-
-### 2. Run Health Check Script
-
-```bash
-./scripts/health-check.sh https://swaplink-api-staging.onrender.com
-```
-
-### 3. Test Email Service
-
--   Register a test user
--   Check Resend dashboard for email delivery
--   Verify OTP email received
-
-### 4. Check Logs
-
--   API logs should show: `✅ Using Resend Email Service for production`
--   Worker logs should show successful job processing
--   No errors in any service logs
-
-## 📚 Documentation
-
-| Document                                             | Purpose                                  |
-| ---------------------------------------------------- | ---------------------------------------- |
-| [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md)       | Complete deployment guide                |
-| [ENV_VARIABLES.md](./ENV_VARIABLES.md)               | All environment variables explained      |
-| [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) | Step-by-step checklist                   |
-| [README.md](./README.md)                             | Project overview with deployment section |
-
-## 🎯 Next Steps
-
-1. **Deploy to Render**
-
-    - Follow the Quick Start above
-    - Use [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)
-
-2. **Configure Resend**
-
-    - Set up domain verification
-    - Generate API key
-    - Test email delivery
-
-3. **Run Database Migrations**
-
-    ```bash
-    # In Render shell or locally with external DB URL
-    pnpm db:deploy
-    ```
-
-4. **Test Everything**
-
-    - User registration
-    - Email verification
-    - Login
-    - Wallet operations
-    - Transfers
-
-5. **Monitor**
-    - Check Render dashboard
-    - Monitor Resend dashboard
-    - Review application logs
-
-## 🆘 Support
-
-If you encounter issues:
-
-1. Check [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md) troubleshooting section
-2. Review [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)
-3. Check service logs in Render dashboard
-4. Verify all environment variables are set correctly
-
-## 🎉 Success Criteria
-
-Your deployment is successful when:
-
--   ✅ All services show "Live" in Render dashboard
--   ✅ Health endpoint returns `"status": "ok"`
--   ✅ Emails are being sent via Resend
--   ✅ User registration works end-to-end
--   ✅ Database operations are successful
--   ✅ Worker is processing jobs
--   ✅ No errors in logs
+1. **Staging deployment:** [STAGING_DEPLOYMENT.md](./STAGING_DEPLOYMENT.md)
+2. **Troubleshooting:** Check service logs in Render dashboard
+3. **Email issues:** Check Resend dashboard
+4. **Environment variables:** [ENV_VARIABLES.md](./ENV_VARIABLES.md)
 
 ---
 
-**Ready to deploy? Follow the [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md) guide!** 🚀
+## 🎉 You're Ready!
+
+Your server is configured for staging deployment. You only need:
+
+1. ✅ GitHub repository (you have this)
+2. ✅ Render account (free)
+3. ✅ Resend account (free)
+
+**No Globus credentials needed for staging!**
+
+Follow [STAGING_DEPLOYMENT.md](./STAGING_DEPLOYMENT.md) to deploy now! 🚀
+
+---
+
+**Questions?** All the answers are in the documentation files listed above!

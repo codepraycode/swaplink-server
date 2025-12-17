@@ -255,7 +255,8 @@ SwapLink is optimized for deployment on Render with full Docker support.
 
 **📚 Deployment Guides:**
 
--   **[Render Deployment Guide](./RENDER_DEPLOYMENT.md)** - Complete step-by-step deployment instructions
+-   **[Staging Deployment Guide](./STAGING_DEPLOYMENT.md)** - Deploy without Globus credentials (recommended for testing)
+-   **[Render Deployment Guide](./RENDER_DEPLOYMENT.md)** - Complete production deployment
 -   **[Environment Variables Reference](./ENV_VARIABLES.md)** - All environment variables explained
 -   **[Health Check Script](./scripts/health-check.sh)** - Verify your deployment
 
@@ -267,14 +268,32 @@ SwapLink is optimized for deployment on Render with full Docker support.
 -   ✅ Redis Cache
 -   ✅ Resend Email Service Integration
 
-**Required Setup:**
+**Deployment Modes:**
+
+1. **Staging Mode** (No Globus credentials required):
+
+    - Uses Resend for emails
+    - Mocks payment processing
+    - Perfect for testing
+    - See [STAGING_DEPLOYMENT.md](./STAGING_DEPLOYMENT.md)
+
+2. **Production Mode** (Requires all credentials):
+    - Full payment processing enabled
+    - See [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md)
+
+**Required Setup (Staging):**
 
 1. **Resend Account**: Sign up at [resend.com](https://resend.com) for email service
 2. **Domain Verification**: Verify your domain in Resend dashboard
-3. **API Keys**: Configure Resend, Globus Bank, and AWS/R2 credentials
+3. **Resend API Key**: Get from Resend dashboard
 4. **Database Migration**: Run `pnpm db:deploy` after first deployment
 
-For detailed instructions, see [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md).
+**Additional for Production:**
+
+5. **Globus Bank Credentials**: Payment processing API keys
+6. **AWS/R2 Credentials**: File storage configuration
+
+For detailed instructions, see [STAGING_DEPLOYMENT.md](./STAGING_DEPLOYMENT.md) or [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md).
 
 ---
 
