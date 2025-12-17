@@ -1,0 +1,166 @@
+# Render Blueprint for SwapLink Server
+# This file defines the infrastructure for deploying SwapLink to Render
+
+services:
+    # API Server
+    - type: web
+      name: swaplink-api-staging
+      env: docker
+      dockerfilePath: ./Dockerfile
+      dockerCommand: node dist/api/server.js
+      region: oregon
+      plan: starter
+      healthCheckPath: /api/v1/health
+      envVars:
+          - key: NODE_ENV
+            value: production
+          - key: PORT
+            value: 3000
+          - key: SERVER_URL
+            fromService:
+                type: web
+                name: swaplink-api-staging
+                property: host
+          - key: ENABLE_FILE_LOGGING
+            value: false
+          - key: DATABASE_URL
+            fromDatabase:
+                name: swaplink-db-staging
+                property: connectionString
+          - key: REDIS_URL
+            fromService:
+                type: redis
+                name: swaplink-redis-staging
+                property: connectionString
+          - key: REDIS_PORT
+            value: 6379
+          - key: JWT_SECRET
+            generateValue: true
+          - key: JWT_ACCESS_EXPIRATION
+            value: 15m
+          - key: JWT_REFRESH_SECRET
+            generateValue: true
+          - key: JWT_REFRESH_EXPIRATION
+            value: 7d
+          - key: GLOBUS_SECRET_KEY
+            sync: false
+          - key: GLOBUS_WEBHOOK_SECRET
+            sync: false
+          - key: GLOBUS_BASE_URL
+            sync: false
+          - key: GLOBUS_CLIENT_ID
+            sync: false
+          - key: CORS_URLS
+            value: https://swaplink.app,https://app.swaplink.com
+          - key: SMTP_HOST
+            value: smtp.resend.com
+          - key: SMTP_PORT
+            value: 587
+          - key: SMTP_USER
+            value: resend
+          - key: SMTP_PASSWORD
+            sync: false
+          - key: EMAIL_TIMEOUT
+            value: 10000
+          - key: FROM_EMAIL
+            value: onboarding@swaplink.com
+          - key: RESEND_API_KEY
+            sync: false
+          - key: FRONTEND_URL
+            value: https://swaplink.app
+          - key: AWS_ACCESS_KEY_ID
+            sync: false
+          - key: AWS_SECRET_ACCESS_KEY
+            sync: false
+          - key: AWS_REGION
+            value: us-east-1
+          - key: AWS_BUCKET_NAME
+            value: swaplink-staging
+          - key: AWS_ENDPOINT
+            sync: false
+          - key: SYSTEM_USER_ID
+            value: system-wallet-user
+      buildCommand: pnpm install --frozen-lockfile && pnpm db:generate && pnpm build
+      autoDeploy: true
+
+    # Background Worker
+    - type: worker
+      name: swaplink-worker-staging
+      env: docker
+      dockerfilePath: ./Dockerfile
+      dockerCommand: node dist/worker/index.js
+      region: oregon
+      plan: starter
+      envVars:
+          - key: NODE_ENV
+            value: production
+          - key: ENABLE_FILE_LOGGING
+            value: false
+          - key: DATABASE_URL
+            fromDatabase:
+                name: swaplink-db-staging
+                property: connectionString
+          - key: REDIS_URL
+            fromService:
+                type: redis
+                name: swaplink-redis-staging
+                property: connectionString
+          - key: REDIS_PORT
+            value: 6379
+          - key: JWT_SECRET
+            generateValue: true
+          - key: JWT_ACCESS_EXPIRATION
+            value: 15m
+          - key: JWT_REFRESH_SECRET
+            generateValue: true
+          - key: JWT_REFRESH_EXPIRATION
+            value: 7d
+          - key: GLOBUS_SECRET_KEY
+            sync: false
+          - key: GLOBUS_WEBHOOK_SECRET
+            sync: false
+          - key: GLOBUS_BASE_URL
+            sync: false
+          - key: GLOBUS_CLIENT_ID
+            sync: false
+          - key: SMTP_HOST
+            value: smtp.resend.com
+          - key: SMTP_PORT
+            value: 587
+          - key: SMTP_USER
+            value: resend
+          - key: SMTP_PASSWORD
+            sync: false
+          - key: EMAIL_TIMEOUT
+            value: 10000
+          - key: FROM_EMAIL
+            value: onboarding@swaplink.com
+          - key: RESEND_API_KEY
+            sync: false
+          - key: FRONTEND_URL
+            value: https://swaplink.app
+          - key: AWS_ACCESS_KEY_ID
+            sync: false
+          - key: AWS_SECRET_ACCESS_KEY
+            sync: false
+          - key: AWS_REGION
+            value: us-east-1
+          - key: AWS_BUCKET_NAME
+            value: swaplink-staging
+          - key: AWS_ENDPOINT
+            sync: false
+          - key: SYSTEM_USER_ID
+            value: system-wallet-user
+      buildCommand: pnpm install --frozen-lockfile && pnpm db:generate && pnpm build
+      autoDeploy: true
+
+databases:
+    - name: swaplink-db-staging
+      databaseName: swaplink_staging
+      plan: starter
+      region: oregon
+
+    - name: swaplink-redis-staging
+      plan: starter
+      region: oregon
+      maxmemoryPolicy: allkeys-lru

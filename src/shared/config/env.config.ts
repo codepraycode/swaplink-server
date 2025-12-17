@@ -37,6 +37,9 @@ interface EnvConfig {
     FROM_EMAIL: string;
     FRONTEND_URL: string;
 
+    // Resend Email Service
+    RESEND_API_KEY: string;
+
     // Storage (S3/Cloudflare R2)
     AWS_ACCESS_KEY_ID: string;
     AWS_SECRET_ACCESS_KEY: string;
@@ -107,6 +110,8 @@ export const envConfig: EnvConfig = {
     EMAIL_TIMEOUT: parseInt(getEnv('EMAIL_TIMEOUT', '10000'), 10),
     FROM_EMAIL: getEnv('FROM_EMAIL', 'no-reply@example.com'),
     FRONTEND_URL: getEnv('FRONTEND_URL', 'http://localhost:3000'),
+
+    RESEND_API_KEY: getEnv('RESEND_API_KEY', ''),
 
     AWS_ACCESS_KEY_ID: getEnv('AWS_ACCESS_KEY_ID', 'minioadmin'),
     AWS_SECRET_ACCESS_KEY: getEnv('AWS_SECRET_ACCESS_KEY', 'minioadmin'),

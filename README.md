@@ -20,6 +20,8 @@ SwapLink Server is the powerhouse behind the SwapLink Fintech App. Built with **
     -   **BullMQ Workers**: Offloads heavy tasks (Transactions, KYC) to background queues.
     -   **Redis Caching**: Ensures sub-millisecond response times for critical data.
     -   **Socket.io**: Instant updates for order status and chat messages.
+-   **📧 Production Email Service**: Integrated with Resend for reliable email delivery.
+-   **☁️ Cloud-Ready**: Optimized for deployment on Render with Docker support.
 
 ---
 
@@ -233,6 +235,46 @@ A comprehensive Postman Collection is available for testing all endpoints.
 | **P2P**    | `GET`  | `/api/v1/p2p/ads`           | Browse Buy/Sell ads |
 | **P2P**    | `POST` | `/api/v1/p2p/orders`        | Start a trade       |
 | **Admin**  | `GET`  | `/api/v1/admin/disputes`    | Review disputes     |
+
+---
+
+## 🚀 Deployment
+
+### Deploy to Render (Recommended)
+
+SwapLink is optimized for deployment on Render with full Docker support.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)
+
+**Quick Deploy:**
+
+1. Push your code to GitHub
+2. Connect your repository to Render
+3. Render will automatically detect `render.yaml` and deploy all services
+4. Configure environment variables (see guides below)
+
+**📚 Deployment Guides:**
+
+-   **[Render Deployment Guide](./RENDER_DEPLOYMENT.md)** - Complete step-by-step deployment instructions
+-   **[Environment Variables Reference](./ENV_VARIABLES.md)** - All environment variables explained
+-   **[Health Check Script](./scripts/health-check.sh)** - Verify your deployment
+
+**What gets deployed:**
+
+-   ✅ API Server (Web Service)
+-   ✅ Background Worker (Worker Service)
+-   ✅ PostgreSQL Database
+-   ✅ Redis Cache
+-   ✅ Resend Email Service Integration
+
+**Required Setup:**
+
+1. **Resend Account**: Sign up at [resend.com](https://resend.com) for email service
+2. **Domain Verification**: Verify your domain in Resend dashboard
+3. **API Keys**: Configure Resend, Globus Bank, and AWS/R2 credentials
+4. **Database Migration**: Run `pnpm db:deploy` after first deployment
+
+For detailed instructions, see [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md).
 
 ---
 

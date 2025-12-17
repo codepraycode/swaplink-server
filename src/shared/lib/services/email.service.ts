@@ -1,6 +1,6 @@
 import logger from '../utils/logger';
 import { envConfig } from '../../config/env.config';
-
+import { ResendEmailService } from './resend-email.service';
 /**
  * Email Service Interface
  * This will be implemented with actual Email providers (SendGrid, AWS SES, etc.) later
@@ -16,7 +16,7 @@ export class EmailService implements IEmailService {
     /**
      * Send a generic email
      */
-    async sendEmail(to: string, subject: string, body: string): Promise<boolean> {
+    async sendEmail(to: string, subject: string, _body: string): Promise<boolean> {
         try {
             // TODO: Integrate with actual Email provider (SendGrid, AWS SES, etc.)
 
@@ -100,4 +100,17 @@ export class EmailService implements IEmailService {
     }
 }
 
-export const emailService = new EmailService();
+// Export the appropriate email service based on environment
+// In production with RESEND_API_KEY, use Resend. Otherwise use mock service.
+let emailService: IEmailService;
+
+if (envConfig.NODE_ENV === 'production' && envConfig.RESEND_API_KEY) {
+    // Dynamically import Resend service only in production
+    emailService = new ResendEmailService();
+    logger.info('✅ Using Resend Email Service for production');
+} else {
+    emailService = new EmailService();
+    logger.info('ℹ️ Using Mock Email Service for development/testing');
+}
+
+export { emailService };
