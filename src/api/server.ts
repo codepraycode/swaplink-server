@@ -56,9 +56,11 @@ const handleShutdown = (signal: string) => {
             await prisma.$disconnect();
             logger.debug('Prisma client disconnected.');
 
+            logger.warn('Http server closed.');
             process.exit(0);
         });
     } else {
+        logger.warn('Http server not running. No server to close.');
         process.exit(0);
     }
 };
