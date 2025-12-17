@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+console.log('🔄 [DEBUG] otp.service.ts loading...');
 import { prisma, OtpType, Otp } from '../../database';
 
 import { BadRequestError } from '../utils/api-error';
@@ -19,6 +20,7 @@ export class OtpService {
     /**
      * Generate and Store OTP
      */
+
     async generateOtp(identifier: string, type: OtpType, userId?: string): Promise<Otp> {
         // 1. Generate secure 6 digit code
         const code = Math.floor(100000 + Math.random() * 900000).toString();

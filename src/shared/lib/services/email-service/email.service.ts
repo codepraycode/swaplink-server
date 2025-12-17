@@ -1,3 +1,4 @@
+console.log('🔄 [DEBUG] email.service.ts loading...');
 import { BaseEmailService } from './base-email.service';
 import { ResendEmailService } from './resend-email.service';
 import { LocalEmailService } from './local-email.service';
