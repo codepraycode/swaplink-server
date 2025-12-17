@@ -151,5 +151,5 @@ services:
 databases:
     - name: swaplink-db-staging
       databaseName: swaplink_staging
-      plan: starter
+      plan: free
       region: oregon
