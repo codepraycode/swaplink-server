@@ -1,7 +1,11 @@
 import bcrypt from 'bcryptjs';
-import { prisma } from '../../database';
-import { redisConnection } from '../../config/redis.config';
-import { BadRequestError, ForbiddenError, NotFoundError } from '../utils/api-error';
+import { prisma } from '../../../shared/database';
+import { redisConnection } from '../../../shared/config/redis.config';
+import {
+    BadRequestError,
+    ForbiddenError,
+    NotFoundError,
+} from '../../../shared/lib/utils/api-error';
 
 export class PinService {
     private readonly MAX_ATTEMPTS = 3;

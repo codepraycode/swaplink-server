@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { pinService } from '../../../shared/lib/services/pin.service';
-import { nameEnquiryService } from '../../../shared/lib/services/name-enquiry.service';
+import { pinService } from './pin.service';
+import { nameEnquiryService } from './name-enquiry.service';
 import { transferService } from './transfer.service';
-import { beneficiaryService } from '../../../shared/lib/services/beneficiary.service';
+import { beneficiaryService } from './beneficiary.service';
 import { JwtUtils } from '../../../shared/lib/utils/jwt-utils';
 import { sendCreated, sendSuccess } from '../../../shared/lib/utils/api-response';
 import { BadRequestError } from '../../../shared/lib/utils/api-error';

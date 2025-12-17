@@ -4,7 +4,7 @@ import { prisma, TransactionStatus, TransactionType, NotificationType } from '..
 import logger from '../shared/lib/utils/logger';
 import { socketService } from '../shared/lib/services/socket.service';
 import { walletService } from '../shared/lib/services/wallet.service';
-import { NotificationService } from '../services/notification.service';
+import { NotificationService } from '../api/modules/notification/notification.service';
 
 interface TransferJobData {
     transactionId: string;

@@ -1,6 +1,6 @@
-import { prisma } from '../../database';
-import { BadRequestError } from '../utils/api-error';
-import logger from '../utils/logger';
+import { prisma } from '../../../shared/database';
+import { BadRequestError } from '../../../shared/lib/utils/api-error';
+import logger from '../../../shared/lib/utils/logger';
 
 export interface NameEnquiryResponse {
     accountName: string;

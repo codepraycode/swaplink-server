@@ -1,9 +1,5 @@
-import { Queue, Worker } from 'bullmq';
+import { Queue } from 'bullmq';
 import { redisConnection } from '../../config/redis.config';
-import { globusService } from '../integrations/banking/globus.service';
-import { prisma } from '../../database';
-import logger from '../utils/logger';
-import { socketService } from '../services/socket.service';
 
 // 1. Define Queue Name
 export const BANKING_QUEUE_NAME = 'banking-queue';

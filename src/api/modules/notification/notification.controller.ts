@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { NotificationService } from '../../services/notification.service';
-import { sendSuccess } from '../../shared/lib/utils/api-response';
-import { JwtUtils } from '../../shared/lib/utils/jwt-utils';
+import { NotificationService } from './notification.service';
+import { sendSuccess } from '../../../shared/lib/utils/api-response';
+import { JwtUtils } from '../../../shared/lib/utils/jwt-utils';
 
 export class NotificationController {
     static async getAll(req: Request, res: Response, next: NextFunction) {

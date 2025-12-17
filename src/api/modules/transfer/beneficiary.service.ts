@@ -1,4 +1,4 @@
-import { prisma } from '../../database';
+import { prisma } from '../../../shared/database';
 
 export interface CreateBeneficiaryDto {
     userId: string;

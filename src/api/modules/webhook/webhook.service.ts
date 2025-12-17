@@ -3,7 +3,7 @@ import { envConfig } from '../../../shared/config/env.config';
 import { prisma } from '../../../shared/database';
 import { walletService } from '../../../shared/lib/services/wallet.service';
 import logger from '../../../shared/lib/utils/logger';
-import { NotificationService } from '../../../services/notification.service';
+import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../../../shared/database';
 
 export class WebhookService {

@@ -6,15 +6,15 @@ import {
     NotificationType,
 } from '../../../shared/database';
 import { redisConnection } from '../../../shared/config/redis.config';
-import { pinService } from '../../../shared/lib/services/pin.service';
-import { nameEnquiryService } from '../../../shared/lib/services/name-enquiry.service';
-import { beneficiaryService } from '../../../shared/lib/services/beneficiary.service';
+import { pinService } from './pin.service';
+import { nameEnquiryService } from './name-enquiry.service';
+import { beneficiaryService } from './beneficiary.service';
 import { BadRequestError, NotFoundError } from '../../../shared/lib/utils/api-error';
 import { randomUUID } from 'crypto';
 import logger from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
 import { walletService } from '../../../shared/lib/services/wallet.service';
-import { NotificationService } from '../../../services/notification.service';
+import { NotificationService } from '../notification/notification.service';
 
 export interface TransferRequest {
     userId: string;

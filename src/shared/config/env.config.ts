@@ -108,7 +108,7 @@ export const envConfig: EnvConfig = {
     SMTP_USER: getEnv('SMTP_USER', 'smtp@example.com'),
     SMTP_PASSWORD: getEnv('SMTP_PASSWORD', 'smtp-password'),
     EMAIL_TIMEOUT: parseInt(getEnv('EMAIL_TIMEOUT', '10000'), 10),
-    FROM_EMAIL: getEnv('FROM_EMAIL', 'no-reply@example.com'),
+    FROM_EMAIL: getEnv('FROM_EMAIL', 'onboarding@resend.dev'),
     FRONTEND_URL: getEnv('FRONTEND_URL', 'http://localhost:3000'),
 
     RESEND_API_KEY: getEnv('RESEND_API_KEY', ''),

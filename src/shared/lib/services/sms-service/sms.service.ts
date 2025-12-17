@@ -1,5 +1,5 @@
-import logger from '../utils/logger';
-import { envConfig } from '../../config/env.config';
+import logger from '../../utils/logger';
+import { envConfig } from '../../../config/env.config';
 
 /**
  * SMS Service Interface

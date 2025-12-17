@@ -3,14 +3,14 @@ import { prisma, OtpType, Otp } from '../../database';
 
 import { BadRequestError } from '../utils/api-error';
 import logger from '../utils/logger';
-import { ISmsService } from './sms.service';
-import { IEmailService } from './email.service';
+import { ISmsService } from './sms-service/sms.service';
+import { BaseEmailService } from './email-service/base-email.service';
 
 export class OtpService {
     private smsService: ISmsService;
-    private emailService: IEmailService;
+    private emailService: BaseEmailService;
 
-    constructor(smsService?: ISmsService, emailService?: IEmailService) {
+    constructor(smsService?: ISmsService, emailService?: BaseEmailService) {
         // Lazy load to avoid circular dependency
         this.smsService = smsService || require('./sms.service').smsService;
         this.emailService = emailService || require('./email.service').emailService;
@@ -69,7 +69,7 @@ export class OtpService {
             case OtpType.EMAIL_VERIFICATION:
             case OtpType.PASSWORD_RESET:
                 // Send via Email for email-related OTPs
-                await this.emailService.sendOtp(identifier, code);
+                await this.emailService.sendVerificationEmail(identifier, code);
                 break;
 
             default:
