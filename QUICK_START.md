@@ -16,6 +16,9 @@ git push origin main
 2. Click "New" → "Blueprint"
 3. Connect your GitHub repository
 4. Wait for auto-deployment ⏳
+5. Create Redis: "New" → "Redis" → Name: `swaplink-redis-staging`
+6. Copy Redis Internal URL
+7. Add to API & Worker services as `REDIS_URL`
 
 ### 3️⃣ Configure Resend
 

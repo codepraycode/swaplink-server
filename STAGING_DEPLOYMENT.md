@@ -38,6 +38,24 @@ git push origin main
 3. Connect your GitHub repository
 4. Render will automatically detect `render.yaml` and deploy all services
 
+**Note:** The blueprint will create the API, Worker, and PostgreSQL database. You'll need to create Redis manually in the next step.
+
+### Step 2b: Create Redis Instance
+
+1. In Render Dashboard, click "New" → "Redis"
+2. Configure:
+    - **Name**: `swaplink-redis-staging`
+    - **Region**: `Oregon` (same as other services)
+    - **Plan**: `Starter` (free)
+    - **Max Memory Policy**: `allkeys-lru`
+3. Click "Create Redis"
+4. Once created, copy the **Internal Redis URL**
+5. Go to your API service → Environment
+6. Update `REDIS_URL` with the Internal Redis URL
+7. Go to your Worker service → Environment
+8. Update `REDIS_URL` with the same Internal Redis URL
+9. Both services will auto-redeploy
+
 ### Step 3: Configure Required Secrets
 
 You only need to configure these environment variables in Render:

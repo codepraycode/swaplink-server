@@ -1,11 +1,12 @@
 # Render Blueprint for SwapLink Server
 # This file defines the infrastructure for deploying SwapLink to Render
+# Note: Redis must be created manually in Render dashboard (not supported in blueprints)
 
 services:
     # API Server
     - type: web
       name: swaplink-api-staging
-      env: docker
+      runtime: docker
       dockerfilePath: ./Dockerfile
       dockerCommand: node dist/api/server.js
       region: oregon
@@ -17,25 +18,19 @@ services:
           - key: STAGING
             value: 'true'
           - key: PORT
-            value: \"3000\"
+            value: '3000'
           - key: SERVER_URL
-            fromService:
-                type: web
-                name: swaplink-api-staging
-                property: host
+            sync: false
           - key: ENABLE_FILE_LOGGING
-            value: false
+            value: 'false'
           - key: DATABASE_URL
             fromDatabase:
                 name: swaplink-db-staging
                 property: connectionString
           - key: REDIS_URL
-            fromService:
-                type: redis
-                name: swaplink-redis-staging
-                property: connectionString
+            sync: false
           - key: REDIS_PORT
-            value: 6379
+            value: '6379'
           - key: JWT_SECRET
             generateValue: true
           - key: JWT_ACCESS_EXPIRATION
@@ -57,13 +52,13 @@ services:
           - key: SMTP_HOST
             value: smtp.resend.com
           - key: SMTP_PORT
-            value: 587
+            value: '587'
           - key: SMTP_USER
             value: resend
           - key: SMTP_PASSWORD
             sync: false
           - key: EMAIL_TIMEOUT
-            value: 10000
+            value: '10000'
           - key: FROM_EMAIL
             value: onboarding@swaplink.com
           - key: RESEND_API_KEY
@@ -82,13 +77,12 @@ services:
             sync: false
           - key: SYSTEM_USER_ID
             value: system-wallet-user
-      buildCommand: pnpm install --frozen-lockfile && pnpm db:generate && pnpm build
       autoDeploy: true
 
     # Background Worker
     - type: worker
       name: swaplink-worker-staging
-      env: docker
+      runtime: docker
       dockerfilePath: ./Dockerfile
       dockerCommand: node dist/worker/index.js
       region: oregon
@@ -99,18 +93,15 @@ services:
           - key: STAGING
             value: 'true'
           - key: ENABLE_FILE_LOGGING
-            value: false
+            value: 'false'
           - key: DATABASE_URL
             fromDatabase:
                 name: swaplink-db-staging
                 property: connectionString
           - key: REDIS_URL
-            fromService:
-                type: redis
-                name: swaplink-redis-staging
-                property: connectionString
+            sync: false
           - key: REDIS_PORT
-            value: 6379
+            value: '6379'
           - key: JWT_SECRET
             generateValue: true
           - key: JWT_ACCESS_EXPIRATION
@@ -130,13 +121,13 @@ services:
           - key: SMTP_HOST
             value: smtp.resend.com
           - key: SMTP_PORT
-            value: 587
+            value: '587'
           - key: SMTP_USER
             value: resend
           - key: SMTP_PASSWORD
             sync: false
           - key: EMAIL_TIMEOUT
-            value: 10000
+            value: '10000'
           - key: FROM_EMAIL
             value: onboarding@swaplink.com
           - key: RESEND_API_KEY
@@ -155,7 +146,6 @@ services:
             sync: false
           - key: SYSTEM_USER_ID
             value: system-wallet-user
-      buildCommand: pnpm install --frozen-lockfile && pnpm db:generate && pnpm build
       autoDeploy: true
 
 databases:
@@ -163,8 +153,3 @@ databases:
       databaseName: swaplink_staging
       plan: starter
       region: oregon
-
-    - name: swaplink-redis-staging
-      plan: starter
-      region: oregon
-      maxmemoryPolicy: allkeys-lru
