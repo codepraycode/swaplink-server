@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
+console.log('🔄 [DEBUG] env.config.ts loading...');
 import logger from '../lib/utils/logger';
 
 interface EnvConfig {
