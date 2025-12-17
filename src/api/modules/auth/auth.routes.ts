@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+console.log('🔄 [DEBUG] auth.routes.ts loading...');
 import authController from './auth.controller';
 import rateLimiters from '../../middlewares/rate-limit.middleware';
 import { authenticate } from '../../middlewares/auth.middleware';
