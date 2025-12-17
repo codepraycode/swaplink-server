@@ -51,21 +51,29 @@ interface EnvConfig {
     SYSTEM_USER_ID: string;
 }
 
+import fs from 'fs';
+
 const loadEnv = () => {
     const env = process.env.NODE_ENV || 'development';
     const envFile = path.resolve(process.cwd(), `.env.${env}`);
     const genericEnvFile = path.resolve(process.cwd(), `.env`);
 
-    // Load the environment-specific file first, if it exists
-    const configResult = dotenv.config({ path: envFile });
+    // Check if specific env file exists
+    if (fs.existsSync(envFile)) {
+        const configResult = dotenv.config({ path: envFile });
+        if (configResult.error) {
+            logger.error(`Error loading env file (${envFile}):`, configResult.error.message);
+        }
+    } else {
+        // Only warn if we are NOT in production, because in production we expect env vars to be injected
+        if (env !== 'production') {
+            logger.warn(`Specific env file not found (${envFile}). Falling back to generic .env.`);
+        }
 
-    // If the specific file failed (e.g., it doesn't exist), try loading the generic one
-    if (configResult.error && configResult.error.message.includes('ENOENT')) {
-        logger.warn(`Specific env file not found (${envFile}). Falling back to generic .env.`);
-        dotenv.config({ path: genericEnvFile });
-    } else if (configResult.error) {
-        // Log other potential errors with loading the file
-        logger.error(`Error loading env file (${envFile}):`, configResult.error.message);
+        // Try generic .env
+        if (fs.existsSync(genericEnvFile)) {
+            dotenv.config({ path: genericEnvFile });
+        }
     }
 };
 
