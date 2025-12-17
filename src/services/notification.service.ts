@@ -2,6 +2,7 @@ import { Queue } from 'bullmq';
 import { prisma, NotificationType } from '../shared/database';
 import { redisConnection } from '../shared/config/redis.config';
 import { logError } from '../shared/lib/utils/logger';
+import { socketService } from '../shared/lib/services/socket.service';
 
 const notificationQueue = new Queue('notification-queue', {
     connection: redisConnection,
@@ -39,6 +40,9 @@ export class NotificationService {
                 body,
                 data: { ...data, notificationId: notification.id },
             });
+
+            // 3. Emit Socket Event
+            socketService.emitToUser(userId, 'NEW_NOTIFICATION', notification);
 
             return notification;
         } catch (error) {
