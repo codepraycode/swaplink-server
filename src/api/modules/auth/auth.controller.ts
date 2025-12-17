@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+console.log('🔄 [DEBUG] auth.controller.ts loading...');
 import { sendCreated, sendSuccess } from '../../../shared/lib/utils/api-response';
 import { HttpStatusCode } from '../../../shared/lib/utils/http-status-codes';
 import authService from './auth.service';
