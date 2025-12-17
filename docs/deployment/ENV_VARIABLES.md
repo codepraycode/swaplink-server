@@ -167,20 +167,20 @@ AWS_ENDPOINT=http://localhost:9000
 SYSTEM_USER_ID=system-wallet-user
 ```
 
-### Production (Render)
+### Production (Railway)
 
 ```bash
 NODE_ENV=production
 PORT=3000
-SERVER_URL=https://swaplink-api-staging.onrender.com
+SERVER_URL=https://your-app.railway.app
 ENABLE_FILE_LOGGING=false
 
-DATABASE_URL=<from_render_postgresql_service>
-REDIS_URL=<from_render_redis_service>
+DATABASE_URL=<from_railway_postgresql_service>
+REDIS_URL=<from_railway_redis_service>
 
-JWT_SECRET=<auto_generated_by_render>
+JWT_SECRET=<auto_generated_by_setup_script>
 JWT_ACCESS_EXPIRATION=15m
-JWT_REFRESH_SECRET=<auto_generated_by_render>
+JWT_REFRESH_SECRET=<auto_generated_by_setup_script>
 JWT_REFRESH_EXPIRATION=7d
 
 GLOBUS_SECRET_KEY=<your_globus_secret>
@@ -241,7 +241,7 @@ SYSTEM_USER_ID=system-wallet-user
 3. **Rotate secrets regularly** (every 90 days recommended)
 4. **Use environment-specific values** (don't reuse production secrets in development)
 5. **Limit CORS origins** to only trusted domains
-6. **Use HTTPS** in production (Render provides this automatically)
+6. **Use HTTPS** in production (Railway provides this automatically)
 7. **Enable rate limiting** (already configured in the application)
 
 ## 🔍 Validation
@@ -272,7 +272,7 @@ The server validates required environment variables on startup. If any required 
 
 ### Error: "Missing required environment variable: X"
 
-**Solution:** Add the missing variable to your `.env` file or Render environment variables.
+**Solution:** Add the missing variable to your `.env` file or Railway environment variables.
 
 ### Error: "Database connection failed"
 
@@ -292,11 +292,11 @@ The server validates required environment variables on startup. If any required 
 
 ## 📚 Additional Resources
 
--   [Render Environment Variables](https://render.com/docs/environment-variables)
+-   [Railway Environment Variables](https://docs.railway.app/guides/environment-variables)
 -   [Resend API Documentation](https://resend.com/docs)
 -   [Prisma Connection URLs](https://www.prisma.io/docs/reference/database-reference/connection-urls)
 -   [JWT Best Practices](https://tools.ietf.org/html/rfc8725)
 
 ---
 
-**Need help?** Check the main [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md) guide for detailed deployment instructions.
+**Need help?** Check the main [RAILWAY_DEPLOYMENT.md](./RAILWAY_DEPLOYMENT.md) guide for detailed deployment instructions.

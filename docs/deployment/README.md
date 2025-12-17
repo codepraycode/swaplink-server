@@ -12,7 +12,6 @@ swaplink-server/
 ├── RAILWAY_CHECKLIST.md           # Step-by-step checklist
 ├── RAILWAY_ARCHITECTURE.md        # Architecture diagrams
 ├── ENV_RAILWAY.md                 # Environment variables template
-├── PLATFORM_COMPARISON.md         # Railway vs Render
 └── scripts/
     └── railway-setup.sh           # Setup script
 ```
@@ -143,22 +142,6 @@ Perfect for:
 
 ---
 
-#### 6. PLATFORM_COMPARISON.md (12K)
-
-**Purpose**: Railway vs Render comparison
-
-**Contents**:
-
--   Feature comparison table
--   Detailed analysis
--   Cost comparison
--   Use case recommendations
--   Migration considerations
-
-**When to use**: When deciding between platforms
-
----
-
 ### Scripts
 
 #### 7. scripts/railway-setup.sh (4.8K)
@@ -261,9 +244,8 @@ railway run pnpm db:deploy
 
 ### For Decision Makers
 
-1. **PLATFORM_COMPARISON.md** - Compare options
-2. **RAILWAY_ARCHITECTURE.md** - Review architecture
-3. **RAILWAY_DEPLOYMENT.md** - Understand process
+1. **RAILWAY_ARCHITECTURE.md** - Review architecture
+2. **RAILWAY_DEPLOYMENT.md** - Understand process
 
 ## 💡 Tips
 
@@ -319,8 +301,6 @@ railway run pnpm db:deploy
 
 **Free Credit**: $5/month
 **Net Cost (First Month)**: ~$10
-
-See `PLATFORM_COMPARISON.md` for detailed breakdown.
 
 ## 🔗 External Resources
 

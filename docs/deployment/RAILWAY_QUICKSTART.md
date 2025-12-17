@@ -80,7 +80,6 @@ We've created the following files to help with your Railway deployment:
 
 -   **`RAILWAY_CHECKLIST.md`** - Don't miss any steps
 -   **`ENV_RAILWAY.md`** - All environment variables explained
--   **`PLATFORM_COMPARISON.md`** - Why Railway vs Render
 
 ### Scripts
 
@@ -206,7 +205,6 @@ railway run pnpm db:deploy
 
 ### General
 
--   [Platform Comparison](./PLATFORM_COMPARISON.md)
 -   [Environment Variables Reference](./ENV_VARIABLES.md)
 -   [Main README](./README.md)
 
