@@ -3,7 +3,12 @@ import { prisma } from '../../../database';
 import { pinService } from '../pin.service';
 import { nameEnquiryService } from '../name-enquiry.service';
 import { BadRequestError, NotFoundError } from '../../utils/api-error';
+import { socketService } from '../socket.service';
+import { walletService } from '../wallet.service';
 import { TransactionType, TransactionStatus } from '../../../database/generated/prisma';
+
+jest.mock('../socket.service');
+jest.mock('../wallet.service');
 
 // Mock dependencies
 jest.mock('../../../database', () => ({
@@ -105,15 +110,29 @@ describe('TransferService', () => {
                 recipient: 'John Doe',
             });
 
-            // Verify Debits and Credits
-            expect(prisma.wallet.update).toHaveBeenCalledWith({
-                where: { id: 'wallet-123' },
-                data: { balance: { decrement: 5000 } },
-            });
             expect(prisma.wallet.update).toHaveBeenCalledWith({
                 where: { id: 'wallet-456' },
                 data: { balance: { increment: 5000 } },
             });
+
+            // Verify Socket Emissions
+            expect(walletService.getWalletBalance).toHaveBeenCalledWith(mockUserId);
+            expect(walletService.getWalletBalance).toHaveBeenCalledWith(mockReceiverId);
+
+            expect(socketService.emitToUser).toHaveBeenCalledWith(
+                mockUserId,
+                'WALLET_UPDATED',
+                expect.objectContaining({
+                    message: expect.stringContaining('Debit Alert'),
+                })
+            );
+            expect(socketService.emitToUser).toHaveBeenCalledWith(
+                mockReceiverId,
+                'WALLET_UPDATED',
+                expect.objectContaining({
+                    message: expect.stringContaining('Credit Alert'),
+                })
+            );
         });
 
         it('should throw BadRequestError for insufficient funds (Internal)', async () => {
@@ -172,6 +191,16 @@ describe('TransferService', () => {
 
             // Queue should be called (mocked internally in service constructor, hard to test without exposing queue)
             // But we can assume it works if no error is thrown
+
+            // Verify Socket Emission (Sender only)
+            expect(walletService.getWalletBalance).toHaveBeenCalledWith(mockUserId);
+            expect(socketService.emitToUser).toHaveBeenCalledWith(
+                mockUserId,
+                'WALLET_UPDATED',
+                expect.objectContaining({
+                    message: expect.stringContaining('Debit Alert'),
+                })
+            );
         });
     });
 });

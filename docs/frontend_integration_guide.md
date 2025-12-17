@@ -61,21 +61,25 @@ export const useSocket = (token: string | null) => {
 };
 ```
 
-### 2. Listen for Transaction Updates
+### 2. Listen for Wallet Updates
 
-In your relevant screens (e.g., `WalletScreen`, `TransactionHistoryScreen`), use the socket instance to listen for the `transaction_update` event.
+In your relevant screens (e.g., `WalletScreen`, `TransactionHistoryScreen`), use the socket instance to listen for the `WALLET_UPDATED` event. This event is emitted for all balance-changing operations (Deposits, Transfers, Reversals).
 
 #### Event Payload Structure
 
 ```typescript
-interface TransactionUpdatePayload {
-    transactionId: string;
-    status: 'PENDING' | 'COMPLETED' | 'FAILED';
-    type: 'TRANSFER' | 'DEPOSIT' | 'REVERSAL';
-    amount: number; // Negative for debit, Positive for credit
-    balance: number; // The NEW wallet balance
-    timestamp: string; // ISO Date string
-    senderName?: string; // Optional (for received transfers)
+interface WalletUpdatePayload {
+    id: string; // Wallet ID
+    balance: number; // Current Balance
+    lockedBalance: number;
+    availableBalance: number;
+    currency: string;
+    virtualAccount: {
+        accountNumber: string;
+        bankName: string;
+        accountName: string;
+    } | null;
+    message?: string; // e.g., "Credit Alert: +₦5,000"
 }
 ```
 
@@ -91,48 +95,39 @@ export const WalletScreen = () => {
     const { token, user } = useAuth();
     const socket = useSocket(token);
     const [balance, setBalance] = useState(user?.wallet?.balance || 0);
-    const [transactions, setTransactions] = useState([]);
 
     useEffect(() => {
         if (!socket) return;
 
         // Event Listener
-        const handleTransactionUpdate = (data: TransactionUpdatePayload) => {
-            console.log('🔔 Transaction Update Received:', data);
+        const handleWalletUpdate = (data: WalletUpdatePayload) => {
+            console.log('🔔 Wallet Update Received:', data);
 
             // 1. Update Balance
             setBalance(data.balance);
 
-            // 2. Update Transaction List
-            // Check if transaction already exists (update it) or add new one
-            setTransactions(prev => {
-                const exists = prev.find(t => t.id === data.transactionId);
-                if (exists) {
-                    return prev.map(t =>
-                        t.id === data.transactionId ? { ...t, status: data.status } : t
-                    );
-                } else {
-                    // Add new transaction to top
-                    return [data, ...prev];
-                }
-            });
+            // 2. Refresh Transactions (Optional)
+            // Since the payload only gives the new balance, you might want to
+            // re-fetch the transaction history to show the latest entry.
+            // fetchTransactions();
 
-            // Optional: Show Toast Notification
-            // Toast.show({ type: 'success', text1: 'New Transaction', text2: `Amount: ${data.amount}` });
+            // 3. Show Notification
+            if (data.message) {
+                // Toast.show({ type: 'info', text1: 'Wallet Update', text2: data.message });
+            }
         };
 
-        socket.on('transaction_update', handleTransactionUpdate);
+        socket.on('WALLET_UPDATED', handleWalletUpdate);
 
         // Cleanup listener
         return () => {
-            socket.off('transaction_update', handleTransactionUpdate);
+            socket.off('WALLET_UPDATED', handleWalletUpdate);
         };
     }, [socket]);
 
     return (
         <View>
             <Text>Current Balance: {balance}</Text>
-            {/* Render Transaction List */}
         </View>
     );
 };

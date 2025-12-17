@@ -9,6 +9,7 @@ import { TransactionStatus, TransactionType } from '../../../shared/database/gen
 import { randomUUID } from 'crypto';
 import logger from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
+import { walletService } from '../../../shared/lib/services/wallet.service';
 
 export interface TransferRequest {
     userId: string;
@@ -33,8 +34,7 @@ export class TransferService {
      * Process a transfer request (Hybrid: Internal or External)
      */
     async processTransfer(payload: TransferRequest) {
-        const { userId, amount, accountNumber, bankCode, pin, idempotencyKey, saveBeneficiary } =
-            payload;
+        const { userId, accountNumber, bankCode, pin, idempotencyKey, saveBeneficiary } = payload;
 
         // 1. Idempotency Check
         const existingTx = await prisma.transaction.findUnique({
@@ -189,28 +189,18 @@ export class TransferService {
             };
         });
 
-        // Emit Socket Events
-        socketService.emitToUser(senderWallet.userId, 'transaction_update', {
-            transactionId: result.transactionId,
-            status: result.status,
-            type: TransactionType.TRANSFER,
-            amount: -amount,
-            balance: senderWallet.balance - amount,
-            timestamp: new Date().toISOString(),
+        // Emit Socket Events (Sender)
+        const senderNewBalance = await walletService.getWalletBalance(senderWallet.userId);
+        socketService.emitToUser(senderWallet.userId, 'WALLET_UPDATED', {
+            ...senderNewBalance,
+            message: `Debit Alert: -₦${amount.toLocaleString()}`,
         });
 
-        socketService.emitToUser(receiverWallet.userId, 'transaction_update', {
-            transactionId: result.transactionId, // Note: This is sender's tx ID. Receiver has their own, but result only has sender's.
-            // Actually, result only returns senderTx.id.
-            // Receiver gets a separate transaction record.
-            // Ideally we should return both or fetch receiver's tx.
-            // For now, let's just notify receiver about the incoming funds.
-            status: 'COMPLETED',
-            type: TransactionType.DEPOSIT,
-            amount: amount,
-            balance: receiverWallet.balance + amount,
-            timestamp: new Date().toISOString(),
-            senderName: senderWallet.userId, // Should be name
+        // Emit Socket Events (Receiver)
+        const receiverNewBalance = await walletService.getWalletBalance(receiverWallet.userId);
+        socketService.emitToUser(receiverWallet.userId, 'WALLET_UPDATED', {
+            ...receiverNewBalance,
+            message: `Credit Alert: +₦${amount.toLocaleString()}`,
         });
 
         return result;
@@ -274,13 +264,10 @@ export class TransferService {
         }
 
         // Emit Socket Event
-        socketService.emitToUser(userId, 'transaction_update', {
-            transactionId: transaction.id,
-            status: transaction.status,
-            type: TransactionType.TRANSFER,
-            amount: -(amount + fee),
-            balance: senderWallet.balance - (amount + fee),
-            timestamp: new Date().toISOString(),
+        const senderNewBalance = await walletService.getWalletBalance(userId);
+        socketService.emitToUser(userId, 'WALLET_UPDATED', {
+            ...senderNewBalance,
+            message: `Debit Alert: -₦${(amount + fee).toLocaleString()}`,
         });
 
         return {

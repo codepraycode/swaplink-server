@@ -3,6 +3,7 @@ import { redisConnection } from '../shared/config/redis.config';
 import { prisma, TransactionStatus, TransactionType } from '../shared/database';
 import logger from '../shared/lib/utils/logger';
 import { socketService } from '../shared/lib/services/socket.service';
+import { walletService } from '../shared/lib/services/wallet.service';
 
 interface TransferJobData {
     transactionId: string;
@@ -15,7 +16,7 @@ interface TransferJobData {
 }
 
 const processTransfer = async (job: Job<TransferJobData>) => {
-    const { transactionId, destination, amount } = job.data;
+    const { transactionId } = job.data;
     logger.info(`Processing external transfer for transaction ${transactionId}`);
 
     try {
@@ -51,13 +52,11 @@ const processTransfer = async (job: Job<TransferJobData>) => {
             logger.info(`Transfer ${transactionId} completed successfully`);
 
             // Emit Socket Event
-            socketService.emitToUser(transaction.userId, 'transaction_update', {
-                transactionId: transaction.id,
-                status: TransactionStatus.COMPLETED,
-                type: TransactionType.TRANSFER,
-                amount: transaction.amount, // Already negative
-                balance: transaction.balanceAfter, // Balance didn't change on completion (already debited)
-                timestamp: new Date().toISOString(),
+            // Emit Socket Event
+            const newBalance = await walletService.getWalletBalance(transaction.userId);
+            socketService.emitToUser(transaction.userId, 'WALLET_UPDATED', {
+                ...newBalance,
+                message: `Transfer Completed`,
             });
         } else {
             // 3b. Handle Failure (Auto-Reversal)
@@ -101,24 +100,11 @@ const processTransfer = async (job: Job<TransferJobData>) => {
                     // But we need the data.
                     return reversalTx;
                 })
-                .then(reversalTx => {
-                    socketService.emitToUser(transaction.userId, 'transaction_update', {
-                        transactionId: transactionId,
-                        status: TransactionStatus.FAILED,
-                        type: TransactionType.TRANSFER,
-                        amount: transaction.amount,
-                        balance: reversalTx.balanceAfter, // Updated balance
-                        timestamp: new Date().toISOString(),
-                    });
-
-                    // Also emit the reversal transaction?
-                    socketService.emitToUser(transaction.userId, 'transaction_update', {
-                        transactionId: reversalTx.id,
-                        status: TransactionStatus.COMPLETED,
-                        type: TransactionType.REVERSAL,
-                        amount: reversalTx.amount,
-                        balance: reversalTx.balanceAfter,
-                        timestamp: new Date().toISOString(),
+                .then(async () => {
+                    const newBalance = await walletService.getWalletBalance(transaction.userId);
+                    socketService.emitToUser(transaction.userId, 'WALLET_UPDATED', {
+                        ...newBalance,
+                        message: `Transfer Failed: Reversal Processed`,
                     });
                 });
 
