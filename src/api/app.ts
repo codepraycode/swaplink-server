@@ -52,14 +52,17 @@ app.use(morganMiddleware);
 // ======================================================
 // We place this here so Load Balancers don't get banned
 // by the rate limiter for pinging the server frequently.
-app.get('/health', (req: Request, res: Response) => {
+const healthCheck = (req: Request, res: Response) => {
     sendSuccess(res, {
         status: 'OK',
         service: 'SwapLink API',
         uptime: process.uptime(),
         timestamp: new Date(),
     });
-});
+};
+
+app.get('/health', healthCheck);
+app.get(`${API_ROUTE}/health`, healthCheck);
 
 // ======================================================
 // 4. Rate Limiting (DoS Protection)

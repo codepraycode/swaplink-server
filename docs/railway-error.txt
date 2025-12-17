@@ -1,184 +1,124 @@
-2025-12-17T15:52:58.346508051Z [inf]  
-2025-12-17T15:53:01.251979804Z [inf]  [35m[Region: europe-west4][0m
-2025-12-17T15:53:01.316665191Z [inf]  
-2025-12-17T15:53:01.316699222Z [inf]  [38;2;125;86;243m╭─────────────────╮[0m
-2025-12-17T15:53:01.316703429Z [inf]  [38;2;125;86;243m│[0m Railpack 0.15.1 [38;2;125;86;243m│[0m
-2025-12-17T15:53:01.316706716Z [inf]  [38;2;125;86;243m╰─────────────────╯[0m
-2025-12-17T15:53:01.316711537Z [inf]  
-2025-12-17T15:53:01.316715445Z [inf]  [97m↳ Detected Node[0m
-2025-12-17T15:53:01.316718579Z [inf]  [97m↳ Using pnpm package manager[0m
-2025-12-17T15:53:01.316721409Z [inf]  [97m↳ Installing pnpm@10.18.0 with Corepack[0m
-2025-12-17T15:53:01.316724352Z [inf]  
-2025-12-17T15:53:01.316727252Z [inf]  [1mPackages[0m
-2025-12-17T15:53:01.316730573Z [inf]  [38;5;238m──────────[0m
-2025-12-17T15:53:01.316733547Z [inf]  [95mnode[0m  [38;5;238m│[0m  [96m22.21.1[0m  [38;5;238m│[0m  railpack default (22)
-2025-12-17T15:53:01.316736383Z [inf]  [95mpnpm[0m  [38;5;238m│[0m  [96m10.18.0[0m  [38;5;238m│[0m  package.json > packageManager (10.18.0)
-2025-12-17T15:53:01.316739259Z [inf]  
-2025-12-17T15:53:01.316741997Z [inf]  [1mSteps[0m
-2025-12-17T15:53:01.316744825Z [inf]  [38;5;238m──────────[0m
-2025-12-17T15:53:01.316747621Z [inf]  [95m▸ install[0m
-2025-12-17T15:53:01.316750286Z [inf]  [38;5;245m$[0m [1mnpm i -g corepack@latest && corepack enable && corepack prepare --activate[0m
-2025-12-17T15:53:01.316753525Z [inf]  [38;5;245m$[0m [1mpnpm install --frozen-lockfile --prefer-offline[0m
-2025-12-17T15:53:01.316756225Z [inf]  
-2025-12-17T15:53:01.316758977Z [inf]  [95m▸ build[0m
-2025-12-17T15:53:01.316761907Z [inf]  [38;5;245m$[0m [1mpnpm run build[0m
-2025-12-17T15:53:01.316764562Z [inf]  
-2025-12-17T15:53:01.316767282Z [inf]  [1mDeploy[0m
-2025-12-17T15:53:01.316770293Z [inf]  [38;5;238m──────────[0m
-2025-12-17T15:53:01.316773033Z [inf]  [38;5;245m$[0m [1mpnpm run start[0m
-2025-12-17T15:53:01.316775891Z [inf]  
-2025-12-17T15:53:01.316778599Z [inf]  
-2025-12-17T15:53:01.317808969Z [inf]  Successfully prepared Railpack plan for build
-2025-12-17T15:53:01.317841126Z [inf]  
-2025-12-17T15:53:01.317848690Z [inf]  
-2025-12-17T15:53:01.318251657Z [inf]  context: nhgs-lXm8
-2025-12-17T15:53:01.483353323Z [inf]  [internal] load build definition from railpack-plan.json
-2025-12-17T15:53:01.483395595Z [inf]  [internal] load build definition from railpack-plan.json
-2025-12-17T15:53:01.483411630Z [inf]  [internal] load build definition from railpack-plan.json
-2025-12-17T15:53:01.483422009Z [inf]  [internal] load build definition from railpack-plan.json
-2025-12-17T15:53:01.494320202Z [inf]  [internal] load build definition from railpack-plan.json
-2025-12-17T15:53:01.496557678Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1
-2025-12-17T15:53:01.813122964Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1
-2025-12-17T15:53:01.813174397Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
-2025-12-17T15:53:01.813382854Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
-2025-12-17T15:53:01.817219955Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
-2025-12-17T15:53:01.817455696Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.15.1@sha256:a4ad3453868dd475784adfd7eb98fb4aa0e1a532a9ff8f668d64cf21bd3908a7
-2025-12-17T15:53:01.886586759Z [inf]  load build definition from railpack-plan.json
-2025-12-17T15:53:01.886633744Z [inf]  load build definition from railpack-plan.json
-2025-12-17T15:53:01.886910275Z [inf]  load build definition from railpack-plan.json
-2025-12-17T15:53:01.897232004Z [inf]  load build definition from railpack-plan.json
-2025-12-17T15:53:01.909524177Z [inf]  loading .
-2025-12-17T15:53:01.909566798Z [inf]  copy /root/.local/state/mise
-2025-12-17T15:53:01.909578296Z [inf]  copy /etc/mise/config.toml
-2025-12-17T15:53:01.909595975Z [inf]  copy /usr/local/bin/mise
-2025-12-17T15:53:01.909643575Z [inf]  copy /mise/installs
-2025-12-17T15:53:01.909666985Z [inf]  copy /mise/shims
-2025-12-17T15:53:01.909673952Z [inf]  install mise packages: node
-2025-12-17T15:53:01.909679905Z [inf]  create mise config
-2025-12-17T15:53:01.909686110Z [inf]  mkdir /etc/mise
-2025-12-17T15:53:01.909692277Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
-2025-12-17T15:53:01.909698046Z [inf]  install apt packages: libatomic1
-2025-12-17T15:53:01.909705739Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
-2025-12-17T15:53:01.909730664Z [inf]  copy package.json
-2025-12-17T15:53:01.909738657Z [inf]  mkdir -p /app/node_modules/.cache
-2025-12-17T15:53:01.909744732Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
-2025-12-17T15:53:01.909751979Z [inf]  copy package.json
-2025-12-17T15:53:01.909793339Z [inf]  [railpack] merge $packages:apt:runtime, $packages:mise, $build, $build
-2025-12-17T15:53:01.909800125Z [inf]  copy /opt/corepack
-2025-12-17T15:53:01.909807192Z [inf]  copy /app
-2025-12-17T15:53:01.909815548Z [inf]  copy /root/.cache
-2025-12-17T15:53:01.909821011Z [inf]  copy /app/node_modules
-2025-12-17T15:53:01.909826474Z [inf]  pnpm run build
-2025-12-17T15:53:01.909831797Z [inf]  [railpack] secrets hash
-2025-12-17T15:53:01.909836936Z [inf]  copy / /app
-2025-12-17T15:53:01.909842641Z [inf]  pnpm install --frozen-lockfile --prefer-offline
-2025-12-17T15:53:01.909848524Z [inf]  copy prisma
-2025-12-17T15:53:01.909854078Z [inf]  copy pnpm-lock.yaml
-2025-12-17T15:53:01.909868301Z [inf]  [railpack] secrets hash
-2025-12-17T15:53:01.909874197Z [inf]  loading .
-2025-12-17T15:53:01.909879556Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
-2025-12-17T15:53:01.909891473Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
-2025-12-17T15:53:02.174933020Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
-2025-12-17T15:53:02.175176957Z [inf]  install apt packages: libatomic1
-2025-12-17T15:53:02.181539343Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
-2025-12-17T15:53:02.182578612Z [inf]  mkdir /etc/mise
-2025-12-17T15:53:02.182596457Z [inf]  create mise config
-2025-12-17T15:53:02.182603253Z [inf]  loading .
-2025-12-17T15:53:02.182610920Z [inf]  [railpack] secrets hash
-2025-12-17T15:53:02.182623747Z [inf]  create mise config
-2025-12-17T15:53:02.182634033Z [inf]  install mise packages: node
-2025-12-17T15:53:02.193281289Z [inf]  [railpack] secrets hash
-2025-12-17T15:53:02.209897004Z [inf]  loading .
-2025-12-17T15:53:02.386669367Z [inf]  mise node@22.21.1    install
+2025-12-17T16:00:42.443616015Z [inf]  
+2025-12-17T16:00:47.510034199Z [inf]  [35m[Region: europe-west4][0m
+2025-12-17T16:00:47.555065905Z [inf]  [35m=========================
+2025-12-17T16:00:47.555112450Z [inf]  Using Detected Dockerfile
+2025-12-17T16:00:47.555119868Z [inf]  =========================
+2025-12-17T16:00:47.555123453Z [inf]  [0m
+2025-12-17T16:00:47.555136292Z [inf]  context: nhgs-lXm8
+2025-12-17T16:00:47.746391351Z [inf]  [internal] load build definition from Dockerfile
+2025-12-17T16:00:47.746447364Z [inf]  [internal] load build definition from Dockerfile
+2025-12-17T16:00:47.746465542Z [inf]  [internal] load build definition from Dockerfile
+2025-12-17T16:00:47.762273486Z [inf]  [internal] load build definition from Dockerfile
+2025-12-17T16:00:47.766023026Z [inf]  [internal] load metadata for docker.io/library/node:18-alpine
+2025-12-17T16:00:47.769699936Z [inf]  [auth] library/node:pull token for registry-1.docker.io
+2025-12-17T16:00:47.769742278Z [inf]  [auth] library/node:pull token for registry-1.docker.io
+2025-12-17T16:00:48.391156610Z [inf]  [internal] load metadata for docker.io/library/node:18-alpine
+2025-12-17T16:00:48.391363107Z [inf]  [internal] load .dockerignore
+2025-12-17T16:00:48.391585911Z [inf]  [internal] load .dockerignore
+2025-12-17T16:00:48.391782925Z [inf]  [internal] load .dockerignore
+2025-12-17T16:00:48.402800112Z [inf]  [internal] load .dockerignore
+2025-12-17T16:00:48.408062412Z [inf]  [builder  9/10] RUN pnpm build
+2025-12-17T16:00:48.408094150Z [inf]  [builder  8/10] COPY . .
+2025-12-17T16:00:48.408100767Z [inf]  [builder  7/10] RUN pnpm db:generate
+2025-12-17T16:00:48.408107603Z [inf]  [builder  6/10] COPY prisma ./prisma
+2025-12-17T16:00:48.408118096Z [inf]  [builder  5/10] RUN pnpm install --frozen-lockfile
+2025-12-17T16:00:48.408124043Z [inf]  [builder  4/10] COPY package.json pnpm-lock.yaml ./
+2025-12-17T16:00:48.408130207Z [inf]  [builder  3/10] RUN npm install -g pnpm
+2025-12-17T16:00:48.408135662Z [inf]  [runner 3/6] COPY package.json pnpm-lock.yaml ./
+2025-12-17T16:00:48.408141558Z [inf]  [internal] load build context
+2025-12-17T16:00:48.408158673Z [inf]  [builder  2/10] WORKDIR /app
+2025-12-17T16:00:48.408164426Z [inf]  [builder  1/10] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+2025-12-17T16:00:48.408188267Z [inf]  [runner 6/6] COPY --from=builder /app/prisma ./prisma
+2025-12-17T16:00:48.408206200Z [inf]  [runner 5/6] COPY --from=builder /app/dist ./dist
+2025-12-17T16:00:48.408213258Z [inf]  [runner 4/6] COPY --from=builder /app/node_modules ./node_modules
+2025-12-17T16:00:48.408220262Z [inf]  [builder 10/10] RUN pnpm prune --prod
+2025-12-17T16:00:48.408229566Z [inf]  [builder  1/10] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+2025-12-17T16:00:48.408238742Z [inf]  [internal] load build context
+2025-12-17T16:00:48.413392194Z [inf]  [builder  1/10] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+2025-12-17T16:00:48.413794654Z [inf]  [builder  2/10] WORKDIR /app
+2025-12-17T16:00:48.413810278Z [inf]  [internal] load build context
+2025-12-17T16:00:48.413953397Z [inf]  [builder  3/10] RUN npm install -g pnpm
+2025-12-17T16:00:48.457155845Z [inf]  [internal] load build context
+2025-12-17T16:00:48.458923006Z [inf]  [runner 3/6] COPY package.json pnpm-lock.yaml ./
+2025-12-17T16:00:48.510660416Z [inf]  [runner 3/6] COPY package.json pnpm-lock.yaml ./
+2025-12-17T16:00:50.804783201Z [inf]  
+added 1 package in 2s
 
-2025-12-17T15:53:02.387511611Z [inf]  mise node@22.21.1    download node-v22.21.1-linux-x64.tar.gz
+2025-12-17T16:00:50.804886433Z [inf]  
+1 package is looking for funding
+  run `npm fund` for details
 
-2025-12-17T15:53:03.074630247Z [inf]  mise node@22.21.1    extract node-v22.21.1-linux-x64.tar.gz
+2025-12-17T16:00:50.807598958Z [inf]  npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.7.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
+npm notice To update run: npm install -g npm@11.7.0
+npm notice
 
-2025-12-17T15:53:04.065418749Z [inf]  mise node@22.21.1    node -v
+2025-12-17T16:00:50.869767952Z [inf]  [builder  3/10] RUN npm install -g pnpm
+2025-12-17T16:00:50.876396704Z [inf]  [builder  4/10] COPY package.json pnpm-lock.yaml ./
+2025-12-17T16:00:50.905133092Z [inf]  [builder  4/10] COPY package.json pnpm-lock.yaml ./
+2025-12-17T16:00:50.906985609Z [inf]  [builder  5/10] RUN pnpm install --frozen-lockfile
+2025-12-17T16:00:52.978720806Z [inf]  Lockfile is up to date, resolution step is skipped
 
-2025-12-17T15:53:04.068997128Z [inf]  mise node@22.21.1    v22.21.1
+2025-12-17T16:00:53.043385175Z [inf]  Progress: resolved 1, reused 0, downloaded 0, added 0
 
-2025-12-17T15:53:04.069761912Z [inf]  mise node@22.21.1    npm -v
-
-2025-12-17T15:53:04.152329368Z [inf]  mise node@22.21.1    10.9.4
-
-2025-12-17T15:53:04.159746334Z [inf]  mise node@22.21.1    enable corepack shims
-
-2025-12-17T15:53:04.237332048Z [inf]  mise node@22.21.1  ✓ installed
-
-2025-12-17T15:53:04.339934306Z [inf]  install mise packages: node
-2025-12-17T15:53:04.341050329Z [inf]  copy package.json
-2025-12-17T15:53:04.383444005Z [inf]  copy package.json
-2025-12-17T15:53:04.385106146Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
-2025-12-17T15:53:04.565428874Z [inf]  npm warn config production Use `--omit=dev` instead.
-
-2025-12-17T15:53:05.043453494Z [inf]  
-changed 1 package in 500ms
-
-2025-12-17T15:53:05.073812647Z [inf]  Reshimming mise 22.21.1...
-
-2025-12-17T15:53:05.232412494Z [inf]  Preparing pnpm@10.18.0 for immediate activation...
-
-2025-12-17T15:53:05.272768124Z [inf]  copy /mise/shims
-2025-12-17T15:53:05.272805612Z [inf]  copy /mise/installs
-2025-12-17T15:53:05.272818653Z [inf]  copy /usr/local/bin/mise
-2025-12-17T15:53:05.272829489Z [inf]  copy /etc/mise/config.toml
-2025-12-17T15:53:05.272838727Z [inf]  copy /root/.local/state/mise
-2025-12-17T15:53:06.099293913Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
-2025-12-17T15:53:06.100993951Z [inf]  mkdir -p /app/node_modules/.cache
-2025-12-17T15:53:06.195310934Z [inf]  mkdir -p /app/node_modules/.cache
-2025-12-17T15:53:06.197088993Z [inf]  copy package.json
-2025-12-17T15:53:06.212693135Z [inf]  copy package.json
-2025-12-17T15:53:06.215153504Z [inf]  copy pnpm-lock.yaml
-2025-12-17T15:53:06.280924577Z [inf]  copy pnpm-lock.yaml
-2025-12-17T15:53:06.282498076Z [inf]  copy prisma
-2025-12-17T15:53:06.296441399Z [inf]  copy prisma
-2025-12-17T15:53:06.298043062Z [inf]  pnpm install --frozen-lockfile --prefer-offline
-2025-12-17T15:53:06.788476681Z [inf]  Lockfile is up to date, resolution step is skipped
-
-2025-12-17T15:53:06.824499801Z [inf]  Progress: resolved 1, reused 0, downloaded 0, added 0
-
-2025-12-17T15:53:06.910695878Z [inf]  Packages: +586
+2025-12-17T16:00:53.464600509Z [inf]  Packages: +779
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-2025-12-17T15:53:07.827456053Z [inf]  Progress: resolved 586, reused 0, downloaded 430, added 358
+2025-12-17T16:00:54.182954199Z [inf]  Progress: resolved 779, reused 0, downloaded 0, added 0
 
-2025-12-17T15:53:08.146399092Z [inf]  Progress: resolved 586, reused 0, downloaded 586, added 586, done
+2025-12-17T16:00:55.191024318Z [inf]  Progress: resolved 779, reused 0, downloaded 381, added 174
 
-2025-12-17T15:53:08.401794954Z [inf]  
+2025-12-17T16:00:55.881717167Z [inf]  Progress: resolved 779, reused 0, downloaded 779, added 779, done
+
+2025-12-17T16:00:56.278677222Z [inf]  
 dependencies:
-+ @prisma/client 7.1.0
++ @aws-sdk/client-s3 3.948.0
++ @prisma/client 5.10.0
 + @prisma/config 7.1.0
++ axios 1.13.2
++ bcrypt 6.0.0
 + bcryptjs 3.0.2
++ bullmq 5.66.0
 + cors 2.8.5
 + dotenv 17.2.3
++ expo-server-sdk 4.0.0
 + express 5.1.0
 + express-rate-limit 8.2.1
 + helmet 8.1.0
++ ioredis 5.8.2
 + jsonwebtoken 9.0.2
 + morgan 1.10.1
 + multer 2.0.2
-+ prisma 7.1.0
++ node-cron 4.2.1
++ prisma 5.10.0
++ resend 6.6.0
++ socket.io 4.8.1
 + winston 3.19.0
 + winston-daily-rotate-file 5.0.0
 + zod 4.1.12
 
 devDependencies:
 + @faker-js/faker 7.6.0
-+ @types/bcryptjs 3.0.0
++ @types/bcrypt 6.0.0
 + @types/cors 2.8.19
 + @types/express 5.0.3
-+ @types/express-rate-limit 6.0.2
 + @types/faker 6.6.6
 + @types/jest 30.0.0
 + @types/jsonwebtoken 9.0.10
 + @types/morgan 1.9.10
 + @types/multer 2.0.0
 + @types/node 24.7.0
++ @types/node-cron 3.0.11
 + @types/supertest 6.0.3
++ @typescript-eslint/eslint-plugin 8.49.0
++ @typescript-eslint/parser 8.49.0
++ concurrently 9.2.1
 + cross-env 10.1.0
 + dotenv-cli 10.0.0
++ eslint 8.57.1
++ eslint-config-prettier 10.1.8
++ eslint-plugin-prettier 5.5.4
 + faker 6.6.6
 + jest 30.2.0
 + jest-mock-extended 4.0.0
@@ -190,52 +130,183 @@ devDependencies:
 
 ╭ Warning ─────────────────────────────────────────────────────────────────────╮
 │                                                                              │
-│   Ignored build scripts: @prisma/engines, prisma, unrs-resolver.             │
+│   Ignored build scripts: @prisma/client, @prisma/engines, bcrypt,            │
+│   msgpackr-extract, prisma, unrs-resolver.                                   │
 │   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
 │   to run scripts.                                                            │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 
 
-2025-12-17T15:53:08.554690954Z [inf]  Done in 2.1s using pnpm v10.18.0
+2025-12-17T16:00:56.457323284Z [inf]  Done in 3.9s using pnpm v10.18.0
 
-2025-12-17T15:53:08.649380624Z [inf]  pnpm install --frozen-lockfile --prefer-offline
-2025-12-17T15:53:08.650481540Z [inf]  copy / /app
-2025-12-17T15:53:08.863269279Z [inf]  copy / /app
-2025-12-17T15:53:08.863853351Z [inf]  pnpm run build
-2025-12-17T15:53:09.226047191Z [inf]  
+2025-12-17T16:00:56.581445047Z [inf]  [builder  5/10] RUN pnpm install --frozen-lockfile
+2025-12-17T16:00:56.583097692Z [inf]  [builder  6/10] COPY prisma ./prisma
+2025-12-17T16:00:56.876427683Z [inf]  [builder  6/10] COPY prisma ./prisma
+2025-12-17T16:00:56.877884170Z [inf]  [builder  7/10] RUN pnpm db:generate
+2025-12-17T16:00:57.76702673Z [inf]  
+> swaplink-server@1.0.0 db:generate /app
+> prisma generate
+
+
+2025-12-17T16:00:58.256955309Z [inf]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+Please manually install OpenSSL and try installing Prisma again.
+
+2025-12-17T16:00:58.742482134Z [inf]  Prisma schema loaded from prisma/schema.prisma
+
+2025-12-17T16:00:58.760210112Z [inf]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+Please manually install OpenSSL and try installing Prisma again.
+
+2025-12-17T16:00:59.44958727Z [inf]  
+✔ Generated Prisma Client (v5.10.0) to ./src/shared/database/generated/prisma in 226ms
+
+Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+```
+import { PrismaClient } from './src/shared/database/generated/prisma'
+const prisma = new PrismaClient()
+```
+or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+```
+import { PrismaClient } from './src/shared/database/generated/prisma/edge'
+const prisma = new PrismaClient()
+```
+
+See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
+┌─────────────────────────────────────────────────────────────┐
+│  Deploying your app to serverless or edge functions?        │
+│  Try Prisma Accelerate for connection pooling and caching.  │
+│  https://pris.ly/cli/accelerate                             │
+└─────────────────────────────────────────────────────────────┘
+
+
+2025-12-17T16:00:59.999522229Z [inf]  [builder  7/10] RUN pnpm db:generate
+2025-12-17T16:01:00.001780784Z [inf]  [builder  8/10] COPY . .
+2025-12-17T16:01:00.059348716Z [inf]  [builder  8/10] COPY . .
+2025-12-17T16:01:00.061046845Z [inf]  [builder  9/10] RUN pnpm build
+2025-12-17T16:01:00.977154432Z [inf]  
 > swaplink-server@1.0.0 build /app
-> tsc
+> pnpm run db:generate && tsc
 
 
-2025-12-17T15:53:11.059986462Z [inf]  src/database/database.errors.ts(1,24): error TS2307: Cannot find module './generated/prisma' or its corresponding type declarations.
+2025-12-17T16:01:01.401978397Z [inf]  
+> swaplink-server@1.0.0 db:generate /app
+> prisma generate
 
-2025-12-17T15:53:11.06009681Z [inf]  src/database/database.types.ts(1,65): error TS2307: Cannot find module './generated/prisma' or its corresponding type declarations.
 
-2025-12-17T15:53:11.06010627Z [inf]  src/database/index.ts(3,30): error TS2307: Cannot find module './generated/prisma' or its corresponding type declarations.
+2025-12-17T16:01:01.91660903Z [inf]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+Please manually install OpenSSL and try installing Prisma again.
 
-2025-12-17T15:53:11.060138346Z [inf]  src/lib/services/__tests__/otp.service.integration.test.ts(407,34): error TS7006: Parameter 'otp' implicitly has an 'any' type.
-src/lib/services/__tests__/wallet.service.integration.test.ts(6,33): error TS2307: Cannot find module '../../../database/generated/prisma' or its corresponding type declarations.
+2025-12-17T16:01:02.158444193Z [inf]  Prisma schema loaded from prisma/schema.prisma
 
-2025-12-17T15:53:11.060145725Z [inf]  src/lib/services/__tests__/wallet.service.integration.test.ts(20,45): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+2025-12-17T16:01:02.174130915Z [inf]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+Please manually install OpenSSL and try installing Prisma again.
 
-2025-12-17T15:53:11.060147997Z [inf]  src/lib/services/__tests__/wallet.service.integration.test.ts(36,45): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+2025-12-17T16:01:02.794950081Z [inf]  
+✔ Generated Prisma Client (v5.10.0) to ./src/shared/database/generated/prisma in 226ms
 
-2025-12-17T15:53:11.060172566Z [inf]  src/lib/services/__tests__/wallet.service.unit.test.ts(4,33): error TS2307: Cannot find module '../../../database/generated/prisma' or its corresponding type declarations.
+Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+```
+import { PrismaClient } from './src/shared/database/generated/prisma'
+const prisma = new PrismaClient()
+```
+or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+```
+import { PrismaClient } from './src/shared/database/generated/prisma/edge'
+const prisma = new PrismaClient()
+```
 
-2025-12-17T15:53:11.060259185Z [inf]  src/lib/services/wallet.service.ts(3,33): error TS2307: Cannot find module '../../database/generated/prisma' or its corresponding type declarations.
+See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
-2025-12-17T15:53:11.060390314Z [inf]  src/lib/services/wallet.service.ts(144,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+┌─────────────────────────────────────────────────────────────┐
+│  Deploying your app to serverless or edge functions?        │
+│  Try Prisma Accelerate for connection pooling and caching.  │
+│  https://pris.ly/cli/accelerate                             │
+└─────────────────────────────────────────────────────────────┘
 
-2025-12-17T15:53:11.060396949Z [inf]  src/lib/services/wallet.service.ts(190,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
 
-2025-12-17T15:53:11.060412609Z [inf]  src/lib/utils/database.ts(2,30): error TS2307: Cannot find module '../../database/generated/prisma' or its corresponding type declarations.
+2025-12-17T16:01:07.588135182Z [inf]  [builder  9/10] RUN pnpm build
+2025-12-17T16:01:07.589738934Z [inf]  [builder 10/10] RUN pnpm prune --prod
+2025-12-17T16:01:08.585220778Z [inf]  Lockfile is up to date, resolution step is skipped
 
-2025-12-17T15:53:11.06044258Z [inf]  src/modules/auth/auth.service.ts(55,56): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+2025-12-17T16:01:08.658463838Z [inf]  Packages: -442
+--------------------------------------------------------------------------------
 
-2025-12-17T15:53:11.060478759Z [inf]  src/modules/auth/auth.service.ts(116,20): error TS7006: Parameter 'err' implicitly has an 'any' type.
+2025-12-17T16:01:10.115465545Z [inf]  
+devDependencies:
+- @faker-js/faker 7.6.0
+- @types/bcrypt 6.0.0
+- @types/cors 2.8.19
+- @types/express 5.0.3
+- @types/faker 6.6.6
+- @types/jest 30.0.0
+- @types/jsonwebtoken 9.0.10
+- @types/morgan 1.9.10
+- @types/multer 2.0.0
+- @types/node 24.7.0
+- @types/node-cron 3.0.11
+- @types/supertest 6.0.3
+- @typescript-eslint/eslint-plugin 8.49.0
+- @typescript-eslint/parser 8.49.0
+- concurrently 9.2.1
+- cross-env 10.1.0
+- dotenv-cli 10.0.0
+- eslint 8.57.1
+- eslint-config-prettier 10.1.8
+- eslint-plugin-prettier 5.5.4
+- faker 6.6.6
+- jest 30.2.0
+- jest-mock-extended 4.0.0
+- supertest 7.1.4
+- ts-jest 29.4.4
+- ts-node 10.9.2
+- ts-node-dev 2.0.0
+- typescript 5.9.3
 
-2025-12-17T15:53:11.091150167Z [inf]   ELIFECYCLE  Command failed with exit code 2.
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: @prisma/client, @prisma/engines, bcrypt,            │
+│   msgpackr-extract, prisma, unrs-resolver.                                   │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
 
-2025-12-17T15:53:11.239924604Z [err]  pnpm run build
-2025-12-17T15:53:11.257239988Z [err]  ERROR: failed to build: failed to solve: process "pnpm run build" did not complete successfully: exit code: 2
+
+2025-12-17T16:01:10.191709416Z [inf]  [builder 10/10] RUN pnpm prune --prod
+2025-12-17T16:01:12.255180792Z [inf]  [runner 4/6] COPY --from=builder /app/node_modules ./node_modules
+2025-12-17T16:01:13.558350551Z [inf]  [runner 4/6] COPY --from=builder /app/node_modules ./node_modules
+2025-12-17T16:01:13.560973612Z [inf]  [runner 5/6] COPY --from=builder /app/dist ./dist
+2025-12-17T16:01:13.713027902Z [inf]  [runner 5/6] COPY --from=builder /app/dist ./dist
+2025-12-17T16:01:13.714982161Z [inf]  [runner 6/6] COPY --from=builder /app/prisma ./prisma
+2025-12-17T16:01:13.737062452Z [inf]  [runner 6/6] COPY --from=builder /app/prisma ./prisma
+2025-12-17T16:01:15.300567269Z [inf]  [auth] sharing credentials for production-europe-west4-drams3a.railway-registry.com
+2025-12-17T16:01:15.300622736Z [inf]  [auth] sharing credentials for production-europe-west4-drams3a.railway-registry.com
+2025-12-17T16:01:15.657676928Z [inf]  importing to docker
+2025-12-17T16:01:19.594452081Z [inf]  importing to docker
+2025-12-17T16:01:28.078325768Z [inf]  [92mBuild time: 40.52 seconds[0m
+2025-12-17T16:01:44.220665146Z [inf]  
+2025-12-17T16:01:44.220761628Z [inf]  [35m====================
+Starting Healthcheck
+====================
+[0m
+2025-12-17T16:01:44.220766751Z [inf]  [37mPath: /api/v1/health[0m
+2025-12-17T16:01:44.220769160Z [inf]  [37mRetry window: 5m0s[0m
+2025-12-17T16:01:44.220771222Z [inf]  
+2025-12-17T16:01:44.444771682Z [inf]  [93mAttempt #1 failed with service unavailable. Continuing to retry for 4m59s[0m
+2025-12-17T16:01:45.599255755Z [inf]  [93mAttempt #2 failed with service unavailable. Continuing to retry for 4m58s[0m
+2025-12-17T16:01:47.755512487Z [inf]  [93mAttempt #3 failed with service unavailable. Continuing to retry for 4m56s[0m
+2025-12-17T16:01:51.914295546Z [inf]  [93mAttempt #4 failed with service unavailable. Continuing to retry for 4m52s[0m
+2025-12-17T16:02:00.070985581Z [inf]  [93mAttempt #5 failed with service unavailable. Continuing to retry for 4m44s[0m
+2025-12-17T16:02:16.237717230Z [inf]  [93mAttempt #6 failed with service unavailable. Continuing to retry for 4m28s[0m
+2025-12-17T16:02:46.394225009Z [inf]  [93mAttempt #7 failed with service unavailable. Continuing to retry for 3m57s[0m
+2025-12-17T16:03:16.550842461Z [inf]  [93mAttempt #8 failed with service unavailable. Continuing to retry for 3m27s[0m
+2025-12-17T16:03:46.741924731Z [inf]  [93mAttempt #9 failed with service unavailable. Continuing to retry for 2m57s[0m
+2025-12-17T16:04:16.898237804Z [inf]  [93mAttempt #10 failed with service unavailable. Continuing to retry for 2m27s[0m
+2025-12-17T16:04:47.054845217Z [inf]  [93mAttempt #11 failed with service unavailable. Continuing to retry for 1m57s[0m
+2025-12-17T16:05:17.245613562Z [inf]  [93mAttempt #12 failed with service unavailable. Continuing to retry for 1m27s[0m
+2025-12-17T16:05:47.404561313Z [inf]  [93mAttempt #13 failed with service unavailable. Continuing to retry for 56s[0m
+2025-12-17T16:06:17.562091785Z [inf]  [93mAttempt #14 failed with service unavailable. Continuing to retry for 26s[0m
+2025-12-17T16:06:17.617485539Z [inf]  
+2025-12-17T16:06:17.617558364Z [inf]  [91m1/1 replicas never became healthy![0m
+2025-12-17T16:06:17.617570914Z [inf]  [91mHealthcheck failed![0m
