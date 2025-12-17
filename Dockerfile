@@ -4,7 +4,8 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+# Install pnpm and openssl
+RUN apk add --no-cache openssl && npm install -g pnpm
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
@@ -30,6 +31,9 @@ RUN pnpm prune --prod
 FROM node:18-alpine AS runner
 
 WORKDIR /app
+
+# Install openssl
+RUN apk add --no-cache openssl
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./

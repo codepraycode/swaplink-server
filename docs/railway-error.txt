@@ -1,312 +1,501 @@
-2025-12-17T16:00:42.443616015Z [inf]  
-2025-12-17T16:00:47.510034199Z [inf]  [35m[Region: europe-west4][0m
-2025-12-17T16:00:47.555065905Z [inf]  [35m=========================
-2025-12-17T16:00:47.555112450Z [inf]  Using Detected Dockerfile
-2025-12-17T16:00:47.555119868Z [inf]  =========================
-2025-12-17T16:00:47.555123453Z [inf]  [0m
-2025-12-17T16:00:47.555136292Z [inf]  context: nhgs-lXm8
-2025-12-17T16:00:47.746391351Z [inf]  [internal] load build definition from Dockerfile
-2025-12-17T16:00:47.746447364Z [inf]  [internal] load build definition from Dockerfile
-2025-12-17T16:00:47.746465542Z [inf]  [internal] load build definition from Dockerfile
-2025-12-17T16:00:47.762273486Z [inf]  [internal] load build definition from Dockerfile
-2025-12-17T16:00:47.766023026Z [inf]  [internal] load metadata for docker.io/library/node:18-alpine
-2025-12-17T16:00:47.769699936Z [inf]  [auth] library/node:pull token for registry-1.docker.io
-2025-12-17T16:00:47.769742278Z [inf]  [auth] library/node:pull token for registry-1.docker.io
-2025-12-17T16:00:48.391156610Z [inf]  [internal] load metadata for docker.io/library/node:18-alpine
-2025-12-17T16:00:48.391363107Z [inf]  [internal] load .dockerignore
-2025-12-17T16:00:48.391585911Z [inf]  [internal] load .dockerignore
-2025-12-17T16:00:48.391782925Z [inf]  [internal] load .dockerignore
-2025-12-17T16:00:48.402800112Z [inf]  [internal] load .dockerignore
-2025-12-17T16:00:48.408062412Z [inf]  [builder  9/10] RUN pnpm build
-2025-12-17T16:00:48.408094150Z [inf]  [builder  8/10] COPY . .
-2025-12-17T16:00:48.408100767Z [inf]  [builder  7/10] RUN pnpm db:generate
-2025-12-17T16:00:48.408107603Z [inf]  [builder  6/10] COPY prisma ./prisma
-2025-12-17T16:00:48.408118096Z [inf]  [builder  5/10] RUN pnpm install --frozen-lockfile
-2025-12-17T16:00:48.408124043Z [inf]  [builder  4/10] COPY package.json pnpm-lock.yaml ./
-2025-12-17T16:00:48.408130207Z [inf]  [builder  3/10] RUN npm install -g pnpm
-2025-12-17T16:00:48.408135662Z [inf]  [runner 3/6] COPY package.json pnpm-lock.yaml ./
-2025-12-17T16:00:48.408141558Z [inf]  [internal] load build context
-2025-12-17T16:00:48.408158673Z [inf]  [builder  2/10] WORKDIR /app
-2025-12-17T16:00:48.408164426Z [inf]  [builder  1/10] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
-2025-12-17T16:00:48.408188267Z [inf]  [runner 6/6] COPY --from=builder /app/prisma ./prisma
-2025-12-17T16:00:48.408206200Z [inf]  [runner 5/6] COPY --from=builder /app/dist ./dist
-2025-12-17T16:00:48.408213258Z [inf]  [runner 4/6] COPY --from=builder /app/node_modules ./node_modules
-2025-12-17T16:00:48.408220262Z [inf]  [builder 10/10] RUN pnpm prune --prod
-2025-12-17T16:00:48.408229566Z [inf]  [builder  1/10] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
-2025-12-17T16:00:48.408238742Z [inf]  [internal] load build context
-2025-12-17T16:00:48.413392194Z [inf]  [builder  1/10] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
-2025-12-17T16:00:48.413794654Z [inf]  [builder  2/10] WORKDIR /app
-2025-12-17T16:00:48.413810278Z [inf]  [internal] load build context
-2025-12-17T16:00:48.413953397Z [inf]  [builder  3/10] RUN npm install -g pnpm
-2025-12-17T16:00:48.457155845Z [inf]  [internal] load build context
-2025-12-17T16:00:48.458923006Z [inf]  [runner 3/6] COPY package.json pnpm-lock.yaml ./
-2025-12-17T16:00:48.510660416Z [inf]  [runner 3/6] COPY package.json pnpm-lock.yaml ./
-2025-12-17T16:00:50.804783201Z [inf]  
-added 1 package in 2s
-
-2025-12-17T16:00:50.804886433Z [inf]  
-1 package is looking for funding
-  run `npm fund` for details
-
-2025-12-17T16:00:50.807598958Z [inf]  npm notice
-npm notice New major version of npm available! 10.8.2 -> 11.7.0
-npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
-npm notice To update run: npm install -g npm@11.7.0
-npm notice
-
-2025-12-17T16:00:50.869767952Z [inf]  [builder  3/10] RUN npm install -g pnpm
-2025-12-17T16:00:50.876396704Z [inf]  [builder  4/10] COPY package.json pnpm-lock.yaml ./
-2025-12-17T16:00:50.905133092Z [inf]  [builder  4/10] COPY package.json pnpm-lock.yaml ./
-2025-12-17T16:00:50.906985609Z [inf]  [builder  5/10] RUN pnpm install --frozen-lockfile
-2025-12-17T16:00:52.978720806Z [inf]  Lockfile is up to date, resolution step is skipped
-
-2025-12-17T16:00:53.043385175Z [inf]  Progress: resolved 1, reused 0, downloaded 0, added 0
-
-2025-12-17T16:00:53.464600509Z [inf]  Packages: +779
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-2025-12-17T16:00:54.182954199Z [inf]  Progress: resolved 779, reused 0, downloaded 0, added 0
-
-2025-12-17T16:00:55.191024318Z [inf]  Progress: resolved 779, reused 0, downloaded 381, added 174
-
-2025-12-17T16:00:55.881717167Z [inf]  Progress: resolved 779, reused 0, downloaded 779, added 779, done
-
-2025-12-17T16:00:56.278677222Z [inf]  
-dependencies:
-+ @aws-sdk/client-s3 3.948.0
-+ @prisma/client 5.10.0
-+ @prisma/config 7.1.0
-+ axios 1.13.2
-+ bcrypt 6.0.0
-+ bcryptjs 3.0.2
-+ bullmq 5.66.0
-+ cors 2.8.5
-+ dotenv 17.2.3
-+ expo-server-sdk 4.0.0
-+ express 5.1.0
-+ express-rate-limit 8.2.1
-+ helmet 8.1.0
-+ ioredis 5.8.2
-+ jsonwebtoken 9.0.2
-+ morgan 1.10.1
-+ multer 2.0.2
-+ node-cron 4.2.1
-+ prisma 5.10.0
-+ resend 6.6.0
-+ socket.io 4.8.1
-+ winston 3.19.0
-+ winston-daily-rotate-file 5.0.0
-+ zod 4.1.12
-
-devDependencies:
-+ @faker-js/faker 7.6.0
-+ @types/bcrypt 6.0.0
-+ @types/cors 2.8.19
-+ @types/express 5.0.3
-+ @types/faker 6.6.6
-+ @types/jest 30.0.0
-+ @types/jsonwebtoken 9.0.10
-+ @types/morgan 1.9.10
-+ @types/multer 2.0.0
-+ @types/node 24.7.0
-+ @types/node-cron 3.0.11
-+ @types/supertest 6.0.3
-+ @typescript-eslint/eslint-plugin 8.49.0
-+ @typescript-eslint/parser 8.49.0
-+ concurrently 9.2.1
-+ cross-env 10.1.0
-+ dotenv-cli 10.0.0
-+ eslint 8.57.1
-+ eslint-config-prettier 10.1.8
-+ eslint-plugin-prettier 5.5.4
-+ faker 6.6.6
-+ jest 30.2.0
-+ jest-mock-extended 4.0.0
-+ supertest 7.1.4
-+ ts-jest 29.4.4
-+ ts-node 10.9.2
-+ ts-node-dev 2.0.0
-+ typescript 5.9.3
-
-╭ Warning ─────────────────────────────────────────────────────────────────────╮
-│                                                                              │
-│   Ignored build scripts: @prisma/client, @prisma/engines, bcrypt,            │
-│   msgpackr-extract, prisma, unrs-resolver.                                   │
-│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
-│   to run scripts.                                                            │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
-
-
-2025-12-17T16:00:56.457323284Z [inf]  Done in 3.9s using pnpm v10.18.0
-
-2025-12-17T16:00:56.581445047Z [inf]  [builder  5/10] RUN pnpm install --frozen-lockfile
-2025-12-17T16:00:56.583097692Z [inf]  [builder  6/10] COPY prisma ./prisma
-2025-12-17T16:00:56.876427683Z [inf]  [builder  6/10] COPY prisma ./prisma
-2025-12-17T16:00:56.877884170Z [inf]  [builder  7/10] RUN pnpm db:generate
-2025-12-17T16:00:57.76702673Z [inf]  
-> swaplink-server@1.0.0 db:generate /app
-> prisma generate
-
-
-2025-12-17T16:00:58.256955309Z [inf]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
-Please manually install OpenSSL and try installing Prisma again.
-
-2025-12-17T16:00:58.742482134Z [inf]  Prisma schema loaded from prisma/schema.prisma
-
-2025-12-17T16:00:58.760210112Z [inf]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
-Please manually install OpenSSL and try installing Prisma again.
-
-2025-12-17T16:00:59.44958727Z [inf]  
-✔ Generated Prisma Client (v5.10.0) to ./src/shared/database/generated/prisma in 226ms
-
-Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-```
-import { PrismaClient } from './src/shared/database/generated/prisma'
-const prisma = new PrismaClient()
-```
-or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-```
-import { PrismaClient } from './src/shared/database/generated/prisma/edge'
-const prisma = new PrismaClient()
-```
-
-See other ways of importing Prisma Client: http://pris.ly/d/importing-client
-
-┌─────────────────────────────────────────────────────────────┐
-│  Deploying your app to serverless or edge functions?        │
-│  Try Prisma Accelerate for connection pooling and caching.  │
-│  https://pris.ly/cli/accelerate                             │
-└─────────────────────────────────────────────────────────────┘
-
-
-2025-12-17T16:00:59.999522229Z [inf]  [builder  7/10] RUN pnpm db:generate
-2025-12-17T16:01:00.001780784Z [inf]  [builder  8/10] COPY . .
-2025-12-17T16:01:00.059348716Z [inf]  [builder  8/10] COPY . .
-2025-12-17T16:01:00.061046845Z [inf]  [builder  9/10] RUN pnpm build
-2025-12-17T16:01:00.977154432Z [inf]  
-> swaplink-server@1.0.0 build /app
-> pnpm run db:generate && tsc
-
-
-2025-12-17T16:01:01.401978397Z [inf]  
-> swaplink-server@1.0.0 db:generate /app
-> prisma generate
-
-
-2025-12-17T16:01:01.91660903Z [inf]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
-Please manually install OpenSSL and try installing Prisma again.
-
-2025-12-17T16:01:02.158444193Z [inf]  Prisma schema loaded from prisma/schema.prisma
-
-2025-12-17T16:01:02.174130915Z [inf]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
-Please manually install OpenSSL and try installing Prisma again.
-
-2025-12-17T16:01:02.794950081Z [inf]  
-✔ Generated Prisma Client (v5.10.0) to ./src/shared/database/generated/prisma in 226ms
-
-Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-```
-import { PrismaClient } from './src/shared/database/generated/prisma'
-const prisma = new PrismaClient()
-```
-or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-```
-import { PrismaClient } from './src/shared/database/generated/prisma/edge'
-const prisma = new PrismaClient()
-```
-
-See other ways of importing Prisma Client: http://pris.ly/d/importing-client
-
-┌─────────────────────────────────────────────────────────────┐
-│  Deploying your app to serverless or edge functions?        │
-│  Try Prisma Accelerate for connection pooling and caching.  │
-│  https://pris.ly/cli/accelerate                             │
-└─────────────────────────────────────────────────────────────┘
-
-
-2025-12-17T16:01:07.588135182Z [inf]  [builder  9/10] RUN pnpm build
-2025-12-17T16:01:07.589738934Z [inf]  [builder 10/10] RUN pnpm prune --prod
-2025-12-17T16:01:08.585220778Z [inf]  Lockfile is up to date, resolution step is skipped
-
-2025-12-17T16:01:08.658463838Z [inf]  Packages: -442
---------------------------------------------------------------------------------
-
-2025-12-17T16:01:10.115465545Z [inf]  
-devDependencies:
-- @faker-js/faker 7.6.0
-- @types/bcrypt 6.0.0
-- @types/cors 2.8.19
-- @types/express 5.0.3
-- @types/faker 6.6.6
-- @types/jest 30.0.0
-- @types/jsonwebtoken 9.0.10
-- @types/morgan 1.9.10
-- @types/multer 2.0.0
-- @types/node 24.7.0
-- @types/node-cron 3.0.11
-- @types/supertest 6.0.3
-- @typescript-eslint/eslint-plugin 8.49.0
-- @typescript-eslint/parser 8.49.0
-- concurrently 9.2.1
-- cross-env 10.1.0
-- dotenv-cli 10.0.0
-- eslint 8.57.1
-- eslint-config-prettier 10.1.8
-- eslint-plugin-prettier 5.5.4
-- faker 6.6.6
-- jest 30.2.0
-- jest-mock-extended 4.0.0
-- supertest 7.1.4
-- ts-jest 29.4.4
-- ts-node 10.9.2
-- ts-node-dev 2.0.0
-- typescript 5.9.3
-
-╭ Warning ─────────────────────────────────────────────────────────────────────╮
-│                                                                              │
-│   Ignored build scripts: @prisma/client, @prisma/engines, bcrypt,            │
-│   msgpackr-extract, prisma, unrs-resolver.                                   │
-│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
-│   to run scripts.                                                            │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
-
-
-2025-12-17T16:01:10.191709416Z [inf]  [builder 10/10] RUN pnpm prune --prod
-2025-12-17T16:01:12.255180792Z [inf]  [runner 4/6] COPY --from=builder /app/node_modules ./node_modules
-2025-12-17T16:01:13.558350551Z [inf]  [runner 4/6] COPY --from=builder /app/node_modules ./node_modules
-2025-12-17T16:01:13.560973612Z [inf]  [runner 5/6] COPY --from=builder /app/dist ./dist
-2025-12-17T16:01:13.713027902Z [inf]  [runner 5/6] COPY --from=builder /app/dist ./dist
-2025-12-17T16:01:13.714982161Z [inf]  [runner 6/6] COPY --from=builder /app/prisma ./prisma
-2025-12-17T16:01:13.737062452Z [inf]  [runner 6/6] COPY --from=builder /app/prisma ./prisma
-2025-12-17T16:01:15.300567269Z [inf]  [auth] sharing credentials for production-europe-west4-drams3a.railway-registry.com
-2025-12-17T16:01:15.300622736Z [inf]  [auth] sharing credentials for production-europe-west4-drams3a.railway-registry.com
-2025-12-17T16:01:15.657676928Z [inf]  importing to docker
-2025-12-17T16:01:19.594452081Z [inf]  importing to docker
-2025-12-17T16:01:28.078325768Z [inf]  [92mBuild time: 40.52 seconds[0m
-2025-12-17T16:01:44.220665146Z [inf]  
-2025-12-17T16:01:44.220761628Z [inf]  [35m====================
-Starting Healthcheck
-====================
-[0m
-2025-12-17T16:01:44.220766751Z [inf]  [37mPath: /api/v1/health[0m
-2025-12-17T16:01:44.220769160Z [inf]  [37mRetry window: 5m0s[0m
-2025-12-17T16:01:44.220771222Z [inf]  
-2025-12-17T16:01:44.444771682Z [inf]  [93mAttempt #1 failed with service unavailable. Continuing to retry for 4m59s[0m
-2025-12-17T16:01:45.599255755Z [inf]  [93mAttempt #2 failed with service unavailable. Continuing to retry for 4m58s[0m
-2025-12-17T16:01:47.755512487Z [inf]  [93mAttempt #3 failed with service unavailable. Continuing to retry for 4m56s[0m
-2025-12-17T16:01:51.914295546Z [inf]  [93mAttempt #4 failed with service unavailable. Continuing to retry for 4m52s[0m
-2025-12-17T16:02:00.070985581Z [inf]  [93mAttempt #5 failed with service unavailable. Continuing to retry for 4m44s[0m
-2025-12-17T16:02:16.237717230Z [inf]  [93mAttempt #6 failed with service unavailable. Continuing to retry for 4m28s[0m
-2025-12-17T16:02:46.394225009Z [inf]  [93mAttempt #7 failed with service unavailable. Continuing to retry for 3m57s[0m
-2025-12-17T16:03:16.550842461Z [inf]  [93mAttempt #8 failed with service unavailable. Continuing to retry for 3m27s[0m
-2025-12-17T16:03:46.741924731Z [inf]  [93mAttempt #9 failed with service unavailable. Continuing to retry for 2m57s[0m
-2025-12-17T16:04:16.898237804Z [inf]  [93mAttempt #10 failed with service unavailable. Continuing to retry for 2m27s[0m
-2025-12-17T16:04:47.054845217Z [inf]  [93mAttempt #11 failed with service unavailable. Continuing to retry for 1m57s[0m
-2025-12-17T16:05:17.245613562Z [inf]  [93mAttempt #12 failed with service unavailable. Continuing to retry for 1m27s[0m
-2025-12-17T16:05:47.404561313Z [inf]  [93mAttempt #13 failed with service unavailable. Continuing to retry for 56s[0m
-2025-12-17T16:06:17.562091785Z [inf]  [93mAttempt #14 failed with service unavailable. Continuing to retry for 26s[0m
-2025-12-17T16:06:17.617485539Z [inf]  
-2025-12-17T16:06:17.617558364Z [inf]  [91m1/1 replicas never became healthy![0m
-2025-12-17T16:06:17.617570914Z [inf]  [91mHealthcheck failed![0m
+2025-12-17T21:13:12.000000000Z [inf]  Starting Container
+2025-12-17T21:13:14.029151821Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: ⚙️  override existing env vars with { override: true }
+2025-12-17T21:13:14.029158806Z [inf]  [2025-12-17 21:13:13] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:14.029165794Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+2025-12-17T21:13:14.029173860Z [inf]  [2025-12-17 21:13:13] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:14.029178981Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:14.029184628Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:14.029190666Z [err]  
+2025-12-17T21:13:14.029196570Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:14.029202247Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:14.029209073Z [err]  
+2025-12-17T21:13:14.029214413Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:14.029219590Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:14.029225337Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:14.029232288Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:14.029239993Z [inf]  [2025-12-17 21:13:13] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:14.029246323Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:14.029471901Z [inf]  
+2025-12-17T21:13:14.029478523Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:14.029483842Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:14.029489153Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:14.029493964Z [inf]  
+2025-12-17T21:13:14.029499049Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:14.029504399Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:14.029510591Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:14.029517600Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:14.029523632Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:14.029529339Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:14.029535993Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:14.029542180Z [inf]  [2025-12-17 21:13:13] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:14.030315811Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:14.030325680Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:14.030331545Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:14.030339365Z [inf]  
+2025-12-17T21:13:14.030346380Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:14.030354078Z [inf]  [2025-12-17 21:13:13] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:14.030360753Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:14.030367492Z [inf]  
+2025-12-17T21:13:14.030374409Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:14.030381285Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:14.030388562Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:14.032698850Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:14.032705279Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:14.032714055Z [inf]  [2025-12-17 21:13:13] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:14.032719785Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:14.032726452Z [inf]      at startServer (/app/dist/api/server.js:24:19)
+2025-12-17T21:13:15.991128238Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
+2025-12-17T21:13:15.991137696Z [inf]  [2025-12-17 21:13:15] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:15.991144383Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+2025-12-17T21:13:16.127218021Z [inf]  [2025-12-17 21:13:16] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:16.462075444Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:16.462085088Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:16.462090966Z [err]  
+2025-12-17T21:13:16.462097525Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:16.462103844Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:16.462108854Z [err]  
+2025-12-17T21:13:16.462114214Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:16.462119169Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:16.930895109Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:16.930907193Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:16.930915805Z [inf]  
+2025-12-17T21:13:16.930923710Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:16.930931076Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:16.930938269Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:16.931002937Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:16.931010853Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:16.931029994Z [inf]  [2025-12-17 21:13:16] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:16.931041584Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:16.931050700Z [inf]  
+2025-12-17T21:13:16.931058588Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:16.933701546Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:16.933711277Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:16.933720544Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:16.933729236Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:16.933737933Z [inf]  [2025-12-17 21:13:16] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:16.933747056Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:16.933754815Z [inf]  
+2025-12-17T21:13:16.933764169Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:16.933774513Z [inf]  [2025-12-17 21:13:16] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:16.933780499Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:16.933786302Z [inf]  
+2025-12-17T21:13:16.933791405Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:16.934929095Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:16.934933826Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:16.934939857Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:16.934945177Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:16.934951427Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:16.934957548Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:16.934963238Z [inf]  [2025-12-17 21:13:16] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:16.934968922Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:16.934974208Z [inf]      at startServer (/app/dist/api/server.js:24:19)
+2025-12-17T21:13:18.328619993Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: ⚙️  write to custom object with { processEnv: myObject }
+2025-12-17T21:13:18.328627778Z [inf]  [2025-12-17 21:13:18] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:18.328634705Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+2025-12-17T21:13:18.485500537Z [inf]  [2025-12-17 21:13:18] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:19.039722101Z [inf]  [2025-12-17 21:13:18] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:19.039732385Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:19.039738567Z [inf]  
+2025-12-17T21:13:19.039744789Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:19.039749512Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:19.039839682Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:19.039845490Z [err]  
+2025-12-17T21:13:19.039851285Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:19.039857931Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:19.039861337Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:19.039866057Z [err]  
+2025-12-17T21:13:19.039872425Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:19.039878917Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:19.039885495Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:19.039892336Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:19.043243227Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:19.043247677Z [inf]  
+2025-12-17T21:13:19.043252539Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:19.043256868Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:19.043261177Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:19.043265265Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:19.043269486Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:19.043273568Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:19.043278040Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:19.043287307Z [inf]  [2025-12-17 21:13:18] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:19.043291589Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:19.043295609Z [inf]  
+2025-12-17T21:13:19.043300191Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:19.043902982Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:19.043916430Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:19.043923648Z [inf]  [2025-12-17 21:13:18] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:19.043931463Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:19.043963794Z [inf]  [2025-12-17 21:13:18] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:19.043968648Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:19.043973614Z [inf]  
+2025-12-17T21:13:19.043978733Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:19.043985216Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:19.043989997Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:19.043997492Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:19.044005141Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:19.045940981Z [inf]      at startServer (/app/dist/api/server.js:24:19)
+2025-12-17T21:13:20.508467245Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+2025-12-17T21:13:20.508477440Z [inf]  [2025-12-17 21:13:20] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:20.508488848Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
+2025-12-17T21:13:20.967911758Z [inf]  [2025-12-17 21:13:20] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:20.999990573Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:20.999998562Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:21.000004506Z [err]  
+2025-12-17T21:13:21.000010893Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:21.000018123Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:21.000027238Z [err]  
+2025-12-17T21:13:21.000032281Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:21.000041443Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:21.007947268Z [inf]  [2025-12-17 21:13:21] [32minfo[39m: [32mRedis connected successfully[39m
+2025-12-17T21:13:21.026230169Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:21.026240388Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:21.028291322Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:21.028303479Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:21.028308737Z [inf]  [2025-12-17 21:13:21] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:21.028315735Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:21.028321430Z [inf]  
+2025-12-17T21:13:21.028327007Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:21.028332096Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:21.028337453Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:21.028342947Z [inf]  
+2025-12-17T21:13:21.028347567Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:21.028351835Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:21.031768642Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:21.031776114Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:21.031782808Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:21.031786632Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:21.031789312Z [inf]  [2025-12-17 21:13:21] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:21.031795194Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:21.031799593Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:21.031801430Z [inf]  
+2025-12-17T21:13:21.031807357Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:21.031812987Z [inf]  [2025-12-17 21:13:21] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:21.031817964Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:21.031823102Z [inf]  
+2025-12-17T21:13:21.034358788Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:21.034368494Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:21.034375517Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:21.034382182Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:21.034389643Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:21.034397380Z [inf]  [2025-12-17 21:13:21] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:21.034405762Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:21.034411858Z [inf]      at startServer (/app/dist/api/server.js:24:19)
+2025-12-17T21:13:23.144255635Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: ⚙️  suppress all logs with { quiet: true }
+2025-12-17T21:13:23.144272139Z [inf]  [2025-12-17 21:13:22] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:23.144281236Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+2025-12-17T21:13:23.144290780Z [inf]  [2025-12-17 21:13:22] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:23.147586279Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:23.147591235Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:23.147596616Z [err]  
+2025-12-17T21:13:23.147602178Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:23.147607168Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:23.147612609Z [err]  
+2025-12-17T21:13:23.147617139Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:23.147621537Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:23.166454165Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:23.166488062Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:23.166495492Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:23.166502685Z [inf]  [2025-12-17 21:13:23] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:23.166511629Z [inf]  
+2025-12-17T21:13:23.166514420Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:23.166523726Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:23.166525476Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:23.166526479Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:23.166530747Z [inf]  
+2025-12-17T21:13:23.166535131Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:23.166542364Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:23.169182311Z [inf]  
+2025-12-17T21:13:23.169191098Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:23.169203284Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:23.169209239Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:23.169211904Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:23.169217124Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:23.169222786Z [inf]  [2025-12-17 21:13:23] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:23.169227953Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:23.169233757Z [inf]  
+2025-12-17T21:13:23.169239123Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:23.169244082Z [inf]  [2025-12-17 21:13:23] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:23.169250207Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:23.172733239Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:23.172743536Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:23.172862274Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:23.172869515Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:23.172877324Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:23.172885005Z [inf]  [2025-12-17 21:13:23] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:23.172891543Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:23.172899384Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:23.172955288Z [inf]      at startServer (/app/dist/api/server.js:24:19)
+2025-12-17T21:13:25.145978535Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+2025-12-17T21:13:25.145986094Z [inf]  [2025-12-17 21:13:24] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:25.145992614Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+2025-12-17T21:13:25.145998521Z [inf]  [2025-12-17 21:13:24] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:25.156666167Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:25.156674564Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:25.156681173Z [err]  
+2025-12-17T21:13:25.156687453Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:25.156693790Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:25.156699757Z [err]  
+2025-12-17T21:13:25.156705354Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:25.156710764Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:25.163369673Z [inf]  [2025-12-17 21:13:25] [32minfo[39m: [32mRedis connected successfully[39m
+2025-12-17T21:13:25.175921631Z [inf]  [2025-12-17 21:13:25] [32minfo[39m: [32mRedis client is ready[39m
+2025-12-17T21:13:25.186424645Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:25.186433034Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:25.189607262Z [inf]  [2025-12-17 21:13:25] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:25.189614154Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:25.189620696Z [inf]  
+2025-12-17T21:13:25.189627019Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:25.189632962Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:25.189641801Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:25.189665519Z [inf]  
+2025-12-17T21:13:25.189673174Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:25.189678889Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:25.189687040Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:25.189693039Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:25.192907985Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:25.192917189Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:25.192924975Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:25.192930853Z [inf]  [2025-12-17 21:13:25] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:25.192943695Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:25.192950491Z [inf]  
+2025-12-17T21:13:25.192958798Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:25.192965185Z [inf]  [2025-12-17 21:13:25] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:25.192970863Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:25.192977394Z [inf]  
+2025-12-17T21:13:25.192983837Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:25.192989938Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:25.195198384Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:25.195206102Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:25.195218071Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:25.195225397Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:25.195232540Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:25.195238523Z [inf]  [2025-12-17 21:13:25] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:25.195245705Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:25.195252810Z [inf]      at startServer (/app/dist/api/server.js:24:19)
+2025-12-17T21:13:26.450774246Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+2025-12-17T21:13:26.452380979Z [inf]  [2025-12-17 21:13:26] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:26.454650041Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+2025-12-17T21:13:26.971638294Z [inf]  [2025-12-17 21:13:26] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:26.987264663Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:26.987281124Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:26.987290607Z [err]  
+2025-12-17T21:13:26.987300574Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:26.987310149Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:26.987437466Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:26.987446644Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:26.987454670Z [err]  
+2025-12-17T21:13:27.005045759Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:27.005054768Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:27.007692519Z [inf]  
+2025-12-17T21:13:27.007694815Z [inf]  [2025-12-17 21:13:27] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:27.007702752Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:27.007710529Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:27.007713075Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:27.007717591Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:27.007723390Z [inf]  
+2025-12-17T21:13:27.007724293Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:27.007733084Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:27.007739317Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:27.007746897Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:27.010105442Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:27.010118999Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:27.010126781Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:27.010133900Z [inf]  [2025-12-17 21:13:27] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:27.010142073Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:27.010150201Z [inf]  
+2025-12-17T21:13:27.010158405Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:27.010168428Z [inf]  [2025-12-17 21:13:27] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:27.010178446Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:27.010186266Z [inf]  
+2025-12-17T21:13:27.010194197Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:27.010202596Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:27.013003834Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:27.013014841Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:27.013022712Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:27.013029872Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:27.013039199Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:27.013045966Z [inf]  [2025-12-17 21:13:27] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:27.013052830Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:27.013060281Z [inf]      at startServer (/app/dist/api/server.js:24:19)
+2025-12-17T21:13:28.492113343Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: ⚙️  override existing env vars with { override: true }
+2025-12-17T21:13:28.494812503Z [inf]  [2025-12-17 21:13:28] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:28.494821630Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+2025-12-17T21:13:29.068110671Z [inf]  [2025-12-17 21:13:28] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:29.090241709Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:29.090253092Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:29.090260633Z [err]  
+2025-12-17T21:13:29.090267644Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:29.090273684Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:29.090365547Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:29.090371059Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:29.090377114Z [err]  
+2025-12-17T21:13:29.101766280Z [inf]  [2025-12-17 21:13:29] [32minfo[39m: [32mRedis connected successfully[39m
+2025-12-17T21:13:29.122105039Z [inf]  [2025-12-17 21:13:29] [32minfo[39m: [32mRedis client is ready[39m
+2025-12-17T21:13:29.130011313Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:29.130024710Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:29.130033289Z [inf]  [2025-12-17 21:13:29] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:29.130042088Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:29.130049582Z [inf]  
+2025-12-17T21:13:29.130057042Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:29.130064724Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:29.130072866Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:29.130081416Z [inf]  
+2025-12-17T21:13:29.130092825Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:29.130109732Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:29.130118724Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:29.133044148Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:29.133055417Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:29.133061796Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:29.133066897Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:29.133071432Z [inf]  [2025-12-17 21:13:29] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:29.133077117Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:29.133082794Z [inf]  
+2025-12-17T21:13:29.133088723Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:29.133093441Z [inf]  [2025-12-17 21:13:29] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:29.133099031Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:29.133104851Z [inf]  
+2025-12-17T21:13:29.133109821Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:29.135421015Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:29.135434204Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:29.135441574Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:29.135448277Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:29.135455198Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:29.135462432Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:29.135469148Z [inf]  [2025-12-17 21:13:29] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:29.135474974Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:29.135481635Z [inf]      at startServer (/app/dist/api/server.js:24:19)
+2025-12-17T21:13:31.135260722Z [inf]  [2025-12-17 21:13:30] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:31.135270283Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+2025-12-17T21:13:31.135277004Z [inf]  [2025-12-17 21:13:30] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:31.135292645Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+2025-12-17T21:13:31.278811367Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:31.278822562Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:31.278830466Z [err]  
+2025-12-17T21:13:31.278836752Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:31.278847498Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:31.278855916Z [err]  
+2025-12-17T21:13:31.278861803Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:31.278868415Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:31.294848731Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:31.294856202Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:31.298051775Z [inf]  [2025-12-17 21:13:31] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:31.298063156Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:31.298071677Z [inf]  
+2025-12-17T21:13:31.298078073Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:31.298088494Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:31.298095661Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:31.298102491Z [inf]  
+2025-12-17T21:13:31.298109418Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:31.298116537Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:31.298126079Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:31.298133058Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:31.300955595Z [inf]  
+2025-12-17T21:13:31.300957705Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:31.300967816Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:31.300968090Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:31.300975391Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:31.300978519Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:31.300985006Z [inf]  [2025-12-17 21:13:31] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:31.300998698Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:31.301004648Z [inf]  
+2025-12-17T21:13:31.301010249Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:31.301016313Z [inf]  [2025-12-17 21:13:31] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:31.301039751Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:31.303392576Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:31.303400288Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:31.303408009Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:31.303424868Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:31.303431393Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:31.303438115Z [inf]  [2025-12-17 21:13:31] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:31.303444250Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:31.303449818Z [inf]      at startServer (/app/dist/api/server.js:24:19)
+2025-12-17T21:13:33.202425234Z [inf]  [2025-12-17 21:13:33] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:33.202468033Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+2025-12-17T21:13:33.202475975Z [inf]  [2025-12-17 21:13:33] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:33.202481999Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+2025-12-17T21:13:33.538975038Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:33.538982568Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:33.538991944Z [err]  
+2025-12-17T21:13:33.538998868Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:33.539005995Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:33.539014304Z [err]  
+2025-12-17T21:13:33.539024156Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:33.539030868Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:33.554094772Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:33.554102175Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:33.561539229Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:33.561542375Z [inf]  [2025-12-17 21:13:33] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:33.561553128Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:33.561553529Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:33.561560739Z [inf]  
+2025-12-17T21:13:33.561566434Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:33.561572780Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:33.561581181Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:33.561587777Z [inf]  
+2025-12-17T21:13:33.561595832Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:33.561601867Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:33.563467646Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:33.563478917Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:33.563487347Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:33.563494093Z [inf]  [2025-12-17 21:13:33] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:33.563500595Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:33.563508796Z [inf]  
+2025-12-17T21:13:33.563515339Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:33.563522321Z [inf]  [2025-12-17 21:13:33] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:33.563528996Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:33.563535759Z [inf]  
+2025-12-17T21:13:33.563549146Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:33.563555895Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:33.565236425Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:33.565244544Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:33.565250272Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:33.565255447Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:33.565260787Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:33.565266377Z [inf]  [2025-12-17 21:13:33] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:33.565272191Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:33.565278082Z [inf]      at startServer (/app/dist/api/server.js:24:19)
+2025-12-17T21:13:35.284765684Z [inf]  [dotenv@17.2.3] injecting env (0) from .env.production -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+2025-12-17T21:13:35.293051219Z [inf]  [2025-12-17 21:13:35] [33mwarn[39m: [33mSpecific env file not found (/app/.env.production). Falling back to generic .env.[39m
+2025-12-17T21:13:35.293065368Z [inf]  [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+2025-12-17T21:13:35.472248666Z [inf]  [2025-12-17 21:13:35] [32minfo[39m: [32m✅ Using Resend Email Service for production[39m
+2025-12-17T21:13:36.269275704Z [err]  
+2025-12-17T21:13:36.269281098Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-17T21:13:36.269286588Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-17T21:13:36.269297606Z [err]  prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+2025-12-17T21:13:36.269302436Z [err]  Please manually install OpenSSL and try installing Prisma again.
+2025-12-17T21:13:36.269307269Z [inf]  [2025-12-17 21:13:35] [31merror[39m: [31mDatabase connection check failed: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:36.269311818Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:36.269316782Z [inf]  
+2025-12-17T21:13:36.269321060Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-17T21:13:36.269322402Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:36.269328040Z [inf]  PrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+2025-12-17T21:13:36.269329779Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-17T21:13:36.269337946Z [err]  
+2025-12-17T21:13:36.269344812Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-17T21:13:36.269351122Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-17T21:13:36.274532305Z [inf]  The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+2025-12-17T21:13:36.274541412Z [inf]  
+2025-12-17T21:13:36.274548002Z [inf]  Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+2025-12-17T21:13:36.274554406Z [inf]      at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)
+2025-12-17T21:13:36.274560878Z [inf]      at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)
+2025-12-17T21:13:36.274566937Z [inf]      at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)
+2025-12-17T21:13:36.274574822Z [inf]      at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)
+2025-12-17T21:13:36.274580822Z [inf]      at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)
+2025-12-17T21:13:36.274587428Z [inf]      at async startServer (/app/dist/api/server.js:22:29)
+2025-12-17T21:13:36.274593940Z [inf]  [2025-12-17 21:13:35] [31merror[39m: [31mUnable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:36.274599812Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:36.274605242Z [inf]  
+2025-12-17T21:13:36.274611554Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:36.276088581Z [inf]  [31m    at async checkDatabaseConnection (/app/dist/shared/database/index.js:53:9)[39m
+2025-12-17T21:13:36.276098792Z [inf]  [31m    at async startServer (/app/dist/api/server.js:22:29)[39m
+2025-12-17T21:13:36.276106603Z [inf]  [2025-12-17 21:13:35] [31merror[39m: [31m❌ Failed to start server: Could not establish database connection[39m
+2025-12-17T21:13:36.276113372Z [inf]  Error: Could not establish database connection
+2025-12-17T21:13:36.276404852Z [inf]  [2025-12-17 21:13:35] [31merror[39m: [31mPrismaClientInitializationError: Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).[39m
+2025-12-17T21:13:36.276413326Z [inf]  [31mThe Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements[39m
+2025-12-17T21:13:36.276420476Z [inf]  
+2025-12-17T21:13:36.276425059Z [inf]  [31mDetails: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)[39m
+2025-12-17T21:13:36.276429945Z [inf]  [31m    at Object.loadLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:10153)[39m
+2025-12-17T21:13:36.276435320Z [inf]  [31m    at async Pt.loadEngine (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:448)[39m
+2025-12-17T21:13:36.276440153Z [inf]  [31m    at async Pt.instantiateLibrary (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:112:12593)[39m
+2025-12-17T21:13:36.276445079Z [inf]  [31m    at async Pt.start (/app/node_modules/.pnpm/@prisma+client@5.10.0_prisma@5.10.0/node_modules/@prisma/client/runtime/library.js:113:1981)[39m
+2025-12-17T21:13:36.278078536Z [inf]      at startServer (/app/dist/api/server.js:24:19)
