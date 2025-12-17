@@ -135,6 +135,7 @@ export const validateEnv = (): void => {
         'SMTP_USER',
         'SMTP_PASSWORD',
         'FROM_EMAIL',
+        'SYSTEM_USER_ID',
     ];
 
     if (process.env.NODE_ENV === 'production') {

@@ -23,6 +23,7 @@ interface TransactionOptions {
     description?: string; // e.g. "Transfer from John"
     type?: TransactionType; // DEPOSIT, WITHDRAWAL, TRANSFER, etc.
     metadata?: any; // Store webhook payload or external details
+    counterpartyId?: string; // Optional: ID of the other party
 }
 
 export class WalletService {
@@ -136,6 +137,15 @@ export class WalletService {
                     createdAt: true,
                     metadata: true,
                     description: true,
+                    counterparty: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            avatarUrl: true,
+                        },
+                    },
                 },
             }),
             prisma.transaction.count({ where }),
@@ -218,6 +228,7 @@ export class WalletService {
                     reference: txReference, // <--- Saves the Bank's Reference!
                     description,
                     metadata,
+                    counterpartyId: options.counterpartyId,
                 },
             });
         });
@@ -279,6 +290,7 @@ export class WalletService {
                     reference: txReference,
                     description,
                     metadata,
+                    counterpartyId: options.counterpartyId,
                 },
             });
         });

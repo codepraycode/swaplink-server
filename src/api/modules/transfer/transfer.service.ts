@@ -152,6 +152,7 @@ export class TransferService {
                     destinationBankCode: payload.bankCode,
                     destinationName: destination.accountName,
                     idempotencyKey,
+                    counterpartyId: receiverWallet.userId,
                 },
             });
 
@@ -173,6 +174,7 @@ export class TransferService {
                     reference: `DEP-${randomUUID()}`,
                     description: narration || `Received from ${senderWallet.userId}`, // Ideally user name
                     metadata: { senderId: senderWallet.userId },
+                    counterpartyId: senderWallet.userId,
                 },
             });
 
@@ -274,6 +276,7 @@ export class TransferService {
                     destinationName: destination.accountName,
                     fee,
                     idempotencyKey,
+                    // counterpartyId: null, // External transfer has no internal counterparty user
                 },
             });
 
