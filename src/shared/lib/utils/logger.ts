@@ -9,7 +9,7 @@ import { SENSITIVE_KEYS } from './sensitive-data';
 const LOG_DIR = path.join(process.cwd(), 'logs');
 const IS_PROD = process.env.NODE_ENV === 'production';
 const ENABLE_FILE_LOGGING = IS_PROD || process.env.ENABLE_FILE_LOGGING === 'true';
-// const LOG_LEVEL = process.env.LOG_LEVEL || (IS_PROD ? 'info' : 'debug');
+const LOG_LEVEL = process.env.LOG_LEVEL || (IS_PROD ? 'info' : 'debug');
 
 // --- Log Levels & Colors ---
 
@@ -125,7 +125,7 @@ const jsonFileFormat = winston.format.combine(
 const transports: winston.transport[] = [
     new winston.transports.Console({
         format: consoleFormat,
-        // level: LOG_LEVEL,
+        level: LOG_LEVEL,
     }),
 ];
 
@@ -158,7 +158,7 @@ if (ENABLE_FILE_LOGGING) {
 // --- Logger Instance ---
 
 const logger = winston.createLogger({
-    // level: LOG_LEVEL,
+    level: LOG_LEVEL,
     levels: logLevels.levels,
     transports,
     exitOnError: false,
