@@ -85,7 +85,7 @@ class AuthService {
         // 4. Add to Onboarding Queue (Background Wallet Setup)
         onboardingQueue
             .add('setup-wallet', { userId: user.id })
-            .catch(err => logger.error('Failed to add onboarding job', err));
+            .catch((err: any) => logger.error('Failed to add onboarding job', err));
 
         // 5. Generate Tokens via Utils
         const tokens = this.generateTokens(user);
@@ -124,7 +124,7 @@ class AuthService {
                 where: { id: user.id },
                 data: { lastLogin: new Date() },
             })
-            .catch(err => logger.error('Failed to update last login', err));
+            .catch((err: any) => logger.error('Failed to update last login', err));
 
         // Generate Tokens via Utils
         const tokens = this.generateTokens(user);

@@ -240,60 +240,139 @@ A comprehensive Postman Collection is available for testing all endpoints.
 
 ## 🚀 Deployment
 
-### Deploy to Render (Recommended)
+SwapLink supports deployment to multiple platforms. Choose the one that best fits your needs:
 
-SwapLink is optimized for deployment on Render with full Docker support.
+### Deploy to Railway (Recommended for Staging) 🚂
+
+Railway offers the simplest setup with managed PostgreSQL and Redis, making it perfect for staging environments.
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
+
+**Why Railway?**
+
+-   ✅ **Managed Redis included** (no external provider needed)
+-   ✅ **Lower cost** (~$15/month vs ~$28/month on Render)
+-   ✅ **Faster setup** (15 minutes)
+-   ✅ **Modern developer experience**
+-   ✅ **Usage-based pricing** ($5 free credit/month)
+
+**Quick Deploy:**
+
+1. Sign up at [railway.app](https://railway.app)
+2. Connect your GitHub repository
+3. Add PostgreSQL and Redis services
+4. Configure environment variables
+5. Deploy!
+
+**📚 Railway Guides:**
+
+-   **[Railway Deployment Guide](./RAILWAY_DEPLOYMENT.md)** - Complete Railway setup
+-   **[Railway Checklist](./RAILWAY_CHECKLIST.md)** - Step-by-step deployment checklist
+-   **[Environment Variables Template](./ENV_RAILWAY.md)** - Railway-specific env vars
+-   **[Setup Script](./scripts/railway-setup.sh)** - Generate secrets and prepare deployment
+
+### Deploy to Render 🎨
+
+Render provides a mature platform with infrastructure-as-code support via blueprints.
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)
+
+**Why Render?**
+
+-   ✅ **Infrastructure-as-code** with `render.yaml`
+-   ✅ **Auto-scaling** available
+-   ✅ **Comprehensive monitoring**
+-   ✅ **Mature platform**
 
 **Quick Deploy:**
 
 1. Push your code to GitHub
 2. Connect your repository to Render
 3. Render will automatically detect `render.yaml` and deploy all services
-4. Configure environment variables (see guides below)
+4. Configure environment variables
 
-**📚 Deployment Guides:**
+**📚 Render Guides:**
 
--   **[Staging Deployment Guide](./STAGING_DEPLOYMENT.md)** - Deploy without Globus credentials (recommended for testing)
+-   **[Staging Deployment Guide](./STAGING_DEPLOYMENT.md)** - Deploy without Globus credentials
 -   **[Render Deployment Guide](./RENDER_DEPLOYMENT.md)** - Complete production deployment
--   **[Environment Variables Reference](./ENV_VARIABLES.md)** - All environment variables explained
 -   **[Health Check Script](./scripts/health-check.sh)** - Verify your deployment
 
-**What gets deployed:**
+### Platform Comparison 📊
 
--   ✅ API Server (Web Service)
--   ✅ Background Worker (Worker Service)
--   ✅ PostgreSQL Database
--   ✅ Redis Cache
--   ✅ Resend Email Service Integration
+Not sure which to choose? Check out our **[Platform Comparison Guide](./PLATFORM_COMPARISON.md)** for a detailed analysis of Railway vs Render.
 
-**Deployment Modes:**
+**Quick Comparison:**
+
+| Feature                    | Railway                 | Render                      |
+| -------------------------- | ----------------------- | --------------------------- |
+| **Cost (Staging)**         | ~$15/month              | ~$28/month                  |
+| **Setup Time**             | 15 minutes              | 30 minutes                  |
+| **Managed Redis**          | ✅ Included             | ❌ External provider needed |
+| **Infrastructure-as-Code** | Environment variables   | `render.yaml` blueprint     |
+| **Best For**               | Staging, MVPs, Startups | Production, Enterprise      |
+
+### What Gets Deployed
+
+Both platforms deploy the complete SwapLink infrastructure:
+
+-   ✅ **API Server** (Web Service)
+-   ✅ **Background Worker** (Worker Service)
+-   ✅ **PostgreSQL Database**
+-   ✅ **Redis Cache**
+-   ✅ **Resend Email Service Integration**
+
+### Deployment Modes
 
 1. **Staging Mode** (No Globus credentials required):
 
     - Uses Resend for emails
     - Mocks payment processing
     - Perfect for testing
-    - See [STAGING_DEPLOYMENT.md](./STAGING_DEPLOYMENT.md)
+    - **Recommended**: Railway
 
 2. **Production Mode** (Requires all credentials):
     - Full payment processing enabled
-    - See [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md)
+    - Choose based on your needs
+    - See comparison guide
 
-**Required Setup (Staging):**
+### Required Setup (Staging)
 
 1. **Resend Account**: Sign up at [resend.com](https://resend.com) for email service
-2. **Domain Verification**: Verify your domain in Resend dashboard
-3. **Resend API Key**: Get from Resend dashboard
+2. **Resend API Key**: Get from Resend dashboard
+3. **Storage**: AWS S3 or Cloudflare R2 bucket
 4. **Database Migration**: Run `pnpm db:deploy` after first deployment
 
-**Additional for Production:**
+### Additional for Production
 
 5. **Globus Bank Credentials**: Payment processing API keys
-6. **AWS/R2 Credentials**: File storage configuration
+6. **Domain Configuration**: Custom domain setup
+7. **Monitoring**: Error tracking and logging
 
-For detailed instructions, see [STAGING_DEPLOYMENT.md](./STAGING_DEPLOYMENT.md) or [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md).
+### Quick Start
+
+**For Railway (Recommended for Staging):**
+
+```bash
+# Generate secrets and prepare deployment
+./scripts/railway-setup.sh
+
+# Follow the Railway Deployment Guide
+# See: RAILWAY_DEPLOYMENT.md
+```
+
+**For Render:**
+
+```bash
+# Review the render.yaml configuration
+# Follow the Render Deployment Guide
+# See: RENDER_DEPLOYMENT.md
+```
+
+### Documentation
+
+-   **[Environment Variables Reference](./ENV_VARIABLES.md)** - All environment variables explained
+-   **[Platform Comparison](./PLATFORM_COMPARISON.md)** - Railway vs Render detailed comparison
+-   **[Deployment Checklist](./DEPLOYMENT_CHECKLIST.md)** - General deployment checklist
 
 ---
 

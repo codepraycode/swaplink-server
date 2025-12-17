@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/home/codepraycode/projects/open-source/swaplink/swaplink-server/logs/.36e727508e424db30b5e3b896d46c4731f83f6b5-audit.json",
+    "files": [
+        {
+            "date": 1765986268135,
+            "name": "/home/codepraycode/projects/open-source/swaplink/swaplink-server/logs/error-2025-12-17.log",
+            "hash": "d95126ccc3d301f0697ff5b6b2eeb4c9f7ba00c5f3152eb98d5b61a0ae25f3f8"
+        }
+    ],
+    "hashType": "sha256"
+}

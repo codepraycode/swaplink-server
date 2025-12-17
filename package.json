@@ -9,7 +9,7 @@
         "dev:all": "concurrently -n \"API,WORKER\" -c \"blue,magenta\" \"pnpm run dev\" \"pnpm run worker\"",
         "dev:prepare": "pnpm run docker:dev:up && sleep 5 && pnpm run db:migrate",
         "dev:start": "pnpm run dev:prepare && pnpm run dev:all",
-        "build": "tsc",
+        "build": "pnpm run db:generate && tsc",
         "build:check": "tsc --noEmit",
         "start": "cross-env NODE_ENV=production node dist/api/server.js",
         "start:worker": "cross-env NODE_ENV=production node dist/worker/index.js",

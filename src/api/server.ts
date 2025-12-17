@@ -27,7 +27,7 @@ const startServer = async () => {
         // 2. Start Listening
         server = app.listen(PORT, () => {
             logger.info(`🚀 Server running in ${envConfig.NODE_ENV} mode on port ${PORT}`);
-            logger.debug(`🔗 Health: ${SERVER_URL}:${PORT}/api/v1/health`);
+            logger.debug(`🔗 Health: ${SERVER_URL}/api/v1/health`);
 
             // 3. Initialize Socket.io
             socketService.initialize(server);

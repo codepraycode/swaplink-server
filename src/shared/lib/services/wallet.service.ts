@@ -193,7 +193,7 @@ export class WalletService {
             reference ||
             `TX-CR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
 
-        const result = await prisma.$transaction(async tx => {
+        const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // 2. Idempotency Check (DB Level Safety)
             // If an external reference is passed, ensure it doesn't exist.
             if (reference) {
@@ -256,7 +256,7 @@ export class WalletService {
             reference ||
             `TX-DR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
 
-        const result = await prisma.$transaction(async tx => {
+        const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             const wallet = await tx.wallet.findUnique({ where: { userId } });
             if (!wallet) throw new NotFoundError('Wallet not found');
 

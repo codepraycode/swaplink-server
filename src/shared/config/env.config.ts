@@ -135,10 +135,10 @@ export const validateEnv = (): void => {
         'JWT_REFRESH_EXPIRATION',
 
         'CORS_URLS',
-        'SMTP_HOST',
-        'SMTP_PORT',
-        'SMTP_USER',
-        'SMTP_PASSWORD',
+        // 'SMTP_HOST',
+        // 'SMTP_PORT',
+        // 'SMTP_USER',
+        // 'SMTP_PASSWORD',
         'FROM_EMAIL',
         'SYSTEM_USER_ID',
     ];
