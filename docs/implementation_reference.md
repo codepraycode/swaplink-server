@@ -81,6 +81,10 @@ Notifications are triggered automatically during transfer events.
     -   **Title**: "Credit Alert"
     -   **Body**: "You received ₦5,000 from John Doe"
     -   **Data**: `{ "type": "DEPOSIT", "transactionId": "...", "sender": { "name": "John Doe", "id": "..." } }`
+-   **Sender Notification**:
+    -   **Title**: "Debit Alert"
+    -   **Body**: "You sent ₦5,000 to Jane Doe"
+    -   **Data**: `{ "type": "DEBIT", "transactionId": "...", "sender": { "name": "John Doe", "id": "..." } }`
 -   **Socket Event**: `WALLET_UPDATED` event emitted to receiver includes `sender` info.
 
 ### External Transfers

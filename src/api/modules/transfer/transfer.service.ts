@@ -227,6 +227,18 @@ export class TransferService {
             }
         );
 
+        // Send Push Notification to Sender
+        await NotificationService.sendToUser(
+            senderWallet.userId,
+            'Debit Alert',
+            `You sent ₦${amount.toLocaleString()} to ${destination.accountName}`,
+            {
+                transactionId: result.transactionId,
+                type: 'DEBIT',
+                sender: { name: senderName, id: senderWallet.userId },
+            }
+        );
+
         return result;
     }
 
