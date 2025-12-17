@@ -136,6 +136,7 @@ export const envConfig: EnvConfig = {
  * Throws an error if any are missing.
  */
 export const validateEnv = (): void => {
+    console.log('🔄 [DEBUG] validateEnv() called');
     const requiredKeys: (keyof EnvConfig)[] = [
         'DATABASE_URL',
         'JWT_SECRET',
@@ -170,12 +171,14 @@ export const validateEnv = (): void => {
     const missingKeys = requiredKeys.filter(key => !process.env[key]);
 
     if (missingKeys.length > 0) {
+        console.error('❌ [DEBUG] Missing keys:', missingKeys);
         throw new Error(
             `Missing required environment variables: ${missingKeys.join(
                 ', '
             )}. Please check your .env file.`
         );
     }
+    console.log('✅ [DEBUG] Environment validation passed');
 };
 
 // Validate environment variables early
