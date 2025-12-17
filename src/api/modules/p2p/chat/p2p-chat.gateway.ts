@@ -1,7 +1,7 @@
 import { Server } from 'socket.io';
 import { P2PChatService } from './p2p-chat.service';
 import { redisConnection } from '../../../../shared/config/redis.config';
-import { ChatType } from '../../../../shared/database';
+
 import logger from '../../../../shared/lib/utils/logger';
 
 // This should be initialized in the main server setup
@@ -34,21 +34,15 @@ export class P2PChatGateway {
 
             socket.on(
                 'send_message',
-                async (data: {
-                    orderId: string;
-                    message: string;
-                    type?: ChatType;
-                    imageUrl?: string;
-                }) => {
+                async (data: { orderId: string; message: string; imageUrl?: string }) => {
                     try {
-                        const { orderId, message, type, imageUrl } = data;
+                        const { orderId, message, imageUrl } = data;
 
                         // Save to DB
                         const chat = await P2PChatService.saveMessage(
                             userId,
                             orderId,
                             message,
-                            type,
                             imageUrl
                         );
 

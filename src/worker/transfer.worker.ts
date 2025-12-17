@@ -1,6 +1,6 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../shared/config/redis.config';
-import { prisma, TransactionStatus, TransactionType } from '../shared/database';
+import { prisma, TransactionStatus, TransactionType, NotificationType } from '../shared/database';
 import logger from '../shared/lib/utils/logger';
 import { socketService } from '../shared/lib/services/socket.service';
 import { walletService } from '../shared/lib/services/wallet.service';
@@ -73,7 +73,8 @@ const processTransfer = async (job: Job<TransferJobData>) => {
                     transactionId: transaction.id,
                     type: 'TRANSFER_SUCCESS',
                     sender: { name: 'System', id: 'SYSTEM' },
-                }
+                },
+                NotificationType.TRANSACTION
             );
         } else {
             // 3b. Handle Failure (Auto-Reversal)
@@ -136,7 +137,8 @@ const processTransfer = async (job: Job<TransferJobData>) => {
                             transactionId: transaction.id,
                             type: 'TRANSFER_FAILED',
                             sender: { name: 'System', id: 'SYSTEM' },
-                        }
+                        },
+                        NotificationType.TRANSACTION
                     );
                 });
 

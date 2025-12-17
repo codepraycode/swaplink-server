@@ -60,6 +60,7 @@ model User {
   // Admin
   role             UserRole          @default(USER)
   adminLogs        AdminLog[]
+  notifications    Notification[]
 
   @@map("users")
 }
@@ -338,12 +339,32 @@ model P2PChat {
   senderId  String
   message   String?
   imageUrl  String?
-  type      ChatType @default(TEXT)
-  createdAt DateTime @default(now())
+  system      Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
   order     P2POrder @relation(fields: [orderId], references: [id])
   sender    User     @relation(fields: [senderId], references: [id])
   @@map("p2p_chats")
+}
+
+// ==========================================
+// NOTIFICATIONS
+// ==========================================
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  title     String
+  body      String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  data      Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }
 
 // ==========================================
@@ -424,4 +445,10 @@ enum ChatType {
   TEXT
   IMAGE
   SYSTEM
+}
+
+enum NotificationType {
+  TRANSACTION
+  SYSTEM
+  PROMOTION
 }

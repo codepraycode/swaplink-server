@@ -6,6 +6,7 @@ import p2pRoutes from './p2p/p2p.routes';
 import adminRoutes from './admin/admin.routes';
 import systemRoutes from './system/system.routes';
 import userRoutes from './user/user.routes';
+import notificationRoutes from '../routes/notification.route';
 
 const router: Router = Router();
 
@@ -25,5 +26,6 @@ router.use('/p2p', p2pRoutes);
 router.use('/admin', adminRoutes);
 router.use('/system', systemRoutes);
 router.use('/users', userRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;

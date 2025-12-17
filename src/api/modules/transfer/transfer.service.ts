@@ -5,7 +5,11 @@ import { pinService } from '../../../shared/lib/services/pin.service';
 import { nameEnquiryService } from '../../../shared/lib/services/name-enquiry.service';
 import { beneficiaryService } from '../../../shared/lib/services/beneficiary.service';
 import { BadRequestError, NotFoundError } from '../../../shared/lib/utils/api-error';
-import { TransactionStatus, TransactionType } from '../../../shared/database/generated/prisma';
+import {
+    TransactionStatus,
+    TransactionType,
+    NotificationType,
+} from '../../../shared/database/generated/prisma';
 import { randomUUID } from 'crypto';
 import logger from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
@@ -226,7 +230,8 @@ export class TransferService {
                 transactionId: result.transactionId,
                 type: 'DEPOSIT',
                 sender: { name: senderName, id: senderWallet.userId },
-            }
+            },
+            NotificationType.TRANSACTION
         );
 
         // Send Push Notification to Sender
@@ -238,7 +243,8 @@ export class TransferService {
                 transactionId: result.transactionId,
                 type: 'DEBIT',
                 sender: { name: senderName, id: senderWallet.userId },
-            }
+            },
+            NotificationType.TRANSACTION
         );
 
         return result;

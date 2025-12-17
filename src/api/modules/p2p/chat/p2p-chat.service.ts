@@ -1,21 +1,14 @@
 import { prisma } from '../../../../shared/database';
-import { ChatType } from '../../../../shared/database';
 
 export class P2PChatService {
-    static async saveMessage(
-        userId: string,
-        orderId: string,
-        message: string,
-        type: ChatType = ChatType.TEXT,
-        imageUrl?: string
-    ) {
+    static async saveMessage(userId: string, orderId: string, message: string, imageUrl?: string) {
         return await prisma.p2PChat.create({
             data: {
                 orderId,
                 senderId: userId,
                 message,
                 imageUrl,
-                type,
+                system: false,
             },
             include: { sender: { select: { id: true, firstName: true, lastName: true } } },
         });
@@ -48,7 +41,7 @@ export class P2PChatService {
                 orderId,
                 senderId: order.makerId, // Attribute to Maker for now
                 message,
-                type: ChatType.SYSTEM,
+                system: true,
             },
         });
     }

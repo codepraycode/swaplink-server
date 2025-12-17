@@ -3,6 +3,8 @@ import { envConfig } from '../../../shared/config/env.config';
 import { prisma } from '../../../shared/database';
 import { walletService } from '../../../shared/lib/services/wallet.service';
 import logger from '../../../shared/lib/utils/logger';
+import { NotificationService } from '../../../services/notification.service';
+import { NotificationType } from '../../../shared/database';
 
 export class WebhookService {
     /**
@@ -92,6 +94,19 @@ export class WebhookService {
             });
 
             logger.info(`✅ Wallet credited: User ${virtualAccount.wallet.userId} +₦${amount}`);
+
+            // Send Push Notification
+            await NotificationService.sendToUser(
+                virtualAccount.wallet.userId,
+                'Deposit Received',
+                `Your wallet has been credited with ₦${amount.toLocaleString()}`,
+                {
+                    reference,
+                    amount,
+                    type: 'DEPOSIT_SUCCESS',
+                },
+                NotificationType.TRANSACTION
+            );
         } catch (error) {
             logger.error(`❌ Credit Failed for User ${virtualAccount.wallet.userId}`, error);
             throw error; // Throwing here causes 500, triggering Bank Retry (Good behavior for DB errors)
