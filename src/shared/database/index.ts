@@ -1,4 +1,5 @@
 import logger from '../lib/utils/logger';
+console.log('🔄 [DEBUG] database/index.ts loading...');
 import { envConfig } from '../config/env.config';
 import { PrismaClient } from '@prisma/client';
 

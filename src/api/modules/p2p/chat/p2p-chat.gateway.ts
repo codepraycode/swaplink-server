@@ -1,3 +1,4 @@
+console.log('🔄 [DEBUG] p2p-chat.gateway.ts loading...');
 import { Server } from 'socket.io';
 import { P2PChatService } from './p2p-chat.service';
 import { redisConnection } from '../../../../shared/config/redis.config';

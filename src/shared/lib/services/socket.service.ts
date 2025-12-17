@@ -1,4 +1,4 @@
-import { Server as HttpServer } from 'http';
+console.log('🔄 [DEBUG] socket.service.ts loading...');
 import { Server, Socket } from 'socket.io';
 import { JwtUtils } from '../utils/jwt-utils';
 import logger from '../utils/logger';
@@ -12,7 +12,7 @@ class SocketService {
     private subscriber: Redis | null = null;
     private readonly CHANNEL_NAME = 'socket-events';
 
-    initialize(httpServer: HttpServer) {
+    initialize(httpServer: any) {
         this.io = new Server(httpServer, {
             cors: {
                 origin: '*', // Allow all origins as requested
