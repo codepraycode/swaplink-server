@@ -10,6 +10,7 @@ import { randomUUID } from 'crypto';
 import logger from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
 import { walletService } from '../../../shared/lib/services/wallet.service';
+import { NotificationService } from '../../../services/notification.service';
 
 export interface TransferRequest {
     userId: string;
@@ -196,12 +197,35 @@ export class TransferService {
             message: `Debit Alert: -₦${amount.toLocaleString()}`,
         });
 
+        // Fetch Sender Info
+        const sender = await prisma.user.findUnique({
+            where: { id: senderWallet.userId },
+            select: { firstName: true, lastName: true },
+        });
+        const senderName = sender ? `${sender.firstName} ${sender.lastName}` : 'Unknown Sender';
+
         // Emit Socket Events (Receiver)
         const receiverNewBalance = await walletService.getWalletBalance(receiverWallet.userId);
         socketService.emitToUser(receiverWallet.userId, 'WALLET_UPDATED', {
             ...receiverNewBalance,
             message: `Credit Alert: +₦${amount.toLocaleString()}`,
+            sender: {
+                name: senderName,
+                id: senderWallet.userId,
+            },
         });
+
+        // Send Push Notification to Receiver
+        await NotificationService.sendToUser(
+            receiverWallet.userId,
+            'Credit Alert',
+            `You received ₦${amount.toLocaleString()} from ${senderName}`,
+            {
+                transactionId: result.transactionId,
+                type: 'DEPOSIT',
+                sender: { name: senderName, id: senderWallet.userId },
+            }
+        );
 
         return result;
     }

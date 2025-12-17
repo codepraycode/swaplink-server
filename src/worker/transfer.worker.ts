@@ -4,6 +4,7 @@ import { prisma, TransactionStatus, TransactionType } from '../shared/database';
 import logger from '../shared/lib/utils/logger';
 import { socketService } from '../shared/lib/services/socket.service';
 import { walletService } from '../shared/lib/services/wallet.service';
+import { NotificationService } from '../services/notification.service';
 
 interface TransferJobData {
     transactionId: string;
@@ -53,11 +54,27 @@ const processTransfer = async (job: Job<TransferJobData>) => {
 
             // Emit Socket Event
             // Emit Socket Event
+            // Emit Socket Event
             const newBalance = await walletService.getWalletBalance(transaction.userId);
             socketService.emitToUser(transaction.userId, 'WALLET_UPDATED', {
                 ...newBalance,
                 message: `Transfer Completed`,
+                sender: { name: 'System', id: 'SYSTEM' },
             });
+
+            // Send Push Notification
+            await NotificationService.sendToUser(
+                transaction.userId,
+                'Transfer Successful',
+                `Your transfer of ₦${Math.abs(
+                    transaction.amount
+                ).toLocaleString()} was successful.`,
+                {
+                    transactionId: transaction.id,
+                    type: 'TRANSFER_SUCCESS',
+                    sender: { name: 'System', id: 'SYSTEM' },
+                }
+            );
         } else {
             // 3b. Handle Failure (Auto-Reversal)
             await prisma
@@ -105,7 +122,22 @@ const processTransfer = async (job: Job<TransferJobData>) => {
                     socketService.emitToUser(transaction.userId, 'WALLET_UPDATED', {
                         ...newBalance,
                         message: `Transfer Failed: Reversal Processed`,
+                        sender: { name: 'System', id: 'SYSTEM' },
                     });
+
+                    // Send Push Notification
+                    await NotificationService.sendToUser(
+                        transaction.userId,
+                        'Transfer Failed',
+                        `Your transfer of ₦${Math.abs(
+                            transaction.amount
+                        ).toLocaleString()} failed and has been reversed.`,
+                        {
+                            transactionId: transaction.id,
+                            type: 'TRANSFER_FAILED',
+                            sender: { name: 'System', id: 'SYSTEM' },
+                        }
+                    );
                 });
 
             logger.info(`Transfer ${transactionId} failed. Auto-Reversal executed.`);

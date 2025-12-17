@@ -30,6 +30,7 @@ model User {
   phoneVerified    Boolean   @default(false)
   isActive         Boolean   @default(true)
   twoFactorEnabled Boolean   @default(false)
+  pushToken        String?
   
   // Metadata
   lastLogin        DateTime?

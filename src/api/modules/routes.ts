@@ -5,6 +5,7 @@ import webhookRoutes from './webhook/webhook.route';
 import p2pRoutes from './p2p/p2p.routes';
 import adminRoutes from './admin/admin.routes';
 import systemRoutes from './system/system.routes';
+import userRoutes from './user/user.routes';
 
 const router: Router = Router();
 
@@ -23,5 +24,6 @@ router.use('/transfers', transferRoutes);
 router.use('/p2p', p2pRoutes);
 router.use('/admin', adminRoutes);
 router.use('/system', systemRoutes);
+router.use('/users', userRoutes);
 
 export default router;
