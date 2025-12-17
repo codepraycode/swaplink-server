@@ -1,4 +1,4 @@
-import { prisma, UserRole, OrderStatus, AdminLog } from '../../../shared/database';
+import { prisma, UserRole, OrderStatus, AdminLog, P2POrder, User } from '../../../shared/database';
 import { BadRequestError, NotFoundError } from '../../../shared/lib/utils/api-error';
 import { socketService } from '../../../shared/lib/services/socket.service';
 import bcrypt from 'bcryptjs';
@@ -7,7 +7,10 @@ export class AdminService {
     /**
      * Get all disputed orders with pagination and filters
      */
-    async getDisputes(page: number = 1, limit: number = 20) {
+    async getDisputes(
+        page: number = 1,
+        limit: number = 20
+    ): Promise<{ data: Partial<P2POrder>[]; meta: any }> {
         const skip = (page - 1) * limit;
 
         const [orders, total] = await Promise.all([
@@ -39,7 +42,7 @@ export class AdminService {
     /**
      * Get full details of a disputed order including chat history
      */
-    async getOrderDetails(orderId: string) {
+    async getOrderDetails(orderId: string): Promise<P2POrder> {
         const order = await prisma.p2POrder.findUnique({
             where: { id: orderId },
             include: {
@@ -69,7 +72,7 @@ export class AdminService {
         decision: 'RELEASE' | 'REFUND',
         notes: string,
         ipAddress: string
-    ) {
+    ): Promise<{ success: boolean; decision: string; orderId: string }> {
         const result = await prisma.$transaction(async tx => {
             const order = await tx.p2POrder.findUnique({
                 where: { id: orderId },
@@ -185,7 +188,7 @@ export class AdminService {
     /**
      * Create a new Admin (Super Admin Only)
      */
-    async createAdmin(data: any, creatorId: string, ipAddress: string) {
+    async createAdmin(data: any, creatorId: string, ipAddress: string): Promise<User> {
         const { email, password, firstName, lastName, role } = data;
 
         // Validate Role
@@ -231,7 +234,7 @@ export class AdminService {
     /**
      * List all admins
      */
-    async getAdmins() {
+    async getAdmins(): Promise<Partial<User>[]> {
         return await prisma.user.findMany({
             where: {
                 role: { in: [UserRole.ADMIN, UserRole.SUPPORT, UserRole.SUPER_ADMIN] },

@@ -1,8 +1,8 @@
-import { prisma } from '../../../../shared/database';
+import { prisma, P2PPaymentMethod } from '../../../../shared/database';
 import { BadRequestError, NotFoundError } from '../../../../shared/lib/utils/api-error';
 
 export class P2PPaymentMethodService {
-    static async createPaymentMethod(userId: string, data: any) {
+    static async createPaymentMethod(userId: string, data: any): Promise<P2PPaymentMethod> {
         const { currency, bankName, accountNumber, accountName, details, isPrimary } = data;
 
         // Validate Currency Specific Fields
@@ -29,14 +29,14 @@ export class P2PPaymentMethodService {
         });
     }
 
-    static async getPaymentMethods(userId: string) {
+    static async getPaymentMethods(userId: string): Promise<P2PPaymentMethod[]> {
         return await prisma.p2PPaymentMethod.findMany({
             where: { userId, isActive: true },
             orderBy: { isPrimary: 'desc' },
         });
     }
 
-    static async deletePaymentMethod(userId: string, methodId: string) {
+    static async deletePaymentMethod(userId: string, methodId: string): Promise<P2PPaymentMethod> {
         const method = await prisma.p2PPaymentMethod.findFirst({
             where: { id: methodId, userId },
         });

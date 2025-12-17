@@ -1,15 +1,15 @@
 import { Queue } from 'bullmq';
-import { prisma } from '../../../shared/database';
+import {
+    prisma,
+    TransactionStatus,
+    TransactionType,
+    NotificationType,
+} from '../../../shared/database';
 import { redisConnection } from '../../../shared/config/redis.config';
 import { pinService } from '../../../shared/lib/services/pin.service';
 import { nameEnquiryService } from '../../../shared/lib/services/name-enquiry.service';
 import { beneficiaryService } from '../../../shared/lib/services/beneficiary.service';
 import { BadRequestError, NotFoundError } from '../../../shared/lib/utils/api-error';
-import {
-    TransactionStatus,
-    TransactionType,
-    NotificationType,
-} from '../../../shared/database/generated/prisma';
 import { randomUUID } from 'crypto';
 import logger from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
@@ -38,7 +38,7 @@ export class TransferService {
     /**
      * Process a transfer request (Hybrid: Internal or External)
      */
-    async processTransfer(payload: TransferRequest) {
+    async processTransfer(payload: TransferRequest): Promise<any> {
         const { userId, accountNumber, bankCode, pin, idempotencyKey, saveBeneficiary } = payload;
 
         // 1. Idempotency Check

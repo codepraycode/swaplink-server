@@ -8,7 +8,7 @@ export class UserService {
      * @param userId The ID of the user.
      * @param token The Expo push token.
      */
-    static async updatePushToken(userId: string, token: string) {
+    static async updatePushToken(userId: string, token: string): Promise<User> {
         return await prisma.user.update({
             where: { id: userId },
             data: { pushToken: token },
@@ -18,7 +18,7 @@ export class UserService {
     static async changePassword(
         userId: string,
         data: { oldPassword: string; newPassword: string }
-    ) {
+    ): Promise<User> {
         const { oldPassword, newPassword } = data;
         const user = await prisma.user.findUnique({ where: { id: userId } });
 
@@ -63,7 +63,7 @@ export class UserService {
                 | 'isActive'
             >
         >
-    ) {
+    ): Promise<User> {
         return await prisma.user.update({
             where: { id: userId },
             data,

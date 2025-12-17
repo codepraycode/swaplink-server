@@ -11,7 +11,7 @@
         "dev:start": "pnpm run dev:prepare && pnpm run dev:all",
         "build": "pnpm run db:generate && tsc",
         "build:check": "tsc --noEmit",
-        "start": "cross-env NODE_ENV=production node dist/api/server.js",
+        "start": "node dist/api/server.js",
         "start:worker": "cross-env NODE_ENV=production node dist/worker/index.js",
         "db:generate": "prisma generate",
         "db:migrate": "prisma migrate dev",

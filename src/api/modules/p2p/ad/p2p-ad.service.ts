@@ -1,10 +1,10 @@
-import { prisma, AdType, AdStatus } from '../../../../shared/database';
+import { prisma, AdType, AdStatus, P2PAd } from '../../../../shared/database';
 import { walletService } from '../../../../shared/lib/services/wallet.service';
 import { BadRequestError, NotFoundError } from '../../../../shared/lib/utils/api-error';
 import logger from '../../../../shared/lib/utils/logger';
 
 export class P2PAdService {
-    static async createAd(userId: string, data: any) {
+    static async createAd(userId: string, data: any): Promise<P2PAd> {
         const {
             type: givenType,
             currency,
@@ -181,7 +181,7 @@ export class P2PAdService {
         });
     }
 
-    static async getAds(query: any) {
+    static async getAds(query: any): Promise<P2PAd[]> {
         const { currency, type, status, minAmount } = query;
 
         const where: any = { status: status || AdStatus.ACTIVE };
@@ -209,7 +209,7 @@ export class P2PAdService {
         });
     }
 
-    static async closeAd(userId: string, adId: string) {
+    static async closeAd(userId: string, adId: string): Promise<P2PAd> {
         const ad = await prisma.p2PAd.findFirst({
             where: { id: adId, userId },
         });

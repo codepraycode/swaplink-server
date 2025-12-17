@@ -3,7 +3,7 @@ import { walletService } from '../wallet.service';
 import authService from '../../../../api/modules/auth/auth.service';
 import { TestUtils } from '../../../../test/utils';
 import { NotFoundError, BadRequestError } from '../../utils/api-error';
-import { TransactionType } from '../../../../shared/database/generated/prisma';
+import { TransactionType } from '../../../database';
 
 describe('WalletService - Integration Tests', () => {
     beforeEach(async () => {

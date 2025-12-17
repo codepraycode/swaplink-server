@@ -2,10 +2,9 @@ import { transferService } from '../../../../api/modules/transfer/transfer.servi
 import { prisma } from '../../../database';
 import { pinService } from '../pin.service';
 import { nameEnquiryService } from '../name-enquiry.service';
-import { BadRequestError, NotFoundError } from '../../utils/api-error';
+import { BadRequestError } from '../../utils/api-error';
 import { socketService } from '../socket.service';
 import { walletService } from '../wallet.service';
-import { TransactionType, TransactionStatus } from '../../../database/generated/prisma';
 
 jest.mock('../socket.service');
 jest.mock('../wallet.service');

@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { prisma, KycLevel, KycStatus, OtpType, User } from '../../../shared/database';
-import { UserRole } from '../../../shared/database/generated/prisma';
+import { UserRole } from '@prisma/client';
 import {
     ConflictError,
     NotFoundError,

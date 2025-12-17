@@ -1,14 +1,15 @@
 import logger from '../lib/utils/logger';
 import { envConfig } from '../config/env.config';
-import { PrismaClient } from './generated/prisma';
+import { PrismaClient } from '@prisma/client';
 
 export * from './database.errors';
-export * from './generated/prisma';
+export * from '@prisma/client';
 
 const isDevelopment = envConfig.NODE_ENV === 'development';
 
 // 1. Define the Prisma Client type globally to prevent TS errors on 'global'
 declare global {
+    // eslint-disable-next-line no-var
     var prisma: PrismaClient | undefined;
 }
 
@@ -46,6 +47,10 @@ export const checkDatabaseConnection = async (): Promise<boolean> => {
         return true;
     } catch (error) {
         logger.error('Database connection check failed:', error);
+        if (error instanceof Error) {
+            logger.error(error.message);
+            logger.error(error.stack);
+        }
         return false;
     }
 };

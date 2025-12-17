@@ -1,4 +1,4 @@
-import { prisma, OrderStatus, AdType, AdStatus } from '../../../../shared/database';
+import { prisma, OrderStatus, AdType, AdStatus, P2POrder } from '../../../../shared/database';
 import { walletService } from '../../../../shared/lib/services/wallet.service';
 import {
     BadRequestError,
@@ -14,7 +14,7 @@ import { envConfig } from '../../../../shared/config/env.config';
 import { logDebug } from '../../../../shared/lib/utils/logger';
 
 export class P2POrderService {
-    static async createOrder(userId: string, data: any) {
+    static async createOrder(userId: string, data: any): Promise<P2POrder> {
         const { adId, amount, paymentMethodId } = data;
 
         // 1. Fetch Ad
@@ -128,7 +128,7 @@ export class P2POrderService {
         return order;
     }
 
-    static async markAsPaid(userId: string, orderId: string) {
+    static async markAsPaid(userId: string, orderId: string): Promise<P2POrder> {
         const order = await prisma.p2POrder.findUnique({
             where: { id: orderId },
             include: { ad: true },
@@ -152,7 +152,7 @@ export class P2POrderService {
         });
     }
 
-    static async confirmOrder(userId: string, orderId: string) {
+    static async confirmOrder(userId: string, orderId: string): Promise<{ message: string }> {
         const order = await prisma.p2POrder.findUnique({
             where: { id: orderId },
             include: { ad: true },
@@ -237,7 +237,7 @@ export class P2POrderService {
         return { message: 'Order completed successfully' };
     }
 
-    static async cancelOrder(userId: string, orderId: string) {
+    static async cancelOrder(userId: string, orderId: string): Promise<{ message: string }> {
         const order = await prisma.p2POrder.findUnique({
             where: { id: orderId },
             include: { ad: true },
@@ -298,7 +298,7 @@ export class P2POrderService {
         return { message: 'Order cancelled' };
     }
 
-    static async getOrder(userId: string, orderId: string) {
+    static async getOrder(userId: string, orderId: string): Promise<P2POrder> {
         const order = await prisma.p2POrder.findUnique({
             where: { id: orderId },
             include: { ad: true, maker: true, taker: true },

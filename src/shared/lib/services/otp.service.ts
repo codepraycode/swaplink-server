@@ -1,4 +1,5 @@
-import { prisma, OtpType } from '../../database';
+/* eslint-disable @typescript-eslint/no-require-imports */
+import { prisma, OtpType, Otp } from '../../database';
 
 import { BadRequestError } from '../utils/api-error';
 import logger from '../utils/logger';
@@ -18,7 +19,7 @@ export class OtpService {
     /**
      * Generate and Store OTP
      */
-    async generateOtp(identifier: string, type: OtpType, userId?: string) {
+    async generateOtp(identifier: string, type: OtpType, userId?: string): Promise<Otp> {
         // 1. Generate secure 6 digit code
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -79,7 +80,7 @@ export class OtpService {
     /**
      * Verify OTP
      */
-    async verifyOtp(identifier: string, code: string, type: OtpType) {
+    async verifyOtp(identifier: string, code: string, type: OtpType): Promise<boolean> {
         // 1. Find valid OTP
         const otpRecord = await prisma.otp.findFirst({
             where: {

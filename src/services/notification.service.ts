@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import { prisma, NotificationType } from '../shared/database';
+import { prisma, NotificationType, Notification, Prisma } from '../shared/database';
 import { redisConnection } from '../shared/config/redis.config';
 import { logError } from '../shared/lib/utils/logger';
 import { socketService } from '../shared/lib/services/socket.service';
@@ -19,7 +19,7 @@ export class NotificationService {
         body: string,
         data: any = {},
         type: NotificationType = NotificationType.SYSTEM
-    ) {
+    ): Promise<Notification> {
         try {
             // 1. Persist Notification to DB
             const notification = await prisma.notification.create({
@@ -54,7 +54,7 @@ export class NotificationService {
     /**
      * Get all notifications for a user.
      */
-    static async getAll(userId: string) {
+    static async getAll(userId: string): Promise<Notification[]> {
         return prisma.notification.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
@@ -64,7 +64,7 @@ export class NotificationService {
     /**
      * Mark a notification as read.
      */
-    static async markAsRead(userId: string, notificationId: string) {
+    static async markAsRead(userId: string, notificationId: string): Promise<Notification> {
         return prisma.notification.update({
             where: { id: notificationId, userId }, // Ensure ownership
             data: { isRead: true },
@@ -74,7 +74,7 @@ export class NotificationService {
     /**
      * Mark all notifications as read for a user.
      */
-    static async markAllAsRead(userId: string) {
+    static async markAllAsRead(userId: string): Promise<Prisma.BatchPayload> {
         return prisma.notification.updateMany({
             where: { userId, isRead: false },
             data: { isRead: true },

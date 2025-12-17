@@ -1,6 +1,5 @@
-import { prisma, Prisma } from '../../database';
+import { prisma, Prisma, TransactionType, Transaction } from '../../database';
 import { NotFoundError, BadRequestError, InternalError, ConflictError } from '../utils/api-error';
-import { TransactionType } from '../../database/generated/prisma';
 import { UserId } from '../../types/query.types';
 import { redisConnection } from '../../config/redis.config';
 import { socketService } from './socket.service';
@@ -113,7 +112,7 @@ export class WalletService {
         };
     }
 
-    async getTransactions(params: FetchTransactionOptions) {
+    async getTransactions(params: FetchTransactionOptions): Promise<any> {
         const { userId, page = 1, limit = 20, type } = params;
         const skip = (page - 1) * limit;
 
@@ -180,7 +179,11 @@ export class WalletService {
      * Credit a wallet (Deposit)
      * Handles Webhooks (External Ref) and Internal Credits.
      */
-    async creditWallet(userId: string, amount: number, options: TransactionOptions = {}) {
+    async creditWallet(
+        userId: string,
+        amount: number,
+        options: TransactionOptions = {}
+    ): Promise<Transaction> {
         const {
             reference, // <--- The most important fix
             description = 'Credit',
@@ -249,7 +252,11 @@ export class WalletService {
     /**
      * Debit a wallet (Withdrawal/Transfer)
      */
-    async debitWallet(userId: string, amount: number, options: TransactionOptions = {}) {
+    async debitWallet(
+        userId: string,
+        amount: number,
+        options: TransactionOptions = {}
+    ): Promise<Transaction> {
         const { reference, description = 'Debit', type = 'WITHDRAWAL', metadata = {} } = options;
 
         const txReference =
