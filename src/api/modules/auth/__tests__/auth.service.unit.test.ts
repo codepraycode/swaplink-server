@@ -224,8 +224,16 @@ describe('AuthService - Unit Tests', () => {
     });
 
     describe('verifyOtp', () => {
-        it('should verify phone OTP and update user', async () => {
+        it('should verify phone OTP but not upgrade KYC if email not verified', async () => {
+            const mockCurrentUser = {
+                id: 'user-123',
+                emailVerified: false,
+                phoneVerified: false,
+                kycLevel: KycLevel.NONE,
+            };
+
             (otpService.verifyOtp as jest.Mock).mockResolvedValue(true);
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockCurrentUser);
             (prisma.user.update as jest.Mock).mockResolvedValue({});
 
             const result = await authService.verifyOtp('+2341234567890', '123456', 'phone');
@@ -235,15 +243,36 @@ describe('AuthService - Unit Tests', () => {
                 '123456',
                 OtpType.PHONE_VERIFICATION
             );
+            expect(prisma.user.findUnique).toHaveBeenCalledWith({
+                where: { phone: '+2341234567890' },
+                select: {
+                    id: true,
+                    emailVerified: true,
+                    phoneVerified: true,
+                    kycLevel: true,
+                },
+            });
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { phone: '+2341234567890' },
-                data: { phoneVerified: true, isVerified: true },
+                data: {
+                    phoneVerified: true,
+                    isVerified: false, // Not both verified yet
+                },
             });
             expect(result.success).toBe(true);
+            expect(result.kycLevelUpgraded).toBe(false);
         });
 
-        it('should verify email OTP and update user', async () => {
+        it('should verify email OTP but not upgrade KYC if phone not verified', async () => {
+            const mockCurrentUser = {
+                id: 'user-123',
+                emailVerified: false,
+                phoneVerified: false,
+                kycLevel: KycLevel.NONE,
+            };
+
             (otpService.verifyOtp as jest.Mock).mockResolvedValue(true);
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockCurrentUser);
             (prisma.user.update as jest.Mock).mockResolvedValue({});
 
             const result = await authService.verifyOtp('test@example.com', '123456', 'email');
@@ -253,11 +282,111 @@ describe('AuthService - Unit Tests', () => {
                 '123456',
                 OtpType.EMAIL_VERIFICATION
             );
+            expect(prisma.user.findUnique).toHaveBeenCalledWith({
+                where: { email: 'test@example.com' },
+                select: {
+                    id: true,
+                    emailVerified: true,
+                    phoneVerified: true,
+                    kycLevel: true,
+                },
+            });
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { email: 'test@example.com' },
-                data: { emailVerified: true, isVerified: true },
+                data: {
+                    emailVerified: true,
+                    isVerified: false, // Not both verified yet
+                },
             });
             expect(result.success).toBe(true);
+            expect(result.kycLevelUpgraded).toBe(false);
+        });
+
+        it('should verify phone OTP and upgrade to BASIC KYC when email already verified', async () => {
+            const mockCurrentUser = {
+                id: 'user-123',
+                emailVerified: true, // Already verified
+                phoneVerified: false,
+                kycLevel: KycLevel.NONE,
+            };
+
+            (otpService.verifyOtp as jest.Mock).mockResolvedValue(true);
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockCurrentUser);
+            (prisma.user.update as jest.Mock).mockResolvedValue({});
+
+            const result = await authService.verifyOtp('+2341234567890', '123456', 'phone');
+
+            expect(prisma.user.update).toHaveBeenCalledWith({
+                where: { phone: '+2341234567890' },
+                data: {
+                    phoneVerified: true,
+                    isVerified: true, // Both verified now
+                    kycLevel: KycLevel.BASIC, // Upgraded!
+                },
+            });
+            expect(result.success).toBe(true);
+            expect(result.kycLevelUpgraded).toBe(true);
+        });
+
+        it('should verify email OTP and upgrade to BASIC KYC when phone already verified', async () => {
+            const mockCurrentUser = {
+                id: 'user-123',
+                emailVerified: false,
+                phoneVerified: true, // Already verified
+                kycLevel: KycLevel.NONE,
+            };
+
+            (otpService.verifyOtp as jest.Mock).mockResolvedValue(true);
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockCurrentUser);
+            (prisma.user.update as jest.Mock).mockResolvedValue({});
+
+            const result = await authService.verifyOtp('test@example.com', '123456', 'email');
+
+            expect(prisma.user.update).toHaveBeenCalledWith({
+                where: { email: 'test@example.com' },
+                data: {
+                    emailVerified: true,
+                    isVerified: true, // Both verified now
+                    kycLevel: KycLevel.BASIC, // Upgraded!
+                },
+            });
+            expect(result.success).toBe(true);
+            expect(result.kycLevelUpgraded).toBe(true);
+        });
+
+        it('should not upgrade KYC if already at BASIC or higher level', async () => {
+            const mockCurrentUser = {
+                id: 'user-123',
+                emailVerified: true,
+                phoneVerified: false,
+                kycLevel: KycLevel.BASIC, // Already BASIC
+            };
+
+            (otpService.verifyOtp as jest.Mock).mockResolvedValue(true);
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockCurrentUser);
+            (prisma.user.update as jest.Mock).mockResolvedValue({});
+
+            const result = await authService.verifyOtp('+2341234567890', '123456', 'phone');
+
+            expect(prisma.user.update).toHaveBeenCalledWith({
+                where: { phone: '+2341234567890' },
+                data: {
+                    phoneVerified: true,
+                    isVerified: true,
+                    // No kycLevel in data - should not be upgraded
+                },
+            });
+            expect(result.success).toBe(true);
+            expect(result.kycLevelUpgraded).toBe(false);
+        });
+
+        it('should throw NotFoundError if user not found', async () => {
+            (otpService.verifyOtp as jest.Mock).mockResolvedValue(true);
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+
+            await expect(
+                authService.verifyOtp('test@example.com', '123456', 'email')
+            ).rejects.toThrow(NotFoundError);
         });
     });
 

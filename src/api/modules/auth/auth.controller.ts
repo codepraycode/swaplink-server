@@ -86,7 +86,10 @@ class AuthController {
         try {
             const { phone, otp } = req.body;
             const result = await authService.verifyOtp(phone, otp, 'phone');
-            sendSuccess(res, result, 'Phone verified successfully');
+            const message = result.kycLevelUpgraded
+                ? 'Phone verified successfully! Your account has been upgraded to BASIC KYC level.'
+                : 'Phone verified successfully';
+            sendSuccess(res, result, message);
         } catch (error) {
             next(error);
         }
@@ -106,7 +109,10 @@ class AuthController {
         try {
             const { email, otp } = req.body;
             const result = await authService.verifyOtp(email, otp, 'email');
-            sendSuccess(res, result, 'Email verified successfully');
+            const message = result.kycLevelUpgraded
+                ? 'Email verified successfully! Your account has been upgraded to BASIC KYC level.'
+                : 'Email verified successfully';
+            sendSuccess(res, result, message);
         } catch (error) {
             next(error);
         }

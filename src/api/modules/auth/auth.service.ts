@@ -165,6 +165,22 @@ class AuthService {
 
         const whereClause = type === 'email' ? { email: identifier } : { phone: identifier };
 
+        // First, get the current user state to check verification status
+        const currentUser = await prisma.user.findUnique({
+            where: whereClause,
+            select: {
+                id: true,
+                emailVerified: true,
+                phoneVerified: true,
+                kycLevel: true,
+            },
+        });
+
+        if (!currentUser) {
+            throw new NotFoundError('User not found');
+        }
+
+        // Prepare update data
         const updateData: any = {};
         if (type === 'email') {
             updateData.emailVerified = true;
@@ -172,26 +188,31 @@ class AuthService {
             updateData.phoneVerified = true;
         }
 
-        // Maintain isVerified as a general flag if either is verified (or both, depending on business logic)
-        // For now, let's keep isVerified true if at least one is verified, or maybe we want both?
-        // The user request said "email and phone must be verified".
-        // So maybe isVerified should be true only if BOTH are verified?
-        // Let's check the current user state first to decide on isVerified.
-        // Actually, to be safe and simple for now, let's just set the specific flags.
-        // And maybe set isVerified to true if it was already true or if this verification makes it "fully" verified.
-        // But the prompt says "in the user schema, email and phone must be verified".
-        // This implies we need to track them separately.
-        // Let's update the specific field.
-        // And also keep isVerified = true for backward compatibility for now, or maybe update it based on both?
-        // Let's just set the specific field and also isVerified = true to not break existing flows that rely on isVerified.
-        updateData.isVerified = true;
+        // Check if BOTH email and phone will be verified after this update
+        const willBothBeVerified =
+            (type === 'email' ? true : currentUser.emailVerified) &&
+            (type === 'phone' ? true : currentUser.phoneVerified);
+
+        // Set isVerified to true only if both are verified
+        updateData.isVerified = willBothBeVerified;
+
+        // Automatically upgrade to BASIC KYC level when both are verified
+        if (willBothBeVerified && currentUser.kycLevel === KycLevel.NONE) {
+            updateData.kycLevel = KycLevel.BASIC;
+            logger.info(
+                `User ${currentUser.id} upgraded to BASIC KYC level after completing email and phone verification`
+            );
+        }
 
         await prisma.user.update({
             where: whereClause,
             data: updateData,
         });
 
-        return { success: true };
+        return {
+            success: true,
+            kycLevelUpgraded: willBothBeVerified && currentUser.kycLevel === KycLevel.NONE,
+        };
     }
 
     async requestPasswordReset(email: string) {
