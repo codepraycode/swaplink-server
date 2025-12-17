@@ -1,4 +1,5 @@
 import { Router } from 'express';
+console.log('🔄 [DEBUG] routes/index.ts loading...');
 import authRoutes from './auth/auth.routes';
 import transferRoutes from './transfer/transfer.routes';
 import webhookRoutes from './webhook/webhook.route';

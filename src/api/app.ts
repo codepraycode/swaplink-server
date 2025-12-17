@@ -1,4 +1,5 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
+console.log('🔄 [DEBUG] app.ts loading...');
 import cors from 'cors';
 import helmet from 'helmet';
 import { envConfig } from '../shared/config/env.config';
