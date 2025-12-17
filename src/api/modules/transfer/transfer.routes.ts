@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { TransferController } from '../../controllers/transfer.controller';
+import { TransferController } from './transfer.controller';
 import { authenticate } from '../../middlewares/auth.middleware';
 
 const router: Router = Router();
@@ -17,5 +17,8 @@ router.post('/process', TransferController.processTransfer);
 
 // Beneficiaries
 router.get('/beneficiaries', TransferController.getBeneficiaries);
+
+// Transactions
+router.get('/transactions', TransferController.getTransactions);
 
 export default router;

@@ -277,6 +277,41 @@
                         "description": "Set or update the transaction PIN. `oldPin` is required for updates."
                     },
                     "response": []
+                },
+                {
+                    "name": "Get Transactions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/transfers/transactions?page=1&limit=20",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["transfers", "transactions"],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "20"
+                                },
+                                {
+                                    "key": "type",
+                                    "value": "TRANSFER",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Get a paginated list of transactions for the authenticated user."
+                    },
+                    "response": []
                 }
             ]
         },

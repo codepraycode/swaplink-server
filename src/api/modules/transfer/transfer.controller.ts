@@ -1,13 +1,35 @@
 import { Request, Response, NextFunction } from 'express';
-import { pinService } from '../../shared/lib/services/pin.service';
-import { nameEnquiryService } from '../../shared/lib/services/name-enquiry.service';
-import { transferService } from '../../shared/lib/services/transfer.service';
-import { beneficiaryService } from '../../shared/lib/services/beneficiary.service';
-import { JwtUtils } from '../../shared/lib/utils/jwt-utils';
-import { sendCreated, sendSuccess } from '../../shared/lib/utils/api-response';
-import { BadRequestError } from '../../shared/lib/utils/api-error';
+import { pinService } from '../../../shared/lib/services/pin.service';
+import { nameEnquiryService } from '../../../shared/lib/services/name-enquiry.service';
+import { transferService } from './transfer.service';
+import { beneficiaryService } from '../../../shared/lib/services/beneficiary.service';
+import { JwtUtils } from '../../../shared/lib/utils/jwt-utils';
+import { sendCreated, sendSuccess } from '../../../shared/lib/utils/api-response';
+import { BadRequestError } from '../../../shared/lib/utils/api-error';
+import walletService from '../../../shared/lib/services/wallet.service';
+import { TransactionType } from '../../../shared/database';
 
 export class TransferController {
+    /**
+     * Get Wallet Transactions
+     */
+    static async getTransactions(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = JwtUtils.ensureAuthentication(req).userId;
+            const { page, limit, type } = req.query;
+
+            const result = await walletService.getTransactions({
+                userId,
+                page: page ? Number(page) : 1,
+                limit: limit ? Number(limit) : 20,
+                type: type as TransactionType,
+            });
+
+            sendSuccess(res, result);
+        } catch (error) {
+            next(error);
+        }
+    }
     /**
      * Set or Update Transaction PIN
      */

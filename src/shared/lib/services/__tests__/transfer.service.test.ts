@@ -1,4 +1,4 @@
-import { transferService } from '../transfer.service';
+import { transferService } from '../../../../api/modules/transfer/transfer.service';
 import { prisma } from '../../../database';
 import { pinService } from '../pin.service';
 import { nameEnquiryService } from '../name-enquiry.service';

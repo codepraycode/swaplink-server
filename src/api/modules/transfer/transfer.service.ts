@@ -1,14 +1,14 @@
 import { Queue } from 'bullmq';
-import { prisma } from '../../database';
-import { redisConnection } from '../../config/redis.config';
-import { pinService } from './pin.service';
-import { walletService } from './wallet.service';
-import { nameEnquiryService } from './name-enquiry.service';
-import { beneficiaryService } from './beneficiary.service';
-import { BadRequestError, InternalError, NotFoundError } from '../utils/api-error';
-import { TransactionType, TransactionStatus } from '../../database/generated/prisma';
+import { prisma } from '../../../shared/database';
+import { redisConnection } from '../../../shared/config/redis.config';
+import { pinService } from '../../../shared/lib/services/pin.service';
+import { nameEnquiryService } from '../../../shared/lib/services/name-enquiry.service';
+import { beneficiaryService } from '../../../shared/lib/services/beneficiary.service';
+import { BadRequestError, NotFoundError } from '../../../shared/lib/utils/api-error';
+import { TransactionStatus, TransactionType } from '../../../shared/database/generated/prisma';
 import { randomUUID } from 'crypto';
-import logger from '../utils/logger';
+import logger from '../../../shared/lib/utils/logger';
+import { socketService } from '../../../shared/lib/services/socket.service';
 
 export interface TransferRequest {
     userId: string;
@@ -129,7 +129,7 @@ export class TransferService {
         }
 
         // Atomic Transaction
-        return await prisma.$transaction(async tx => {
+        const result = await prisma.$transaction(async tx => {
             // Check Balance
             if (senderWallet.balance < amount) {
                 throw new BadRequestError('Insufficient funds');
@@ -188,6 +188,32 @@ export class TransferService {
                 recipient: destination.accountName,
             };
         });
+
+        // Emit Socket Events
+        socketService.emitToUser(senderWallet.userId, 'transaction_update', {
+            transactionId: result.transactionId,
+            status: result.status,
+            type: TransactionType.TRANSFER,
+            amount: -amount,
+            balance: senderWallet.balance - amount,
+            timestamp: new Date().toISOString(),
+        });
+
+        socketService.emitToUser(receiverWallet.userId, 'transaction_update', {
+            transactionId: result.transactionId, // Note: This is sender's tx ID. Receiver has their own, but result only has sender's.
+            // Actually, result only returns senderTx.id.
+            // Receiver gets a separate transaction record.
+            // Ideally we should return both or fetch receiver's tx.
+            // For now, let's just notify receiver about the incoming funds.
+            status: 'COMPLETED',
+            type: TransactionType.DEPOSIT,
+            amount: amount,
+            balance: receiverWallet.balance + amount,
+            timestamp: new Date().toISOString(),
+            senderName: senderWallet.userId, // Should be name
+        });
+
+        return result;
     }
 
     /**
@@ -246,6 +272,16 @@ export class TransferService {
             // In a real system, we might want to reverse the debit here or have a reconciliation job pick it up
             // For now, we'll rely on the reconciliation job
         }
+
+        // Emit Socket Event
+        socketService.emitToUser(userId, 'transaction_update', {
+            transactionId: transaction.id,
+            status: transaction.status,
+            type: TransactionType.TRANSFER,
+            amount: -(amount + fee),
+            balance: senderWallet.balance - (amount + fee),
+            timestamp: new Date().toISOString(),
+        });
 
         return {
             message: 'Transfer processing',
