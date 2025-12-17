@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../shared/types/express/index.d.ts" />
 import app from './app';
+console.log('🔄 [DEBUG] server.ts loaded');
 import { envConfig } from '../shared/config/env.config';
 import logger from '../shared/lib/utils/logger';
 import { prisma, checkDatabaseConnection } from '../shared/database';
@@ -12,11 +13,14 @@ const SERVER_URL = envConfig.SERVER_URL;
 const PORT = envConfig.PORT;
 
 const startServer = async () => {
+    console.log('🔄 [DEBUG] startServer() called');
     try {
         // 1. Check Database Connection
         // Prisma connects lazily (on first query), but we force it here
         // to fail fast if the DB is down on startup.
+        console.log('🔄 [DEBUG] Checking database connection...');
         const isConnected = await checkDatabaseConnection();
+        console.log('🔄 [DEBUG] Database connection result:', isConnected);
 
         if (!isConnected) {
             throw new Error('Could not establish database connection');
