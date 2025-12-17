@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+console.log('🔄 [DEBUG] auth.service.ts loading...');
 import { prisma, KycLevel, KycStatus, OtpType, User } from '../../../shared/database';
 import { UserRole } from '@prisma/client';
 import {
