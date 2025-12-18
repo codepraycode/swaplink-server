@@ -13,8 +13,11 @@ export class OtpService {
 
     constructor(smsService?: ISmsService, emailService?: BaseEmailService) {
         // Lazy load to avoid circular dependency
-        this.smsService = smsService || require('./sms.service').smsService;
-        this.emailService = emailService || require('./email.service').emailService;
+        console.log('🔄 [DEBUG] OtpService constructor: requiring sms.service...');
+        this.smsService = smsService || require('./sms-service/sms.service').smsService;
+        console.log('🔄 [DEBUG] OtpService constructor: requiring email.service...');
+        this.emailService = emailService || require('./email-service/email.service').emailService;
+        console.log('✅ [DEBUG] OtpService constructor: dependencies loaded');
     }
 
     /**
