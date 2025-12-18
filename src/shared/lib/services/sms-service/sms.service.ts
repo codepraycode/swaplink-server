@@ -29,6 +29,11 @@ export class SmsService implements ISmsService {
             }
 
             // Simulate SMS sending
+            logger.info('═══════════════════════════════════════');
+            logger.info(`📱 SMS OTP for ${phoneNumber}`);
+            logger.info(`🔑 CODE: ${message}`);
+            logger.info(`⏰ Valid for: 10 minutes`);
+            logger.info('═══════════════════════════════════════');
             return true;
         } catch (error) {
             logger.error(`[SMS Service] Failed to send SMS to ${phoneNumber}:`, error);

@@ -5,6 +5,7 @@ import { BadRequestError } from '../utils/api-error';
 import logger from '../utils/logger';
 import { ISmsService } from './sms-service/sms.service';
 import { BaseEmailService } from './email-service/base-email.service';
+import { LocalEmailService } from './email-service/local-email.service';
 
 export class OtpService {
     private smsService: ISmsService;
@@ -61,12 +62,12 @@ export class OtpService {
      */
     private async sendOtp(identifier: string, code: string, type: OtpType): Promise<void> {
         switch (type) {
-            // case OtpType.PHONE_VERIFICATION:
-            // case OtpType.TWO_FACTOR:
-            // case OtpType.WITHDRAWAL_CONFIRMATION:
-            //     // Send via SMS for phone-related OTPs
-            //     await this.smsService.sendOtp(identifier, code);
-            //     break;
+            case OtpType.PHONE_VERIFICATION:
+            case OtpType.TWO_FACTOR:
+            case OtpType.WITHDRAWAL_CONFIRMATION:
+                // Send via SMS for phone-related OTPs
+                await this.smsService.sendOtp(identifier, code);
+                break;
 
             case OtpType.EMAIL_VERIFICATION:
             case OtpType.PASSWORD_RESET:
@@ -76,7 +77,7 @@ export class OtpService {
 
             default:
                 logger.warn(`[OTP] Unknown OTP type: ${type} Default to EMAIL`);
-                await this.emailService.sendVerificationEmail(identifier, code);
+                LocalEmailService.logIntent(`Unknown OTP type: ${type}`, identifier, code);
                 break;
         }
     }

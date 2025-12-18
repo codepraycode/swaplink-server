@@ -44,4 +44,11 @@ export class LocalEmailService extends BaseEmailService {
         logger.info(`👋 Name: ${name}`);
         logger.info('═══════════════════════════════════════');
     }
+
+    static logIntent(intent: string, to: string, name?: string) {
+        logger.info('═══════════════════════════════════════');
+        logger.info(`📧 [LocalEmailService] ${intent} for ${to}`);
+        if (name) logger.info(`👋 Name: ${name}`);
+        logger.info('═══════════════════════════════════════');
+    }
 }
