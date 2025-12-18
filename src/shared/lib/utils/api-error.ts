@@ -6,6 +6,7 @@ import {
     PrismaClientValidationError,
 } from '../../database';
 import { HttpStatusCode } from './http-status-codes';
+import logger, { logError } from './logger';
 
 // Base Error Class
 export class ApiError extends Error {
@@ -38,18 +39,33 @@ export class ApiError extends Error {
 export class BadRequestError extends ApiError {
     constructor(message = 'Bad Request', data?: any) {
         super(message, HttpStatusCode.BAD_REQUEST, data);
+        logger.warn('[BadRequestError]', {
+            message,
+            statusCode: HttpStatusCode.BAD_REQUEST,
+            data,
+        });
     }
 }
 
 export class BadGatewayError extends ApiError {
     constructor(message = 'Bad Gateway', data?: any) {
         super(message, HttpStatusCode.BAD_GATEWAY, data);
+        logger.warn('[BadGatewayError]', {
+            message,
+            statusCode: HttpStatusCode.BAD_GATEWAY,
+            data,
+        });
     }
 }
 
 export class UnauthorizedError extends ApiError {
     constructor(message = 'Unauthorized access. Please login again.', data?: any) {
         super(message, HttpStatusCode.UNAUTHORIZED, data);
+        logger.warn('[UnauthorizedError]', {
+            message,
+            statusCode: HttpStatusCode.UNAUTHORIZED,
+            data,
+        });
     }
 }
 
@@ -61,18 +77,33 @@ export class UnauthorizedError extends ApiError {
 export class ForbiddenError extends ApiError {
     constructor(message = 'Access denied', data?: any) {
         super(message, HttpStatusCode.FORBIDDEN, data);
+        logger.warn('[ForbiddenError]', {
+            message,
+            statusCode: HttpStatusCode.FORBIDDEN,
+            data,
+        });
     }
 }
 
 export class NotFoundError extends ApiError {
     constructor(message = 'Resource not found', data?: any) {
         super(message, HttpStatusCode.NOT_FOUND, data);
+        logger.warn('[NotFoundError]', {
+            message,
+            statusCode: HttpStatusCode.NOT_FOUND,
+            data,
+        });
     }
 }
 
 export class ConflictError extends ApiError {
     constructor(message = 'Resource already exists', data?: any) {
         super(message, HttpStatusCode.CONFLICT, data);
+        logger.warn('[ConflictError]', {
+            message,
+            statusCode: HttpStatusCode.CONFLICT,
+            data,
+        });
     }
 }
 
@@ -84,6 +115,11 @@ export class ConflictError extends ApiError {
 export class ValidationError extends ApiError {
     constructor(message = 'Validation failed', errors?: Record<string, string>) {
         super(message, HttpStatusCode.UNPROCESSABLE_ENTITY, errors);
+        logger.warn('[ValidationError]', {
+            message,
+            statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY,
+            errors,
+        });
     }
 }
 
@@ -91,12 +127,24 @@ export class InternalError extends ApiError {
     constructor(message = 'Internal Server Error', originalError?: Error) {
         // isOperational = false means this is a bug we need to fix
         super(originalError || message, HttpStatusCode.INTERNAL_SERVER_ERROR, null, false);
+        logger.warn('[InternalError]', {
+            message,
+            statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
+            originalError: originalError?.message,
+            stack: originalError?.stack,
+        });
     }
 }
 
 export class CorsError extends ApiError {
     constructor(message = 'CORS Error', originalError?: Error) {
         super(originalError || message, HttpStatusCode.FORBIDDEN, null, false);
+        logger.warn('[CorsError]', {
+            message,
+            statusCode: HttpStatusCode.FORBIDDEN,
+            originalError: originalError?.message,
+            stack: originalError?.stack,
+        });
     }
 }
 
