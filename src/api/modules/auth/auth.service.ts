@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs';
-console.log('🔄 [DEBUG] auth.service.ts loading...');
 import { prisma, KycLevel, KycStatus, OtpType, User } from '../../../shared/database';
 import { UserRole } from '@prisma/client';
 import {
@@ -9,7 +8,7 @@ import {
 } from '../../../shared/lib/utils/api-error';
 import { JwtUtils } from '../../../shared/lib/utils/jwt-utils';
 import { otpService } from '../../../shared/lib/services/otp.service';
-// import { onboardingQueue } from '../../../shared/lib/queues/onboarding.queue';
+import { getQueue as getOnboardingQueue } from '../../../shared/lib/queues/onboarding.queue';
 import logger from '../../../shared/lib/utils/logger';
 import { formatUserInfo } from '../../../shared/lib/utils/functions';
 
@@ -84,9 +83,9 @@ class AuthService {
         });
 
         // 4. Add to Onboarding Queue (Background Wallet Setup)
-        // onboardingQueue
-        //     .add('setup-wallet', { userId: user.id })
-        //     .catch((err: any) => logger.error('Failed to add onboarding job', err));
+        getOnboardingQueue()
+            .add('setup-wallet', { userId: user.id })
+            .catch((err: any) => logger.error('Failed to add onboarding job', err));
 
         // 5. Generate Tokens via Utils
         const tokens = this.generateTokens(user);

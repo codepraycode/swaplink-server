@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-console.log('🔄 [DEBUG] auth.middleware.ts loading...');
 import { JwtUtils } from '../../shared/lib/utils/jwt-utils';
 import { UnauthorizedError } from '../../shared/lib/utils/api-error';
 

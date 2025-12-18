@@ -8,7 +8,7 @@ import {
     InternalError,
 } from '../../../../shared/lib/utils/api-error';
 
-import { p2pOrderQueue } from '../../../../shared/lib/queues/p2p-order.queue';
+import { getQueue as getP2POrderQueue } from '../../../../shared/lib/queues/p2p-order.queue';
 import { P2PChatService } from '../chat/p2p-chat.service';
 import { envConfig } from '../../../../shared/config/env.config';
 import { logDebug } from '../../../../shared/lib/utils/logger';
@@ -113,7 +113,7 @@ export class P2POrderService {
         });
 
         // 5. Schedule Expiration Job
-        await p2pOrderQueue.add(
+        await getP2POrderQueue().add(
             'checkOrderExpiration',
             { orderId: order.id },
             { delay: 15 * 60 * 1000 }

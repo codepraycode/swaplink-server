@@ -1,5 +1,4 @@
 import { BaseEmailService, EmailOptions } from './base-email.service';
-console.log('🔄 [DEBUG] resend-email.service.ts loading...');
 import { Resend } from 'resend';
 import logger from '../../utils/logger';
 import { envConfig } from '../../../config/env.config';

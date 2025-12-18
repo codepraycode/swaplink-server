@@ -3,7 +3,7 @@ import { redisConnection } from '../shared/config/redis.config';
 import { prisma } from '../shared/database';
 import logger from '../shared/lib/utils/logger';
 import walletService from '../shared/lib/services/wallet.service';
-import { bankingQueue } from '../shared/lib/queues/banking.queue';
+import { getQueue as getBankingQueue } from '../shared/lib/queues/banking.queue';
 import { ONBOARDING_QUEUE_NAME, SetupWalletJob } from '../shared/lib/queues/onboarding.queue';
 
 export const onboardingWorker = new Worker<SetupWalletJob>(
@@ -35,7 +35,7 @@ export const onboardingWorker = new Worker<SetupWalletJob>(
             }
 
             // 2. Trigger Virtual Account Creation (Chain the job)
-            await bankingQueue.add('create-virtual-account', {
+            await getBankingQueue().add('create-virtual-account', {
                 userId: userId,
                 walletId: wallet.id,
             });

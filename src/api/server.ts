@@ -1,46 +1,47 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../shared/types/express/index.d.ts" />
 import app from './app';
-console.log('🔄 [DEBUG] server.ts loaded');
+
 import { envConfig } from '../shared/config/env.config';
 import logger from '../shared/lib/utils/logger';
-import { prisma, checkDatabaseConnection } from '../shared/database';
+import { checkDatabaseConnection } from '../shared/database';
 import { socketService } from '../shared/lib/services/socket.service';
 import { P2PChatGateway } from './modules/p2p/chat/p2p-chat.gateway';
 
 let server: any;
 const SERVER_URL = envConfig.SERVER_URL;
 const PORT = envConfig.PORT;
-
 const startServer = async () => {
-    console.log('🔄 [DEBUG] startServer() called');
     try {
-        // 1. Check Database Connection
-        // Prisma connects lazily (on first query), but we force it here
-        // to fail fast if the DB is down on startup.
-        console.log('🔄 [DEBUG] Checking database connection...');
+        // 1. Check database connection
         const isConnected = await checkDatabaseConnection();
-        console.log('🔄 [DEBUG] Database connection result:', isConnected);
 
         if (!isConnected) {
             throw new Error('Could not establish database connection');
         }
+        logger.info('✅ Database connected successfully');
 
-        logger.debug('✅ Database connected successfully (Prisma)');
+        // 2. Initialize queues (BullMQ)
+        logger.info('🔄 Initializing services...');
+        const { initializeQueues } = await import('../shared/lib/init/service-initializer');
+        await initializeQueues();
 
-        // 2. Start Listening
+        // 3. Start HTTP server
+        logger.info('🔄 Starting HTTP server...');
         server = app.listen(PORT, () => {
             logger.info(`🚀 Server running in ${envConfig.NODE_ENV} mode on port ${PORT}`);
             logger.debug(`🔗 Health: ${SERVER_URL}/api/v1/health`);
 
-            // 3. Initialize Socket.io
+            // 4. Initialize Socket.io
             socketService.initialize(server);
 
-            // 4. Initialize P2P Chat Gateway
+            // 5. Initialize P2P Chat Gateway
             const io = socketService.getIO();
             if (io) {
                 new P2PChatGateway(io);
             }
+
+            logger.info('✅ All services initialized successfully');
         });
     } catch (error) {
         logger.error('❌ Failed to start server:', error);
@@ -49,23 +50,32 @@ const startServer = async () => {
 };
 
 // Graceful Shutdown
-const handleShutdown = (signal: string) => {
-    logger.info(`${signal} received. Closing server...`);
+const handleShutdown = async (signal: string) => {
+    logger.info(`\n${signal} received. Shutting down gracefully...`);
 
-    if (server) {
-        server.close(async () => {
-            logger.info('Http server closed.');
+    try {
+        // Close queues first
+        const { closeQueues } = await import('../shared/lib/init/service-initializer');
+        await closeQueues();
 
-            // 3. Disconnect Prisma
-            await prisma.$disconnect();
-            logger.debug('Prisma client disconnected.');
+        // Then close HTTP server
+        if (server) {
+            server.close(() => {
+                logger.info('✅ Http server closed.');
+                process.exit(0);
+            });
 
-            logger.warn('Http server closed.');
+            setTimeout(() => {
+                logger.error('⏱️  Forcefully shutting down...');
+                process.exit(1);
+            }, 10000);
+        } else {
+            logger.warn('Http server not running. No server to close.');
             process.exit(0);
-        });
-    } else {
-        logger.warn('Http server not running. No server to close.');
-        process.exit(0);
+        }
+    } catch (error) {
+        logger.error('Error during shutdown:', error);
+        process.exit(1);
     }
 };
 

@@ -1,4 +1,3 @@
-console.log('🔄 [DEBUG] socket.service.ts loading...');
 import { Server, Socket } from 'socket.io';
 import { JwtUtils } from '../utils/jwt-utils';
 import logger from '../utils/logger';

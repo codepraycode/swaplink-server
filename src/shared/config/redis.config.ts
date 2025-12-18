@@ -1,5 +1,4 @@
 import { envConfig } from './env.config';
-console.log('🔄 [DEBUG] redis.config.ts loading...');
 import IORedis from 'ioredis';
 import logger from '../lib/utils/logger';
 

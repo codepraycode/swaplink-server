@@ -1,5 +1,5 @@
 import winston from 'winston';
-console.log('🔄 [DEBUG] logger.ts loading...');
+
 import DailyRotateFile from 'winston-daily-rotate-file';
 import path from 'path';
 import util from 'util';

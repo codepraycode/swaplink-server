@@ -1,15 +1,9 @@
-import { Queue } from 'bullmq';
-import { redisConnection } from '../../config/redis.config';
+import { getP2POrderQueue } from '../init/service-initializer';
 
-export const p2pOrderQueue = new Queue('p2p-order-queue', {
-    connection: redisConnection,
-    defaultJobOptions: {
-        attempts: 3,
-        backoff: {
-            type: 'exponential',
-            delay: 1000,
-        },
-        removeOnComplete: true,
-        removeOnFail: false,
-    },
-});
+export const P2P_ORDER_QUEUE_NAME = 'p2p-order-queue';
+
+/**
+ * Get the P2P Order Queue instance
+ * @throws Error if queue is not initialized
+ */
+export const getQueue = getP2POrderQueue;

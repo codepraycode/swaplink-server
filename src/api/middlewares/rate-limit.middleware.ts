@@ -1,5 +1,4 @@
 import rateLimit, { RateLimitRequestHandler, ipKeyGenerator } from 'express-rate-limit';
-console.log('🔄 [DEBUG] rate-limit.middleware.ts loading...');
 import { Request, Response } from 'express';
 import { rateLimitConfig, rateLimitKeyGenerator } from '../../shared/config/security.config';
 import { envConfig } from '../../shared/config/env.config';
