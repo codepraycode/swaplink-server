@@ -11,6 +11,7 @@ import { otpService } from '../../../shared/lib/services/otp.service';
 import { getQueue as getOnboardingQueue } from '../../../shared/lib/queues/onboarding.queue';
 import logger from '../../../shared/lib/utils/logger';
 import { formatUserInfo } from '../../../shared/lib/utils/functions';
+import { emailService } from '../../../shared/lib/services/email-service/email.service';
 
 // DTOs
 interface AuthDTO {
@@ -89,6 +90,11 @@ class AuthService {
 
         // 5. Generate Tokens via Utils
         const tokens = this.generateTokens(user);
+
+        // 6. Send Welcome Email (Async)
+        emailService
+            .sendWelcomeEmail(user.email, user.firstName)
+            .catch(err => logger.error(`Failed to send welcome email to ${user.email}`, err));
 
         return { user, ...tokens };
     }
@@ -202,6 +208,26 @@ class AuthService {
             logger.info(
                 `User ${currentUser.id} upgraded to BASIC KYC level after completing email and phone verification`
             );
+
+            // Send Verification Success Email (Async)
+            // We need to fetch user's name if not available in currentUser (it's not selected above)
+            // But we can just use "User" or fetch it.
+            // Let's fetch it to be nice.
+            const userDetails = await prisma.user.findUnique({
+                where: { id: currentUser.id },
+                select: { firstName: true, email: true },
+            });
+
+            if (userDetails) {
+                emailService
+                    .sendVerificationSuccessEmail(userDetails.email, userDetails.firstName)
+                    .catch((err: any) =>
+                        logger.error(
+                            `Failed to send verification success email to ${userDetails.email}`,
+                            err
+                        )
+                    );
+            }
         }
 
         await prisma.user.update({

@@ -41,6 +41,12 @@ export class BadRequestError extends ApiError {
     }
 }
 
+export class BadGatewayError extends ApiError {
+    constructor(message = 'Bad Gateway', data?: any) {
+        super(message, HttpStatusCode.BAD_GATEWAY, data);
+    }
+}
+
 export class UnauthorizedError extends ApiError {
     constructor(message = 'Unauthorized access. Please login again.', data?: any) {
         super(message, HttpStatusCode.UNAUTHORIZED, data);

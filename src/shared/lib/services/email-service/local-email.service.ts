@@ -37,4 +37,11 @@ export class LocalEmailService extends BaseEmailService {
         logger.info(`🔑 Token: ${resetToken}`);
         logger.info('═══════════════════════════════════════');
     }
+
+    async sendVerificationSuccessEmail(to: string, name: string): Promise<void> {
+        logger.info('═══════════════════════════════════════');
+        logger.info(`📧 [LocalEmailService] VERIFICATION SUCCESS for ${to}`);
+        logger.info(`👋 Name: ${name}`);
+        logger.info('═══════════════════════════════════════');
+    }
 }

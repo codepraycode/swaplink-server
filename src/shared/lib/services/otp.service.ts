@@ -50,6 +50,7 @@ export class OtpService {
             logger.error(`[OTP] Failed to send OTP to ${identifier}:`, error);
             // We don't throw here to prevent OTP generation failure
             // The OTP is still valid in the database
+            throw error;
         }
 
         return otpRecord;
@@ -74,7 +75,9 @@ export class OtpService {
                 break;
 
             default:
-                logger.warn(`[OTP] Unknown OTP type: ${type}`);
+                logger.warn(`[OTP] Unknown OTP type: ${type} Default to EMAIL`);
+                await this.emailService.sendVerificationEmail(identifier, code);
+                break;
         }
     }
 

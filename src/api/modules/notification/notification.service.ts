@@ -1,12 +1,7 @@
-import { Queue } from 'bullmq';
 import { prisma, NotificationType, Notification, Prisma } from '../../../shared/database';
-import { redisConnection } from '../../../shared/config/redis.config';
 import { logError } from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
-
-const notificationQueue = new Queue('notification-queue', {
-    connection: redisConnection,
-});
+import { getNotificationQueue } from '../../../shared/lib/init/service-initializer';
 
 export class NotificationService {
     /**
@@ -34,7 +29,7 @@ export class NotificationService {
             });
 
             // 2. Add to Queue for Push Notification
-            await notificationQueue.add('send-notification', {
+            await getNotificationQueue().add('send-notification', {
                 userId,
                 title,
                 body,

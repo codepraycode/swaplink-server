@@ -13,4 +13,6 @@ export abstract class BaseEmailService {
     abstract sendWelcomeEmail(to: string, name: string): Promise<void>;
 
     abstract sendPasswordResetLink(email: string, resetToken: string): Promise<void>;
+
+    abstract sendVerificationSuccessEmail(to: string, name: string): Promise<void>;
 }

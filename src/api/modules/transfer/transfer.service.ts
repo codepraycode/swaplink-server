@@ -1,11 +1,9 @@
-import { Queue } from 'bullmq';
 import {
     prisma,
     TransactionStatus,
     TransactionType,
     NotificationType,
 } from '../../../shared/database';
-import { redisConnection } from '../../../shared/config/redis.config';
 import { pinService } from './pin.service';
 import { nameEnquiryService } from './name-enquiry.service';
 import { beneficiaryService } from './beneficiary.service';
@@ -15,6 +13,7 @@ import logger from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
 import { walletService } from '../../../shared/lib/services/wallet.service';
 import { NotificationService } from '../notification/notification.service';
+import { getTransferQueue } from '../../../shared/lib/init/service-initializer';
 
 export interface TransferRequest {
     userId: string;
@@ -29,12 +28,6 @@ export interface TransferRequest {
 }
 
 export class TransferService {
-    private transferQueue: Queue;
-
-    constructor() {
-        this.transferQueue = new Queue('transfer-queue', { connection: redisConnection });
-    }
-
     /**
      * Process a transfer request (Hybrid: Internal or External)
      */
@@ -296,7 +289,7 @@ export class TransferService {
 
         // 2. Add to Queue
         try {
-            await this.transferQueue.add('process-external-transfer', {
+            await getTransferQueue().add('process-external-transfer', {
                 transactionId: transaction.id,
                 destination,
                 amount,

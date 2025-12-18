@@ -15,6 +15,7 @@ let onboardingQueue: Queue | null = null;
 let transferQueue: Queue | null = null;
 let bankingQueue: Queue | null = null;
 let p2pOrderQueue: Queue | null = null;
+let notificationQueue: Queue | null = null;
 
 /**
  * Initialize all BullMQ queues
@@ -90,6 +91,21 @@ export async function initializeQueues(): Promise<void> {
         });
         logger.info('  ✅ P2P Order Queue initialized');
 
+        // Notification Queue
+        logger.debug('  → Initializing Notification Queue...');
+        notificationQueue = new Queue('notification-queue', {
+            connection: redisConnection,
+            defaultJobOptions: {
+                attempts: 3,
+                backoff: {
+                    type: 'exponential',
+                    delay: 2000,
+                },
+                removeOnComplete: true,
+            },
+        });
+        logger.info('  ✅ Notification Queue initialized');
+
         logger.info('✅ All queues initialized successfully');
     } catch (error) {
         logger.error('❌ Failed to initialize queues:', error);
@@ -146,6 +162,17 @@ export function getP2POrderQueue(): Queue {
 }
 
 /**
+ * Get Notification Queue instance
+ * @throws Error if queue is not initialized
+ */
+export function getNotificationQueue(): Queue {
+    if (!notificationQueue) {
+        throw new Error('Notification Queue not initialized. Call initializeQueues() first.');
+    }
+    return notificationQueue;
+}
+
+/**
  * Gracefully close all queues
  */
 export async function closeQueues(): Promise<void> {
@@ -164,6 +191,9 @@ export async function closeQueues(): Promise<void> {
     }
     if (p2pOrderQueue) {
         closePromises.push(p2pOrderQueue.close());
+    }
+    if (notificationQueue) {
+        closePromises.push(notificationQueue.close());
     }
 
     await Promise.all(closePromises);
