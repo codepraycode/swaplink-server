@@ -1,4 +1,4 @@
-import { globusService } from '../globus.service';
+import { globusService } from './globus.service';
 
 // Mock env config to force Mock Mode
 jest.mock('../../../../config/env.config', () => ({

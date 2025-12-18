@@ -1,6 +1,6 @@
 import { Worker } from 'bullmq';
 import { redisConnection } from '../shared/config/redis.config';
-import { globusService } from '../shared/lib/integrations/banking/globus.service';
+import { globusService } from '../shared/lib/services/banking/globus.service';
 import { prisma } from '../shared/database';
 import logger from '../shared/lib/utils/logger';
 import { socketService } from '../shared/lib/services/socket.service';

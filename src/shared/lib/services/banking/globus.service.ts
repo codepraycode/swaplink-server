@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { envConfig } from '../../../config/env.config';
-import logger from '../../../lib/utils/logger';
+import logger from '../../utils/logger';
 
 export class GlobusService {
     private baseUrl = envConfig.GLOBUS_BASE_URL;
