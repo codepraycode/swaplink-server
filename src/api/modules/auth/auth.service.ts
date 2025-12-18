@@ -243,7 +243,9 @@ class AuthService {
 
     async requestPasswordReset(email: string) {
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return; // Silent fail
+        if (!user) {
+            throw new NotFoundError('Account not found');
+        }
 
         await otpService.generateOtp(email, OtpType.PASSWORD_RESET, user.id);
     }

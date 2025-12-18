@@ -61,12 +61,12 @@ export class OtpService {
      */
     private async sendOtp(identifier: string, code: string, type: OtpType): Promise<void> {
         switch (type) {
-            case OtpType.PHONE_VERIFICATION:
-            case OtpType.TWO_FACTOR:
-            case OtpType.WITHDRAWAL_CONFIRMATION:
-                // Send via SMS for phone-related OTPs
-                await this.smsService.sendOtp(identifier, code);
-                break;
+            // case OtpType.PHONE_VERIFICATION:
+            // case OtpType.TWO_FACTOR:
+            // case OtpType.WITHDRAWAL_CONFIRMATION:
+            //     // Send via SMS for phone-related OTPs
+            //     await this.smsService.sendOtp(identifier, code);
+            //     break;
 
             case OtpType.EMAIL_VERIFICATION:
             case OtpType.PASSWORD_RESET:
