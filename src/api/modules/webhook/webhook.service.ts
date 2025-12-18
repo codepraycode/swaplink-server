@@ -20,6 +20,13 @@ export class WebhookService {
         // Security: In Prod, reject if secret is missing
         if (!envConfig.GLOBUS_WEBHOOK_SECRET) {
             logger.error('❌ GLOBUS_WEBHOOK_SECRET missing in production!');
+
+            const isStaging = process.env.STAGING === 'true';
+
+            if (isStaging) {
+                logger.warn('ℹ️ Globus Signature skipped in staging!');
+                return true;
+            }
             return false;
         }
 
