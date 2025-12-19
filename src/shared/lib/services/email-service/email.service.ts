@@ -12,17 +12,17 @@ export class EmailServiceFactory {
         const isStaging = process.env.STAGING === 'true' || envConfig.NODE_ENV === 'staging';
 
         // 1. Production: Use Resend if configured
-        if (isProduction && !isStaging && envConfig.RESEND_API_KEY) {
-            try {
-                logger.info('🚀 Production mode: Initializing Resend Email Service');
-                return new ResendEmailService();
-            } catch (error) {
-                logger.error(
-                    'Failed to initialize ResendEmailService, falling back to LocalEmailService',
-                    error
-                );
-            }
-        }
+        // if (isProduction && !isStaging && envConfig.RESEND_API_KEY) {
+        //     try {
+        //         logger.info('🚀 Production mode: Initializing Resend Email Service');
+        //         return new ResendEmailService();
+        //     } catch (error) {
+        //         logger.error(
+        //             'Failed to initialize ResendEmailService, falling back to LocalEmailService',
+        //             error
+        //         );
+        //     }
+        // }
 
         // 2. Staging: Use SendGrid if configured (preferred for cloud deployments)
         // if (isStaging && envConfig.SENDGRID_API_KEY) {
@@ -38,17 +38,17 @@ export class EmailServiceFactory {
         // }
 
         // 3. Staging Fallback: Use Mailtrap if SendGrid is not configured
-        if (isStaging && envConfig.MAILTRAP_API_TOKEN) {
-            try {
-                logger.info('🧪 Staging mode: Initializing Mailtrap Email Service (API)');
-                return new MailtrapEmailService();
-            } catch (error) {
-                logger.error(
-                    'Failed to initialize MailtrapEmailService, falling back to LocalEmailService',
-                    error
-                );
-            }
-        }
+        // if (isStaging && envConfig.MAILTRAP_API_TOKEN) {
+        //     try {
+        //         logger.info('🧪 Staging mode: Initializing Mailtrap Email Service (API)');
+        //         return new MailtrapEmailService();
+        //     } catch (error) {
+        //         logger.error(
+        //             'Failed to initialize MailtrapEmailService, falling back to LocalEmailService',
+        //             error
+        //         );
+        //     }
+        // }
 
         // 3. Development/Fallback: Use LocalEmailService (Logs to console)
         logger.info('💻 Development mode: Using Local Email Service (console logging)');

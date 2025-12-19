@@ -1,6 +1,6 @@
 import { BaseEmailService, EmailOptions } from './base-email.service';
 import { MailtrapClient } from 'mailtrap';
-import logger from '../../utils/logger';
+import logger, { logDebug } from '../../utils/logger';
 import { envConfig } from '../../../config/env.config';
 import { BadGatewayError } from '../../utils/api-error';
 
@@ -10,12 +10,14 @@ export class MailtrapEmailService extends BaseEmailService {
 
     constructor() {
         super();
+        // logDebug(envConfig.MAILTRAP_API_TOKEN);
         if (!envConfig.MAILTRAP_API_TOKEN) {
             throw new Error('MAILTRAP_API_TOKEN is required');
         }
 
         this.client = new MailtrapClient({
             token: envConfig.MAILTRAP_API_TOKEN,
+            // sandbox: true,
         });
 
         this.fromEmail = envConfig.FROM_EMAIL;
