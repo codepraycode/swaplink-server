@@ -41,6 +41,12 @@ interface EnvConfig {
     // Resend Email Service
     RESEND_API_KEY: string;
 
+    // Mailtrap Email Service (for staging)
+    MAILTRAP_HOST: string;
+    MAILTRAP_PORT: number;
+    MAILTRAP_USER: string;
+    MAILTRAP_PASSWORD: string;
+
     // Storage (S3/Cloudflare R2)
     AWS_ACCESS_KEY_ID: string;
     AWS_SECRET_ACCESS_KEY: string;
@@ -121,6 +127,11 @@ export const envConfig: EnvConfig = {
     FRONTEND_URL: getEnv('FRONTEND_URL', 'http://localhost:3000'),
 
     RESEND_API_KEY: getEnv('RESEND_API_KEY', ''),
+
+    MAILTRAP_HOST: getEnv('MAILTRAP_HOST', 'sandbox.smtp.mailtrap.io'),
+    MAILTRAP_PORT: parseInt(getEnv('MAILTRAP_PORT', '2525'), 10),
+    MAILTRAP_USER: getEnv('MAILTRAP_USER', ''),
+    MAILTRAP_PASSWORD: getEnv('MAILTRAP_PASSWORD', ''),
 
     AWS_ACCESS_KEY_ID: getEnv('AWS_ACCESS_KEY_ID', 'minioadmin'),
     AWS_SECRET_ACCESS_KEY: getEnv('AWS_SECRET_ACCESS_KEY', 'minioadmin'),
