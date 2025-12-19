@@ -1,10 +1,10 @@
 import { transferService } from '../../../../api/modules/transfer/transfer.service';
 import { prisma } from '../../../database';
-import { pinService } from '../pin.service';
-import { nameEnquiryService } from '../name-enquiry.service';
-import { BadRequestError } from '../../utils/api-error';
+import { nameEnquiryService } from '../../../../api/modules/transfer/name-enquiry.service';
+import { BadRequestError, ForbiddenError } from '../../utils/api-error';
 import { socketService } from '../socket.service';
 import { walletService } from '../wallet.service';
+import { redisConnection } from '../../../config/redis.config';
 
 jest.mock('../socket.service');
 jest.mock('../wallet.service');
@@ -23,12 +23,19 @@ jest.mock('../../../database', () => ({
         virtualAccount: {
             findUnique: jest.fn(),
         },
+        user: {
+            findUnique: jest.fn(),
+        },
         $transaction: jest.fn(callback => callback(prisma)),
     },
 }));
 
 jest.mock('../../../config/redis.config', () => ({
-    redisConnection: {},
+    redisConnection: {
+        get: jest.fn(),
+        del: jest.fn(),
+        setex: jest.fn(),
+    },
 }));
 
 jest.mock('bullmq', () => ({
@@ -37,20 +44,19 @@ jest.mock('bullmq', () => ({
     })),
 }));
 
-jest.mock('../pin.service');
-jest.mock('../name-enquiry.service');
+jest.mock('../../../../api/modules/transfer/name-enquiry.service');
 
 describe('TransferService', () => {
     const mockUserId = 'user-123';
     const mockReceiverId = 'user-456';
+    const mockIdempotencyKey = 'uuid-123';
     const mockPayload = {
         userId: mockUserId,
         amount: 5000,
         accountNumber: '1234567890',
         bankCode: '058',
         accountName: 'John Doe',
-        pin: '1234',
-        idempotencyKey: 'uuid-123',
+        idempotencyKey: mockIdempotencyKey,
     };
 
     beforeEach(() => {
@@ -58,7 +64,30 @@ describe('TransferService', () => {
     });
 
     describe('processTransfer', () => {
-        it('should return existing transaction if idempotency key exists', async () => {
+        it('should throw ForbiddenError if idempotency key is not found in Redis', async () => {
+            (redisConnection.get as jest.Mock).mockResolvedValue(null);
+
+            await expect(transferService.processTransfer(mockPayload)).rejects.toThrow(
+                ForbiddenError
+            );
+            await expect(transferService.processTransfer(mockPayload)).rejects.toThrow(
+                'Invalid or expired idempotency key. Please verify your PIN again.'
+            );
+        });
+
+        it('should throw ForbiddenError if idempotency key belongs to different user', async () => {
+            (redisConnection.get as jest.Mock).mockResolvedValue('different-user-id');
+
+            await expect(transferService.processTransfer(mockPayload)).rejects.toThrow(
+                ForbiddenError
+            );
+            await expect(transferService.processTransfer(mockPayload)).rejects.toThrow(
+                'Idempotency key does not belong to this user.'
+            );
+        });
+
+        it('should return existing transaction if idempotency key exists in database', async () => {
+            (redisConnection.get as jest.Mock).mockResolvedValue(mockUserId);
             (prisma.transaction.findUnique as jest.Mock).mockResolvedValue({
                 id: 'tx-123',
                 status: 'COMPLETED',
@@ -71,12 +100,11 @@ describe('TransferService', () => {
                 transactionId: 'tx-123',
                 status: 'COMPLETED',
             });
-            expect(pinService.verifyPin).not.toHaveBeenCalled();
         });
 
         it('should process internal transfer successfully', async () => {
+            (redisConnection.get as jest.Mock).mockResolvedValue(mockUserId);
             (prisma.transaction.findUnique as jest.Mock).mockResolvedValue(null);
-            (pinService.verifyPin as jest.Mock).mockResolvedValue(true);
             (nameEnquiryService.resolveAccount as jest.Mock).mockResolvedValue({
                 isInternal: true,
                 accountName: 'John Doe',
@@ -94,6 +122,10 @@ describe('TransferService', () => {
                     userId: mockReceiverId,
                     balance: 5000,
                 },
+            });
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+                firstName: 'Test',
+                lastName: 'User',
             });
 
             // Mock Transaction Creation
@@ -113,6 +145,9 @@ describe('TransferService', () => {
                 where: { id: 'wallet-456' },
                 data: { balance: { increment: 5000 } },
             });
+
+            // Verify idempotency key was deleted
+            expect(redisConnection.del).toHaveBeenCalledWith(`idempotency:${mockIdempotencyKey}`);
 
             // Verify Socket Emissions
             expect(walletService.getWalletBalance).toHaveBeenCalledWith(mockUserId);
@@ -135,8 +170,8 @@ describe('TransferService', () => {
         });
 
         it('should throw BadRequestError for insufficient funds (Internal)', async () => {
+            (redisConnection.get as jest.Mock).mockResolvedValue(mockUserId);
             (prisma.transaction.findUnique as jest.Mock).mockResolvedValue(null);
-            (pinService.verifyPin as jest.Mock).mockResolvedValue(true);
             (nameEnquiryService.resolveAccount as jest.Mock).mockResolvedValue({
                 isInternal: true,
                 accountName: 'John Doe',
@@ -148,7 +183,7 @@ describe('TransferService', () => {
                 balance: 1000, // Less than 5000
             });
             (prisma.virtualAccount.findUnique as jest.Mock).mockResolvedValue({
-                wallet: { id: 'wallet-456' },
+                wallet: { id: 'wallet-456', userId: mockReceiverId },
             });
 
             await expect(transferService.processTransfer(mockPayload)).rejects.toThrow(
@@ -157,8 +192,8 @@ describe('TransferService', () => {
         });
 
         it('should initiate external transfer successfully', async () => {
+            (redisConnection.get as jest.Mock).mockResolvedValue(mockUserId);
             (prisma.transaction.findUnique as jest.Mock).mockResolvedValue(null);
-            (pinService.verifyPin as jest.Mock).mockResolvedValue(true);
             (nameEnquiryService.resolveAccount as jest.Mock).mockResolvedValue({
                 isInternal: false,
                 accountName: 'External User',
@@ -188,8 +223,8 @@ describe('TransferService', () => {
                 data: { balance: { decrement: 5000 } },
             });
 
-            // Queue should be called (mocked internally in service constructor, hard to test without exposing queue)
-            // But we can assume it works if no error is thrown
+            // Verify idempotency key was deleted
+            expect(redisConnection.del).toHaveBeenCalledWith(`idempotency:${mockIdempotencyKey}`);
 
             // Verify Socket Emission (Sender only)
             expect(walletService.getWalletBalance).toHaveBeenCalledWith(mockUserId);

@@ -75,6 +75,30 @@ export class PinService {
     }
 
     /**
+     * Verify PIN for Transfer and Generate Idempotency Key
+     * This is Step 1 of the transfer process
+     */
+    async verifyPinForTransfer(userId: string, pin: string) {
+        // Verify the PIN using existing logic
+        await this.verifyPin(userId, pin);
+
+        // Generate a unique idempotency key
+        const { randomUUID } = await import('crypto');
+        const idempotencyKey = randomUUID();
+
+        // Store the idempotency key in Redis with the userId
+        // This allows us to validate that the key belongs to this user
+        const idempotencyKeyRedis = `idempotency:${idempotencyKey}`;
+        await redisConnection.setex(idempotencyKeyRedis, 300, userId); // 5 minutes expiry
+
+        return {
+            message: 'PIN verified successfully',
+            idempotencyKey,
+            expiresIn: 300, // seconds
+        };
+    }
+
+    /**
      * Update existing PIN
      */
     async updatePin(userId: string, oldPin: string, newPin: string) {

@@ -4,16 +4,20 @@ import {
     TransactionType,
     NotificationType,
 } from '../../../shared/database';
-import { pinService } from './pin.service';
 import { nameEnquiryService } from './name-enquiry.service';
 import { beneficiaryService } from './beneficiary.service';
-import { BadRequestError, NotFoundError } from '../../../shared/lib/utils/api-error';
+import {
+    BadRequestError,
+    NotFoundError,
+    ForbiddenError,
+} from '../../../shared/lib/utils/api-error';
 import { randomUUID } from 'crypto';
 import logger from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
 import { walletService } from '../../../shared/lib/services/wallet.service';
 import { NotificationService } from '../notification/notification.service';
 import { getTransferQueue } from '../../../shared/lib/init/service-initializer';
+import { redisConnection } from '../../../shared/config/redis.config';
 
 export interface TransferRequest {
     userId: string;
@@ -22,7 +26,6 @@ export interface TransferRequest {
     bankCode: string;
     accountName: string; // For validation
     narration?: string;
-    pin: string;
     saveBeneficiary?: boolean;
     idempotencyKey: string;
 }
@@ -30,11 +33,26 @@ export interface TransferRequest {
 export class TransferService {
     /**
      * Process a transfer request (Hybrid: Internal or External)
+     * Note: PIN verification is done in a separate step before this
      */
     async processTransfer(payload: TransferRequest): Promise<any> {
-        const { userId, accountNumber, bankCode, pin, idempotencyKey, saveBeneficiary } = payload;
+        const { userId, accountNumber, bankCode, idempotencyKey, saveBeneficiary } = payload;
 
-        // 1. Idempotency Check
+        // 1. Validate Idempotency Key belongs to this user
+        const idempotencyKeyRedis = `idempotency:${idempotencyKey}`;
+        const storedUserId = await redisConnection.get(idempotencyKeyRedis);
+
+        if (!storedUserId) {
+            throw new ForbiddenError(
+                'Invalid or expired idempotency key. Please verify your PIN again.'
+            );
+        }
+
+        if (storedUserId !== userId) {
+            throw new ForbiddenError('Idempotency key does not belong to this user.');
+        }
+
+        // 2. Check if transaction already exists
         const existingTx = await prisma.transaction.findUnique({
             where: { idempotencyKey },
         });
@@ -45,9 +63,6 @@ export class TransferService {
                 status: existingTx.status,
             };
         }
-
-        // 2. PIN Verification
-        await pinService.verifyPin(userId, pin);
 
         // 3. Resolve Destination (Internal vs External)
         const destination = await nameEnquiryService.resolveAccount(accountNumber, bankCode);
@@ -67,6 +82,9 @@ export class TransferService {
                 throw new BadRequestError('Cannot transfer to self');
             }
         }
+
+        // 4. Delete the idempotency key from Redis to prevent reuse
+        await redisConnection.del(idempotencyKeyRedis);
 
         if (destination.isInternal) {
             const result = await this.processInternalTransfer(payload, destination);

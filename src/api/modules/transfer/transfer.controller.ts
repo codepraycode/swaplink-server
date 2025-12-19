@@ -59,6 +59,26 @@ export class TransferController {
     }
 
     /**
+     * Verify PIN for Transfer (Step 1)
+     * Returns an idempotency key to be used in the transfer request
+     */
+    static async verifyPin(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = JwtUtils.ensureAuthentication(req).userId;
+            const { pin } = req.body;
+
+            if (!pin) {
+                throw new BadRequestError('PIN is required');
+            }
+
+            const result = await pinService.verifyPinForTransfer(userId, pin);
+            sendSuccess(res, result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
      * Process Transfer
      */
     static async processTransfer(req: Request, res: Response, next: NextFunction) {
