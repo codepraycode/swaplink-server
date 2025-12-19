@@ -1,61 +1,56 @@
 import { BaseEmailService, EmailOptions } from './base-email.service';
-import { MailtrapClient } from 'mailtrap';
+import sendgrid from '@sendgrid/mail';
 import logger from '../../utils/logger';
 import { envConfig } from '../../../config/env.config';
 import { BadGatewayError } from '../../utils/api-error';
 
-export class MailtrapEmailService extends BaseEmailService {
-    private client: MailtrapClient;
+export class SendGridEmailService extends BaseEmailService {
     private fromEmail: string;
 
     constructor() {
         super();
-        if (!envConfig.MAILTRAP_API_TOKEN) {
-            throw new Error('MAILTRAP_API_TOKEN is required');
+        if (!envConfig.SENDGRID_API_KEY) {
+            throw new Error('SENDGRID_API_KEY is required');
         }
 
-        this.client = new MailtrapClient({
-            token: envConfig.MAILTRAP_API_TOKEN,
-        });
-
+        sendgrid.setApiKey(envConfig.SENDGRID_API_KEY);
         this.fromEmail = envConfig.FROM_EMAIL;
 
-        logger.info('✅ Using Mailtrap Email Service (Staging - API)');
+        logger.info('✅ Using SendGrid Email Service (Staging)');
         logger.info(`📧 FROM_EMAIL configured as: ${this.fromEmail}`);
     }
 
     async sendEmail(options: EmailOptions): Promise<void> {
         const { to, subject, html, text } = options;
         try {
-            logger.info(`[Mailtrap] Attempting to send email to ${to} from ${this.fromEmail}`);
+            logger.info(`[SendGrid] Attempting to send email to ${to} from ${this.fromEmail}`);
 
-            const response = await this.client.send({
-                from: {
-                    email: this.fromEmail,
-                    name: 'SwapLink',
-                },
-                to: [{ email: to }],
+            const msg = {
+                to,
+                from: this.fromEmail,
                 subject,
                 text: text || '',
                 html: html || text || '',
-            });
+            };
+
+            const response = await sendgrid.send(msg);
 
             logger.info(
-                `[Mailtrap] ✅ Email sent successfully to ${to}. Message ID: ${
-                    response.message_ids?.[0] || 'N/A'
-                }`
+                `[SendGrid] ✅ Email sent successfully to ${to}. Status: ${response[0].statusCode}`
             );
         } catch (error: unknown) {
-            logger.error(`[Mailtrap] Exception sending email to ${to}:`, error);
+            logger.error(`[SendGrid] Exception sending email to ${to}:`, error);
 
+            // SendGrid errors have a response property with details
             const errorMessage =
-                error && typeof error === 'object' && 'message' in error
-                    ? (error as { message?: string }).message
+                error && typeof error === 'object' && 'response' in error
+                    ? (error as { response?: { body?: { errors?: Array<{ message?: string }> } } })
+                          ?.response?.body?.errors?.[0]?.message
                     : error instanceof Error
                     ? error.message
                     : 'Unknown error';
 
-            throw new BadGatewayError(`Mailtrap Error: ${errorMessage}`);
+            throw new BadGatewayError(`SendGrid Error: ${errorMessage}`);
         }
     }
 

@@ -41,7 +41,13 @@ interface EnvConfig {
     // Resend Email Service
     RESEND_API_KEY: string;
 
-    // Mailtrap Email Service (for staging)
+    // SendGrid Email Service (for staging)
+    SENDGRID_API_KEY: string;
+
+    // Mailtrap Email Service (for staging - API)
+    MAILTRAP_API_TOKEN: string;
+
+    // Mailtrap SMTP (deprecated - kept for backward compatibility)
     MAILTRAP_HOST: string;
     MAILTRAP_PORT: number;
     MAILTRAP_USER: string;
@@ -127,6 +133,10 @@ export const envConfig: EnvConfig = {
     FRONTEND_URL: getEnv('FRONTEND_URL', 'http://localhost:3000'),
 
     RESEND_API_KEY: getEnv('RESEND_API_KEY', ''),
+
+    SENDGRID_API_KEY: getEnv('SENDGRID_API_KEY', ''),
+
+    MAILTRAP_API_TOKEN: getEnv('MAILTRAP_API_TOKEN', ''),
 
     MAILTRAP_HOST: getEnv('MAILTRAP_HOST', 'sandbox.smtp.mailtrap.io'),
     MAILTRAP_PORT: parseInt(getEnv('MAILTRAP_PORT', '2525'), 10),

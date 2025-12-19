@@ -1,5 +1,6 @@
 import { BaseEmailService } from './base-email.service';
 import { ResendEmailService } from './resend-email.service';
+import { SendGridEmailService } from './sendgrid-email.service';
 import { MailtrapEmailService } from './mailtrap-email.service';
 import { LocalEmailService } from './local-email.service';
 import { envConfig } from '../../../config/env.config';
@@ -23,10 +24,23 @@ export class EmailServiceFactory {
             }
         }
 
-        // 2. Staging: Use Mailtrap if configured
-        if (isStaging && envConfig.MAILTRAP_USER && envConfig.MAILTRAP_PASSWORD) {
+        // 2. Staging: Use SendGrid if configured (preferred for cloud deployments)
+        // if (isStaging && envConfig.SENDGRID_API_KEY) {
+        //     try {
+        //         logger.info('🧪 Staging mode: Initializing SendGrid Email Service');
+        //         return new SendGridEmailService();
+        //     } catch (error) {
+        //         logger.error(
+        //             'Failed to initialize SendGridEmailService, trying Mailtrap...',
+        //             error
+        //         );
+        //     }
+        // }
+
+        // 3. Staging Fallback: Use Mailtrap if SendGrid is not configured
+        if (isStaging && envConfig.MAILTRAP_API_TOKEN) {
             try {
-                logger.info('🧪 Staging mode: Initializing Mailtrap Email Service');
+                logger.info('🧪 Staging mode: Initializing Mailtrap Email Service (API)');
                 return new MailtrapEmailService();
             } catch (error) {
                 logger.error(

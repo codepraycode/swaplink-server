@@ -1,0 +1,128 @@
+2025-12-19T09:04:14.000000000Z [inf]  Starting Container
+2025-12-19T09:04:15.696743739Z [err]  
+2025-12-19T09:04:15.696756799Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-19T09:04:15.696817365Z [inf]  [2025-12-19 09:04:14] [32minfo[39m: [32m🧪 Staging mode: Initializing Mailtrap Email Service[39m
+2025-12-19T09:04:15.696834609Z [inf]  [2025-12-19 09:04:14] [32minfo[39m: [32m✅ Using Mailtrap Email Service (Staging)[39m
+2025-12-19T09:04:15.696838095Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-19T09:04:15.696849269Z [inf]  [2025-12-19 09:04:14] [32minfo[39m: [32m📧 FROM_EMAIL configured as: onboarding@resend.dev[39m
+2025-12-19T09:04:15.696852093Z [err]  
+2025-12-19T09:04:15.696859263Z [inf]  [2025-12-19 09:04:14] [32minfo[39m: [32m🔧 Mailtrap Host: sandbox.smtp.mailtrap.io:2525[39m
+2025-12-19T09:04:15.696865806Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-19T09:04:15.696869024Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-19T09:04:15.696876124Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-19T09:04:15.696879813Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-19T09:04:15.696885730Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32mRedis connected successfully[39m
+2025-12-19T09:04:15.696893663Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32mRedis client is ready[39m
+2025-12-19T09:04:15.696902030Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m✅ Database connected successfully[39m
+2025-12-19T09:04:15.696908624Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m🔄 Initializing services...[39m
+2025-12-19T09:04:15.696915471Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m🔄 Initializing BullMQ queues...[39m
+2025-12-19T09:04:15.696923423Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m  ✅ Onboarding Queue initialized[39m
+2025-12-19T09:04:15.705149342Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m  ✅ Transfer Queue initialized[39m
+2025-12-19T09:04:15.705157000Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m  ✅ Banking Queue initialized[39m
+2025-12-19T09:04:15.705164563Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m  ✅ P2P Order Queue initialized[39m
+2025-12-19T09:04:15.705178266Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m  ✅ Notification Queue initialized[39m
+2025-12-19T09:04:15.705185417Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m✅ All queues initialized successfully[39m
+2025-12-19T09:04:15.705192918Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m🔄 Starting HTTP server...[39m
+2025-12-19T09:04:15.705198888Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m🚀 Server running in production mode on port 3000[39m
+2025-12-19T09:04:15.705206759Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m✅ Socket.io initialized[39m
+2025-12-19T09:04:15.705214382Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m✅ P2P Chat Gateway initialized[39m
+2025-12-19T09:04:15.705219869Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m✅ All services initialized successfully[39m
+2025-12-19T09:04:15.705226252Z [inf]  [2025-12-19 09:04:15] [32minfo[39m: [32m✅ Subscribed to socket-events Redis channel[39m
+2025-12-19T09:09:27.819596163Z [inf]  [2025-12-19 09:09:19] [33mwarn[39m: [33m[UnauthorizedError] Invalid or expired access token[39m
+2025-12-19T09:09:27.819606447Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:09:27.819613539Z [inf]  {
+2025-12-19T09:09:27.819614060Z [inf]  [2025-12-19 09:09:19] [33mwarn[39m: [33m[UnauthorizedError] Invalid or expired access token[39m
+2025-12-19T09:09:27.819631367Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:09:27.819637538Z [inf]  [2025-12-19 09:09:20] [33mwarn[39m: [33m[UnauthorizedError] Authentication error: Session invalid[39m
+2025-12-19T09:09:27.819641290Z [inf]  [2025-12-19 09:09:20] [33mwarn[39m: [33m[UnauthorizedError] Invalid or expired access token[39m
+2025-12-19T09:09:27.819646459Z [inf]  [2025-12-19 09:09:19] [33mwarn[39m: [33m[UnauthorizedError] Invalid or expired access token[39m
+2025-12-19T09:09:27.819650052Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:09:27.819654059Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:09:27.819675694Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:09:27.819683672Z [inf]    statusCode: [33m401[39m,
+2025-12-19T09:09:27.819687131Z [inf]  [2025-12-19 09:09:19] [33mwarn[39m: [33m[UnauthorizedError] Invalid or expired access token[39m
+2025-12-19T09:09:27.819691027Z [inf]    data: { code: [32m'INVALID_TOKEN'[39m, message: [32m'Please log in again'[39m }
+2025-12-19T09:09:27.819697691Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:09:27.819704371Z [inf]  }
+2025-12-19T09:09:27.819705676Z [inf]  [2025-12-19 09:09:20] [33mwarn[39m: [33m[UnauthorizedError] Invalid or expired access token[39m
+2025-12-19T09:09:27.819712640Z [inf]  [2025-12-19 09:09:20] [33mwarn[39m: [33m[UnauthorizedError] Invalid or expired access token[39m
+2025-12-19T09:09:27.824959918Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:09:27.824966238Z [inf]  [2025-12-19 09:09:20] [33mwarn[39m: [33m[UnauthorizedError] Invalid or expired access token[39m
+2025-12-19T09:09:27.824971860Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:14:10.225644210Z [inf]  { statusCode: [33m403[39m, data: [90mundefined[39m }
+2025-12-19T09:14:10.225669375Z [inf]  [2025-12-19 09:14:06] [33mwarn[39m: [33m[ForbiddenError] PIN locked. Try again in 15 minutes.[39m
+2025-12-19T09:14:10.225677845Z [inf]  { statusCode: [33m403[39m, data: [90mundefined[39m }
+2025-12-19T09:14:10.225766717Z [inf]  [2025-12-19 09:14:04] [33mwarn[39m: [33m[BadRequestError] Invalid PIN. 2 attempts remaining.[39m
+2025-12-19T09:14:10.225776902Z [inf]  { statusCode: [33m400[39m, data: [90mundefined[39m }
+2025-12-19T09:14:10.225783817Z [inf]  [2025-12-19 09:14:05] [33mwarn[39m: [33m[BadRequestError] Invalid PIN. 1 attempts remaining.[39m
+2025-12-19T09:14:10.225790309Z [inf]  { statusCode: [33m400[39m, data: [90mundefined[39m }
+2025-12-19T09:14:10.225795582Z [inf]  [2025-12-19 09:14:05] [33mwarn[39m: [33m[ForbiddenError] PIN locked due to too many failed attempts.[39m
+2025-12-19T09:14:13.576232732Z [inf]  { statusCode: [33m403[39m, data: [90mundefined[39m }
+2025-12-19T09:14:13.576244624Z [inf]  [2025-12-19 09:14:13] [33mwarn[39m: [33m[ForbiddenError] PIN locked. Try again in 15 minutes.[39m
+2025-12-19T09:14:13.576253055Z [inf]  { statusCode: [33m403[39m, data: [90mundefined[39m }
+2025-12-19T09:14:13.576462663Z [inf]  [2025-12-19 09:14:12] [33mwarn[39m: [33m[ForbiddenError] PIN locked. Try again in 15 minutes.[39m
+2025-12-19T09:14:14.486131787Z [inf]  [2025-12-19 09:14:13] [33mwarn[39m: [33m[ForbiddenError] PIN locked. Try again in 15 minutes.[39m
+2025-12-19T09:14:14.486142909Z [inf]  { statusCode: [33m403[39m, data: [90mundefined[39m }
+2025-12-19T09:14:14.486150134Z [inf]  [2025-12-19 09:14:14] [33mwarn[39m: [33m[ForbiddenError] PIN locked. Try again in 15 minutes.[39m
+2025-12-19T09:14:14.486156143Z [inf]  { statusCode: [33m403[39m, data: [90mundefined[39m }
+2025-12-19T09:14:15.586483930Z [inf]  [2025-12-19 09:14:14] [33mwarn[39m: [33m[ForbiddenError] PIN locked. Try again in 15 minutes.[39m
+2025-12-19T09:14:15.586489287Z [inf]  { statusCode: [33m403[39m, data: [90mundefined[39m }
+2025-12-19T09:16:26.649903118Z [inf]  [2025-12-19 09:16:25] [33mwarn[39m: [33m[UnauthorizedError] No authorization token provided[39m
+2025-12-19T09:16:26.649910442Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:18:08.028927163Z [inf]  [2025-12-19 09:17:59] [33mwarn[39m: [33m[UnauthorizedError] No authorization token provided[39m
+2025-12-19T09:18:08.028934444Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:19:38.715110551Z [inf]  [2025-12-19 09:19:29] [32minfo[39m: [32m[Mailtrap] Attempting to send email to preciousbusiness10@gmail.com from onboarding@resend.dev[39m
+2025-12-19T09:19:38.715118720Z [inf]  [2025-12-19 09:19:30] [32minfo[39m: [32m═══════════════════════════════════════[39m
+2025-12-19T09:19:38.715125739Z [inf]  [2025-12-19 09:19:30] [32minfo[39m: [32m📱 SMS OTP for +2348114662066[39m
+2025-12-19T09:19:38.715132316Z [inf]  [2025-12-19 09:19:30] [32minfo[39m: [32m🔑 CODE: Your SwapLink verification code is: 939783. Valid for 10 minutes. Do not share this code.[39m
+2025-12-19T09:19:38.715139115Z [inf]  [2025-12-19 09:19:30] [32minfo[39m: [32m⏰ Valid for: 10 minutes[39m
+2025-12-19T09:19:38.715170486Z [inf]  [2025-12-19 09:19:30] [32minfo[39m: [32m═══════════════════════════════════════[39m
+2025-12-19T09:19:59.072874523Z [inf]  [2025-12-19 09:19:57] [32minfo[39m: [32m[Mailtrap] Attempting to send email to preciousbusiness10@gmail.com from onboarding@resend.dev[39m
+2025-12-19T09:20:29.635569287Z [inf]  [2025-12-19 09:20:29] [32minfo[39m: [32m[Mailtrap] Attempting to send email to preciousbusiness10@gmail.com from onboarding@resend.dev[39m
+2025-12-19T09:21:29.742606874Z [inf]  [2025-12-19 09:21:29] [31merror[39m: [31m[Mailtrap] Exception sending email to preciousbusiness10@gmail.com: Connection timeout[39m
+2025-12-19T09:21:29.742613923Z [inf]  Error: Connection timeout
+2025-12-19T09:21:29.742620398Z [inf]      at SMTPConnection._formatError (/app/node_modules/.pnpm/nodemailer@7.0.11/node_modules/nodemailer/lib/smtp-connection/index.js:809:19)
+2025-12-19T09:21:29.742626103Z [inf]      at SMTPConnection._onError (/app/node_modules/.pnpm/nodemailer@7.0.11/node_modules/nodemailer/lib/smtp-connection/index.js:795:20)
+2025-12-19T09:21:29.742634792Z [inf]      at Timeout.<anonymous> (/app/node_modules/.pnpm/nodemailer@7.0.11/node_modules/nodemailer/lib/smtp-connection/index.js:237:22)
+2025-12-19T09:21:29.742641230Z [inf]      at listOnTimeout (node:internal/timers:569:17)
+2025-12-19T09:21:29.742648201Z [inf]      at process.processTimers (node:internal/timers:512:7)
+2025-12-19T09:21:29.742654845Z [inf]  [2025-12-19 09:21:29] [33mwarn[39m: [33m[BadGatewayError] Mailtrap Error: Connection timeout[39m
+2025-12-19T09:21:29.742660324Z [inf]  { statusCode: [33m502[39m, data: [90mundefined[39m }
+2025-12-19T09:21:29.742666106Z [inf]  [2025-12-19 09:21:29] [31merror[39m: [31mFailed to send welcome email to preciousbusiness10@gmail.com Mailtrap Error: Connection timeout[39m
+2025-12-19T09:21:29.742671941Z [inf]  Error: Mailtrap Error: Connection timeout
+2025-12-19T09:21:29.742678588Z [inf]      at MailtrapEmailService.sendEmail (/app/dist/shared/lib/services/email-service/mailtrap-email.service.js:47:19)
+2025-12-19T09:21:29.742684466Z [inf]      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-19T09:21:59.704018500Z [inf]  [2025-12-19 09:21:57] [31merror[39m: [31m[Mailtrap] Exception sending email to preciousbusiness10@gmail.com: Connection timeout[39m
+2025-12-19T09:21:59.704026065Z [inf]  Error: Connection timeout
+2025-12-19T09:21:59.704032388Z [inf]      at SMTPConnection._formatError (/app/node_modules/.pnpm/nodemailer@7.0.11/node_modules/nodemailer/lib/smtp-connection/index.js:809:19)
+2025-12-19T09:21:59.704038857Z [inf]      at SMTPConnection._onError (/app/node_modules/.pnpm/nodemailer@7.0.11/node_modules/nodemailer/lib/smtp-connection/index.js:795:20)
+2025-12-19T09:21:59.704045480Z [inf]      at Timeout.<anonymous> (/app/node_modules/.pnpm/nodemailer@7.0.11/node_modules/nodemailer/lib/smtp-connection/index.js:237:22)
+2025-12-19T09:21:59.704052902Z [inf]      at listOnTimeout (node:internal/timers:569:17)
+2025-12-19T09:21:59.704060209Z [inf]      at process.processTimers (node:internal/timers:512:7)
+2025-12-19T09:21:59.704066077Z [inf]  [2025-12-19 09:21:57] [33mwarn[39m: [33m[BadGatewayError] Mailtrap Error: Connection timeout[39m
+2025-12-19T09:21:59.704073541Z [inf]  { statusCode: [33m502[39m, data: [90mundefined[39m }
+2025-12-19T09:21:59.704079855Z [inf]  [2025-12-19 09:21:57] [31merror[39m: [31m[OTP] Failed to send OTP to preciousbusiness10@gmail.com: Mailtrap Error: Connection timeout[39m
+2025-12-19T09:21:59.704086446Z [inf]  Error: Mailtrap Error: Connection timeout
+2025-12-19T09:21:59.704093097Z [inf]      at MailtrapEmailService.sendEmail (/app/dist/shared/lib/services/email-service/mailtrap-email.service.js:47:19)
+2025-12-19T09:21:59.704099660Z [inf]      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-19T09:21:59.704110892Z [inf]      at async OtpService.sendOtp (/app/dist/shared/lib/services/otp.service.js:67:17)
+2025-12-19T09:21:59.704119029Z [inf]      at async OtpService.generateOtp (/app/dist/shared/lib/services/otp.service.js:43:13)
+2025-12-19T09:22:00.771086037Z [inf]      at async AuthService.sendOtp (/app/dist/api/modules/auth/auth.service.js:126:9)
+2025-12-19T09:22:00.771092228Z [inf]      at async AuthController.sendEmailOtp (/app/dist/api/modules/auth/auth.controller.js:92:32)
+2025-12-19T09:22:31.748587925Z [inf]      at MailtrapEmailService.sendEmail (/app/dist/shared/lib/services/email-service/mailtrap-email.service.js:47:19)
+2025-12-19T09:22:31.748603112Z [inf]      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-19T09:22:31.748612182Z [inf]      at async OtpService.sendOtp (/app/dist/shared/lib/services/otp.service.js:67:17)
+2025-12-19T09:22:31.748621520Z [inf]      at async OtpService.generateOtp (/app/dist/shared/lib/services/otp.service.js:43:13)
+2025-12-19T09:22:31.748709785Z [inf]  [2025-12-19 09:22:29] [31merror[39m: [31m[Mailtrap] Exception sending email to preciousbusiness10@gmail.com: Connection timeout[39m
+2025-12-19T09:22:31.748718428Z [inf]  Error: Connection timeout
+2025-12-19T09:22:31.748727959Z [inf]      at SMTPConnection._formatError (/app/node_modules/.pnpm/nodemailer@7.0.11/node_modules/nodemailer/lib/smtp-connection/index.js:809:19)
+2025-12-19T09:22:31.748734636Z [inf]      at SMTPConnection._onError (/app/node_modules/.pnpm/nodemailer@7.0.11/node_modules/nodemailer/lib/smtp-connection/index.js:795:20)
+2025-12-19T09:22:31.748743737Z [inf]      at Timeout.<anonymous> (/app/node_modules/.pnpm/nodemailer@7.0.11/node_modules/nodemailer/lib/smtp-connection/index.js:237:22)
+2025-12-19T09:22:31.748756193Z [inf]      at listOnTimeout (node:internal/timers:569:17)
+2025-12-19T09:22:31.748762895Z [inf]      at process.processTimers (node:internal/timers:512:7)
+2025-12-19T09:22:31.748770172Z [inf]  [2025-12-19 09:22:29] [33mwarn[39m: [33m[BadGatewayError] Mailtrap Error: Connection timeout[39m
+2025-12-19T09:22:31.748775949Z [inf]  { statusCode: [33m502[39m, data: [90mundefined[39m }
+2025-12-19T09:22:31.748786676Z [inf]  [2025-12-19 09:22:29] [31merror[39m: [31m[OTP] Failed to send OTP to preciousbusiness10@gmail.com: Mailtrap Error: Connection timeout[39m
+2025-12-19T09:22:31.748804930Z [inf]  Error: Mailtrap Error: Connection timeout
+2025-12-19T09:22:31.753402864Z [inf]      at async AuthService.sendOtp (/app/dist/api/modules/auth/auth.service.js:126:9)
+2025-12-19T09:22:31.753411141Z [inf]      at async AuthController.sendEmailOtp (/app/dist/api/modules/auth/auth.controller.js:92:32)
