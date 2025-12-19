@@ -1,15 +1,15 @@
 import { BaseEmailService } from './base-email.service';
-import { ResendEmailService } from './resend-email.service';
-import { SendGridEmailService } from './sendgrid-email.service';
-import { MailtrapEmailService } from './mailtrap-email.service';
+// import { ResendEmailService } from './resend-email.service';
+// import { SendGridEmailService } from './sendgrid-email.service';
+// import { MailtrapEmailService } from './mailtrap-email.service';
 import { LocalEmailService } from './local-email.service';
-import { envConfig } from '../../../config/env.config';
+// import { envConfig } from '../../../config/env.config';
 import logger from '../../utils/logger';
 
 export class EmailServiceFactory {
     static create(): BaseEmailService {
-        const isProduction = envConfig.NODE_ENV === 'production';
-        const isStaging = process.env.STAGING === 'true' || envConfig.NODE_ENV === 'staging';
+        // const isProduction = envConfig.NODE_ENV === 'production';
+        // const isStaging = process.env.STAGING === 'true' || envConfig.NODE_ENV === 'staging';
 
         // 1. Production: Use Resend if configured
         // if (isProduction && !isStaging && envConfig.RESEND_API_KEY) {
