@@ -1,4 +1,4 @@
-import { nameEnquiryService } from '../name-enquiry.service';
+import { nameEnquiryService } from '../../../../api/modules/wallet/name-enquiry.service';
 import { prisma } from '../../../database';
 import { BadRequestError } from '../../utils/api-error';
 

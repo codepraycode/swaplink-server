@@ -11,22 +11,25 @@ src/
 ├── app.ts                    # Main Express app (imports from modules/routes)
 ├── modules/
 │   ├── routes.ts            # ✨ Central route aggregator
-│   ├── auth/
-│   │   ├── auth.routes.ts   # Auth-specific routes
-│   │   ├── auth.controller.ts
-│   │   └── auth.service.ts
+│   ├── account/
+│   │   ├── auth/
+│   │   │   ├── auth.routes.ts   # Auth-specific routes
+│   │   │   ├── auth.controller.ts
+│   │   │   └── auth.service.ts
+│   │   └── user/
+│   │       └── user.routes.ts
 │   └── [future-modules]/
 │       └── [module].routes.ts
 ```
 
 ## How It Works
 
-### 1. **Module Routes** (`modules/auth/auth.routes.ts`)
+### 1. **Module Routes** (`modules/account/auth/auth.routes.ts`)
 
 Each module defines its own routes:
 
 ```typescript
-// modules/auth/auth.routes.ts
+// modules/account/auth/auth.routes.ts
 import { Router } from 'express';
 import authController from './auth.controller';
 
@@ -47,12 +50,12 @@ The aggregator imports and mounts all module routes:
 ```typescript
 // modules/routes.ts
 import { Router } from 'express';
-import authRoutes from './auth/auth.routes';
+import accountRoutes from './account/account.routes';
 
 const router: Router = Router();
 
 // Mount each module under its base path
-router.use('/auth', authRoutes);
+router.use('/account', accountRoutes);
 // router.use('/wallet', walletRoutes);     // Future
 // router.use('/transactions', txRoutes);   // Future
 
@@ -76,11 +79,11 @@ app.use(API_ROUTE, routes);
 With this setup, your routes will be accessible at:
 
 ```
-/api/v1/auth/register       → POST
-/api/v1/auth/login          → POST
-/api/v1/auth/me             → GET
-/api/v1/auth/otp/phone      → POST
-/api/v1/auth/verify/phone   → POST
+/api/v1/account/auth/register       → POST
+/api/v1/account/auth/login          → POST
+/api/v1/account/auth/me             → GET
+/api/v1/account/auth/otp/phone      → POST
+/api/v1/account/auth/verify/phone   → POST
 ... etc
 ```
 

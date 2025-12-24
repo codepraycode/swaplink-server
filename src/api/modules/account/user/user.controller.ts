@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { UserService } from './user.service';
-import { sendSuccess } from '../../../shared/lib/utils/api-response';
-import { JwtUtils } from '../../../shared/lib/utils/jwt-utils';
-import { BadRequestError } from '../../../shared/lib/utils/api-error';
+import { sendSuccess } from '../../../../shared/lib/utils/api-response';
+import { JwtUtils } from '../../../../shared/lib/utils/jwt-utils';
+import { BadRequestError } from '../../../../shared/lib/utils/api-error';
 
 export class UserController {
     static async updatePushToken(req: Request, res: Response, next: NextFunction) {

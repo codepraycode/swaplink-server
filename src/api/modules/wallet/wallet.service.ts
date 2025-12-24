@@ -14,7 +14,7 @@ import {
 import { randomUUID } from 'crypto';
 import logger from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
-import { walletService } from '../../../shared/lib/services/wallet.service';
+import { walletService as sharedWalletService } from '../../../shared/lib/services/wallet.service';
 import { NotificationService } from '../notification/notification.service';
 import { getTransferQueue } from '../../../shared/lib/init/service-initializer';
 import { redisConnection } from '../../../shared/config/redis.config';
@@ -30,7 +30,7 @@ export interface TransferRequest {
     idempotencyKey: string;
 }
 
-export class TransferService {
+export class WalletService {
     /**
      * Process a transfer request (Hybrid: Internal or External)
      * Note: PIN verification is done in a separate step before this
@@ -208,7 +208,7 @@ export class TransferService {
         });
 
         // Emit Socket Events (Sender)
-        const senderNewBalance = await walletService.getWalletBalance(senderWallet.userId);
+        const senderNewBalance = await sharedWalletService.getWalletBalance(senderWallet.userId);
         socketService.emitToUser(senderWallet.userId, 'WALLET_UPDATED', {
             ...senderNewBalance,
             message: `Debit Alert: -₦${amount.toLocaleString()}`,
@@ -222,7 +222,9 @@ export class TransferService {
         const senderName = sender ? `${sender.firstName} ${sender.lastName}` : 'Unknown Sender';
 
         // Emit Socket Events (Receiver)
-        const receiverNewBalance = await walletService.getWalletBalance(receiverWallet.userId);
+        const receiverNewBalance = await sharedWalletService.getWalletBalance(
+            receiverWallet.userId
+        );
         socketService.emitToUser(receiverWallet.userId, 'WALLET_UPDATED', {
             ...receiverNewBalance,
             message: `Credit Alert: +₦${amount.toLocaleString()}`,
@@ -320,7 +322,7 @@ export class TransferService {
         }
 
         // Emit Socket Event
-        const senderNewBalance = await walletService.getWalletBalance(userId);
+        const senderNewBalance = await sharedWalletService.getWalletBalance(userId);
         socketService.emitToUser(userId, 'WALLET_UPDATED', {
             ...senderNewBalance,
             message: `Debit Alert: -₦${(amount + fee).toLocaleString()}`,
@@ -336,4 +338,4 @@ export class TransferService {
     }
 }
 
-export const transferService = new TransferService();
+export const walletService = new WalletService();

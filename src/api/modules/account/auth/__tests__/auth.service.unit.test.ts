@@ -1,17 +1,17 @@
 import bcrypt from 'bcryptjs';
-import { prisma, KycLevel, KycStatus, OtpType } from '../../../../shared/database';
+import { prisma, KycLevel, KycStatus, OtpType } from '../../../../../shared/database';
 import authService from '../auth.service';
-import { otpService } from '../../../../shared/lib/services/otp.service';
-import walletService from '../../../../shared/lib/services/wallet.service';
-import { JwtUtils } from '../../../../shared/lib/utils/jwt-utils';
+import { otpService } from '../../../../../shared/lib/services/otp.service';
+import walletService from '../../../../../shared/lib/services/wallet.service';
+import { JwtUtils } from '../../../../../shared/lib/utils/jwt-utils';
 import {
     ConflictError,
     NotFoundError,
     UnauthorizedError,
-} from '../../../../shared/lib/utils/api-error';
+} from '../../../../../shared/lib/utils/api-error';
 
 // Mock dependencies
-jest.mock('../../../../shared/database', () => ({
+jest.mock('../../../../../shared/database', () => ({
     prisma: {
         user: {
             findFirst: jest.fn(),
@@ -30,10 +30,10 @@ jest.mock('../../../../shared/database', () => ({
     },
 }));
 
-jest.mock('../../../../shared/lib/services/otp.service');
-jest.mock('../../../../shared/lib/services/wallet.service');
-jest.mock('../../../../shared/lib/utils/jwt-utils');
-jest.mock('../../../../shared/lib/queues/onboarding.queue', () => ({
+jest.mock('../../../../../shared/lib/services/otp.service');
+jest.mock('../../../../../shared/lib/services/wallet.service');
+jest.mock('../../../../../shared/lib/utils/jwt-utils');
+jest.mock('../../../../../shared/lib/queues/onboarding.queue', () => ({
     onboardingQueue: {
         add: jest.fn().mockResolvedValue({}),
     },

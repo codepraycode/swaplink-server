@@ -1,6 +1,6 @@
 import prisma from '../../utils/database';
 import { walletService } from '../wallet.service';
-import authService from '../../../../api/modules/auth/auth.service';
+import authService from '../../../../api/modules/account/auth/auth.service';
 import { TestUtils } from '../../../../test/utils';
 import { NotFoundError, BadRequestError } from '../../utils/api-error';
 import { TransactionType } from '../../../database';

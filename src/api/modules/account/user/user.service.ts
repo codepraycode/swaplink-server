@@ -1,6 +1,6 @@
-import { prisma, User } from '../../../shared/database/';
+import { prisma, User } from '../../../../shared/database/';
 import bcrypt from 'bcryptjs';
-import { BadRequestError, NotFoundError } from '../../../shared/lib/utils/api-error';
+import { BadRequestError, NotFoundError } from '../../../../shared/lib/utils/api-error';
 
 export class UserService {
     /**

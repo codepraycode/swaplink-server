@@ -1,15 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { pinService } from './pin.service';
 import { nameEnquiryService } from './name-enquiry.service';
-import { transferService } from './transfer.service';
+import { walletService } from './wallet.service';
 import { beneficiaryService } from './beneficiary.service';
 import { JwtUtils } from '../../../shared/lib/utils/jwt-utils';
 import { sendCreated, sendSuccess } from '../../../shared/lib/utils/api-response';
 import { BadRequestError } from '../../../shared/lib/utils/api-error';
-import walletService from '../../../shared/lib/services/wallet.service';
+import sharedWalletService from '../../../shared/lib/services/wallet.service';
 import { TransactionType } from '../../../shared/database';
 
-export class TransferController {
+export class WalletController {
     /**
      * Get Wallet Transactions
      */
@@ -18,7 +18,7 @@ export class TransferController {
             const userId = JwtUtils.ensureAuthentication(req).userId;
             const { page, limit, type } = req.query;
 
-            const result = await walletService.getTransactions({
+            const result = await sharedWalletService.getTransactions({
                 userId,
                 page: page ? Number(page) : 1,
                 limit: limit ? Number(limit) : 20,
@@ -95,7 +95,7 @@ export class TransferController {
 
             // TODO: Validate payload (Joi/Zod)
 
-            const result = await transferService.processTransfer(payload);
+            const result = await walletService.processTransfer(payload);
             sendSuccess(res, result);
         } catch (error) {
             next(error);

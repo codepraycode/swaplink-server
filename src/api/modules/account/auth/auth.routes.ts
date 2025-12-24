@@ -1,9 +1,9 @@
 import express, { Router } from 'express';
 import authController from './auth.controller';
-import rateLimiters from '../../middlewares/rate-limit.middleware';
-import { authenticate } from '../../middlewares/auth.middleware';
-import { uploadKyc, uploadAvatar } from '../../middlewares/upload.middleware'; // You need this for KYC!
-// import { validateBody } from '../../middlewares/validation';
+import rateLimiters from '../../../middlewares/rate-limit.middleware';
+import { authenticate } from '../../../middlewares/auth.middleware';
+import { uploadKyc, uploadAvatar } from '../../../middlewares/upload.middleware'; // You need this for KYC!
+// import { validateBody } from '../../../middlewares/validation';
 // import { AuthSchema } from './auth.validation';
 
 const router: Router = express.Router();

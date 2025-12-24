@@ -1,6 +1,6 @@
-import { transferService } from '../../../../api/modules/transfer/transfer.service';
+import { walletService as transferService } from '../../../../api/modules/wallet/wallet.service';
 import { prisma } from '../../../database';
-import { nameEnquiryService } from '../../../../api/modules/transfer/name-enquiry.service';
+import { nameEnquiryService } from '../../../../api/modules/wallet/name-enquiry.service';
 import { BadRequestError, ForbiddenError } from '../../utils/api-error';
 import { socketService } from '../socket.service';
 import { walletService } from '../wallet.service';
@@ -44,7 +44,7 @@ jest.mock('bullmq', () => ({
     })),
 }));
 
-jest.mock('../../../../api/modules/transfer/name-enquiry.service');
+jest.mock('../../../../api/modules/wallet/name-enquiry.service');
 
 describe('TransferService', () => {
     const mockUserId = 'user-123';

@@ -1,8 +1,8 @@
 import request from 'supertest';
-import app from '../../../app';
-import prisma from '../../../../shared/lib/utils/database';
-import { TestUtils } from '../../../../test/utils';
-import { OtpType } from '../../../../shared/database';
+import app from '../../../../app';
+import prisma from '../../../../../shared/lib/utils/database';
+import { TestUtils } from '../../../../../test/utils';
+import { OtpType } from '../../../../../shared/database';
 
 describe('Auth API - E2E Tests', () => {
     beforeEach(async () => {

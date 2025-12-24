@@ -1,6 +1,6 @@
 import prisma from '../../utils/database';
 import { otpService } from '../otp.service';
-import authService from '../../../../api/modules/auth/auth.service';
+import authService from '../../../../api/modules/account/auth/auth.service';
 import { TestUtils } from '../../../../test/utils';
 import { OtpType } from '../../../database';
 import { BadRequestError } from '../../utils/api-error';

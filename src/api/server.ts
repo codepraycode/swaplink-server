@@ -7,6 +7,11 @@ import logger from '../shared/lib/utils/logger';
 import { checkDatabaseConnection } from '../shared/database';
 import { socketService } from '../shared/lib/services/socket.service';
 import { P2PChatGateway } from './modules/p2p/chat/p2p-chat.gateway';
+import {
+    closeQueues,
+    initializeListeners,
+    initializeQueues,
+} from '../shared/lib/init/service-initializer';
 
 let server: any;
 const SERVER_URL = envConfig.SERVER_URL;
@@ -23,8 +28,10 @@ const startServer = async () => {
 
         // 2. Initialize queues (BullMQ)
         logger.info('🔄 Initializing services...');
-        const { initializeQueues } = await import('../shared/lib/init/service-initializer');
         await initializeQueues();
+
+        // 6. Initialize Event Listeners
+        await initializeListeners();
 
         // 3. Start HTTP server
         logger.info('🔄 Starting HTTP server...');
@@ -55,7 +62,6 @@ const handleShutdown = async (signal: string) => {
 
     try {
         // Close queues first
-        const { closeQueues } = await import('../shared/lib/init/service-initializer');
         await closeQueues();
 
         // Then close HTTP server

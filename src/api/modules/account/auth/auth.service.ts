@@ -1,17 +1,17 @@
 import bcrypt from 'bcryptjs';
-import { prisma, KycLevel, KycStatus, OtpType, User } from '../../../shared/database';
+import { prisma, KycLevel, KycStatus, OtpType, User } from '../../../../shared/database';
 import { UserRole } from '@prisma/client';
 import {
     ConflictError,
     NotFoundError,
     UnauthorizedError,
-} from '../../../shared/lib/utils/api-error';
-import { JwtUtils } from '../../../shared/lib/utils/jwt-utils';
-import { otpService } from '../../../shared/lib/services/otp.service';
-import { getQueue as getOnboardingQueue } from '../../../shared/lib/queues/onboarding.queue';
-import logger from '../../../shared/lib/utils/logger';
-import { formatUserInfo } from '../../../shared/lib/utils/functions';
-import { emailService } from '../../../shared/lib/services/email-service/email.service';
+} from '../../../../shared/lib/utils/api-error';
+import { JwtUtils } from '../../../../shared/lib/utils/jwt-utils';
+import { otpService } from '../../../../shared/lib/services/otp.service';
+import { getQueue as getOnboardingQueue } from '../../../../shared/lib/queues/onboarding.queue';
+import logger from '../../../../shared/lib/utils/logger';
+import { formatUserInfo } from '../../../../shared/lib/utils/functions';
+import { emailService } from '../../../../shared/lib/services/email-service/email.service';
 
 // DTOs
 interface AuthDTO {

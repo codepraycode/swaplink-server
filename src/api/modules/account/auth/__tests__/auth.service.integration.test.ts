@@ -1,10 +1,10 @@
 import authService from '../auth.service';
-import { prisma } from '../../../../shared/database';
-import { bankingQueue } from '../../../../shared/lib/queues/banking.queue';
-import { redisConnection } from '../../../../shared/config/redis.config';
+import { prisma } from '../../../../../shared/database';
+import { bankingQueue } from '../../../../../shared/lib/queues/banking.queue';
+import { redisConnection } from '../../../../../shared/config/redis.config';
 
 // Mock Queue
-jest.mock('../../../lib/queues/banking.queue', () => ({
+jest.mock('../../../../../shared/lib/queues/banking.queue', () => ({
     bankingQueue: {
         add: jest.fn().mockResolvedValue({ id: 'job-123' }),
     },

@@ -1,4 +1,4 @@
-import { pinService } from '../pin.service';
+import { pinService } from '../../../../api/modules/wallet/pin.service';
 import { prisma } from '../../../database';
 import bcrypt from 'bcrypt';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../../utils/api-error';

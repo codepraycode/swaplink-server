@@ -1,6 +1,7 @@
 import { Queue } from 'bullmq';
 import { redisConnection } from '../../config/redis.config';
 import logger from '../utils/logger';
+import { setupAuthListeners, setupTransactionListeners } from '../events/listeners';
 
 /**
  * Service Initializer
@@ -115,6 +116,19 @@ export async function initializeQueues(): Promise<void> {
             }`
         );
     }
+}
+
+/**
+ *  Initialize Listeners
+ */
+
+export async function initializeListeners(): Promise<void> {
+    logger.info('🔄 Initializing listeners...');
+
+    setupAuthListeners();
+    setupTransactionListeners();
+
+    logger.info('✅ All listeners initialized successfully');
 }
 
 /**

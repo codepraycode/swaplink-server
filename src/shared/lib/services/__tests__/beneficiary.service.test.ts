@@ -1,4 +1,4 @@
-import { beneficiaryService } from '../beneficiary.service';
+import { beneficiaryService } from '../../../../api/modules/wallet/beneficiary.service';
 import { prisma } from '../../../database';
 
 // Mock dependencies

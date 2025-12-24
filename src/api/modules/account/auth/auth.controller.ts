@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { sendCreated, sendSuccess } from '../../../shared/lib/utils/api-response';
-import { HttpStatusCode } from '../../../shared/lib/utils/http-status-codes';
+import { sendCreated, sendSuccess } from '../../../../shared/lib/utils/api-response';
+import { HttpStatusCode } from '../../../../shared/lib/utils/http-status-codes';
 import authService from './auth.service';
-import { storageService } from '../../../shared/lib/services/storage.service';
+import { storageService } from '../../../../shared/lib/services/storage.service';
 
 class AuthController {
     register = async (req: Request, res: Response, next: NextFunction) => {

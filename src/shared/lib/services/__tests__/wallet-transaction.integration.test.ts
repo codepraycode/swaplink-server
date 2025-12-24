@@ -4,7 +4,7 @@ import { prisma, UserRole } from '../../../database';
 import { JwtUtils } from '../../utils/jwt-utils';
 import bcrypt from 'bcrypt';
 
-describe('Transfer Module Integration Tests', () => {
+describe('Wallet Module Integration Tests', () => {
     let senderToken: string;
     let receiverToken: string;
     let senderId: string;
@@ -74,10 +74,10 @@ describe('Transfer Module Integration Tests', () => {
         await prisma.$disconnect();
     });
 
-    describe('POST /api/v1/transfers/name-enquiry', () => {
+    describe('POST /api/v1/wallet/name-enquiry', () => {
         it('should resolve internal account', async () => {
             const res = await request(app)
-                .post('/api/v1/transfers/name-enquiry')
+                .post('/api/v1/wallet/name-enquiry')
                 .set('Authorization', `Bearer ${senderToken}`)
                 .send({
                     accountNumber: '2222222222',
@@ -94,7 +94,7 @@ describe('Transfer Module Integration Tests', () => {
 
         it('should resolve external account (mocked)', async () => {
             const res = await request(app)
-                .post('/api/v1/transfers/name-enquiry')
+                .post('/api/v1/wallet/name-enquiry')
                 .set('Authorization', `Bearer ${senderToken}`)
                 .send({
                     accountNumber: '1234567890',
@@ -107,10 +107,10 @@ describe('Transfer Module Integration Tests', () => {
         });
     });
 
-    describe('POST /api/v1/transfers/process', () => {
+    describe('POST /api/v1/wallet/process', () => {
         it('should process internal transfer successfully', async () => {
             const res = await request(app)
-                .post('/api/v1/transfers/process')
+                .post('/api/v1/wallet/process')
                 .set('Authorization', `Bearer ${senderToken}`)
                 .send({
                     amount: 5000,
@@ -143,7 +143,7 @@ describe('Transfer Module Integration Tests', () => {
 
         it('should fail with incorrect PIN', async () => {
             const res = await request(app)
-                .post('/api/v1/transfers/process')
+                .post('/api/v1/wallet/process')
                 .set('Authorization', `Bearer ${senderToken}`)
                 .send({
                     amount: 1000,
@@ -160,7 +160,7 @@ describe('Transfer Module Integration Tests', () => {
 
         it('should fail with insufficient funds', async () => {
             const res = await request(app)
-                .post('/api/v1/transfers/process')
+                .post('/api/v1/wallet/process')
                 .set('Authorization', `Bearer ${senderToken}`)
                 .send({
                     amount: 1000000,
@@ -178,7 +178,7 @@ describe('Transfer Module Integration Tests', () => {
         it('should be idempotent', async () => {
             // Re-send the first successful request
             const res = await request(app)
-                .post('/api/v1/transfers/process')
+                .post('/api/v1/wallet/process')
                 .set('Authorization', `Bearer ${senderToken}`)
                 .send({
                     amount: 5000,
@@ -198,10 +198,10 @@ describe('Transfer Module Integration Tests', () => {
         });
     });
 
-    describe('GET /api/v1/transfers/beneficiaries', () => {
+    describe('GET /api/v1/wallet/beneficiaries', () => {
         it('should return saved beneficiaries', async () => {
             const res = await request(app)
-                .get('/api/v1/transfers/beneficiaries')
+                .get('/api/v1/wallet/beneficiaries')
                 .set('Authorization', `Bearer ${senderToken}`);
 
             expect(res.status).toBe(200);
