@@ -21,6 +21,9 @@ export enum EventType {
     KYC_SUBMITTED = 'KYC_SUBMITTED',
     KYC_APPROVED = 'KYC_APPROVED',
     KYC_REJECTED = 'KYC_REJECTED',
+
+    // Audit Events
+    AUDIT_LOG = 'AUDIT_LOG',
 }
 
 class EventBus extends EventEmitter {

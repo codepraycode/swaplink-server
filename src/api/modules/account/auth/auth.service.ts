@@ -12,6 +12,7 @@ import { getQueue as getOnboardingQueue } from '../../../../shared/lib/queues/on
 import logger from '../../../../shared/lib/utils/logger';
 import { formatUserInfo } from '../../../../shared/lib/utils/functions';
 import { emailService } from '../../../../shared/lib/services/email-service/email.service';
+import { AuditService } from '../../../../shared/lib/services/audit.service';
 
 // DTOs
 interface AuthDTO {
@@ -42,7 +43,7 @@ class AuthService {
 
     // --- Main Methods ---
 
-    async register(dto: AuthDTO) {
+    async register(dto: AuthDTO, ipAddress: string = 'N/A') {
         const { email, phone, password, firstName, lastName } = dto;
 
         // 1. Check existing user
@@ -96,6 +97,17 @@ class AuthService {
             .sendWelcomeEmail(user.email, user.firstName)
             .catch(err => logger.error(`Failed to send welcome email to ${user.email}`, err));
 
+        // 7. Audit Log
+        AuditService.log({
+            userId: user.id,
+            action: 'USER_REGISTERED',
+            resource: 'User',
+            resourceId: user.id,
+            details: { email: user.email, role: user.role },
+            ipAddress, // Service doesn't have access to req, maybe pass it or ignore for now
+            status: 'SUCCESS',
+        });
+
         return { user, ...tokens };
     }
 
@@ -131,6 +143,15 @@ class AuthService {
                 data: { lastLogin: new Date() },
             })
             .catch((err: any) => logger.error('Failed to update last login', err));
+
+        // Audit Log
+        AuditService.log({
+            userId: user.id,
+            action: 'USER_LOGGED_IN',
+            resource: 'Auth',
+            resourceId: user.id,
+            status: 'SUCCESS',
+        });
 
         // Generate Tokens via Utils
         const tokens = this.generateTokens(user);

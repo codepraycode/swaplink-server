@@ -1,6 +1,7 @@
 import { prisma, User } from '../../../../shared/database/';
 import bcrypt from 'bcryptjs';
 import { BadRequestError, NotFoundError } from '../../../../shared/lib/utils/api-error';
+import { AuditService } from '../../../../shared/lib/services/audit.service';
 
 export class UserService {
     /**
@@ -33,10 +34,20 @@ export class UserService {
 
         const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-        return await prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: { password: hashedPassword },
         });
+
+        AuditService.log({
+            userId: userId,
+            action: 'PASSWORD_CHANGED',
+            resource: 'User',
+            resourceId: userId,
+            status: 'SUCCESS',
+        });
+
+        return updatedUser;
     }
 
     static async updateProfile(
@@ -64,9 +75,20 @@ export class UserService {
             >
         >
     ): Promise<User> {
-        return await prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: { id: userId },
             data,
         });
+
+        AuditService.log({
+            userId: userId,
+            action: 'PROFILE_UPDATED',
+            resource: 'User',
+            resourceId: userId,
+            details: data,
+            status: 'SUCCESS',
+        });
+
+        return updatedUser;
     }
 }

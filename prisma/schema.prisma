@@ -60,6 +60,7 @@ model User {
   // Admin
   role             UserRole          @default(USER)
   adminLogs        AdminLog[]
+  auditLogs        AuditLog[]
   notifications    Notification[]
 
   @@map("users")
@@ -331,6 +332,22 @@ model AdminLog {
 
   admin     User     @relation(fields: [adminId], references: [id])
   @@map("admin_logs")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  resource   String
+  resourceId String?
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  status     String   @default("SUCCESS")
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id])
+  @@map("audit_logs")
 }
 
 model P2PChat {
