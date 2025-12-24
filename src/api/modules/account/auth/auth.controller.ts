@@ -3,6 +3,7 @@ import { sendCreated, sendSuccess } from '../../../../shared/lib/utils/api-respo
 import { HttpStatusCode } from '../../../../shared/lib/utils/http-status-codes';
 import authService from './auth.service';
 import { storageService } from '../../../../shared/lib/services/storage.service';
+import { BadRequestError } from '../../../../shared/lib/utils/api-error';
 
 class AuthController {
     register = async (req: Request, res: Response, next: NextFunction) => {
@@ -48,6 +49,21 @@ class AuthController {
         }
     };
 
+    logout = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userId = (req as any).user.userId;
+            const token = req.headers.authorization?.split(' ')[1];
+
+            if (token) {
+                await authService.logout(userId, token);
+            }
+
+            sendSuccess(res, null, 'Logged out successfully');
+        } catch (error) {
+            next(error);
+        }
+    };
+
     me = async (req: Request, res: Response, next: NextFunction) => {
         try {
             // Assuming your 'authenticate' middleware attaches user to req
@@ -74,7 +90,10 @@ class AuthController {
 
     sendPhoneOtp = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { phone } = req.body;
+            const { phone, deviceId } = req.body;
+            if (!deviceId) {
+                throw new BadRequestError('Device ID is required');
+            }
             const result = await authService.sendOtp(phone, 'phone');
             sendSuccess(res, result, 'OTP sent successfully');
         } catch (error) {

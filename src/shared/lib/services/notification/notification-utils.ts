@@ -1,4 +1,4 @@
-import { Notification, NotificationType } from '../../../database/generated/prisma';
+import { Notification, NotificationType, NotificationChannel } from '../../../database';
 import { prisma } from '../../../database';
 import { logError } from '../../utils/logger';
 import { socketService } from '../socket.service';
@@ -14,7 +14,8 @@ export default class NotificationUtil {
         title: string,
         body: string,
         data: any = {},
-        type: NotificationType = NotificationType.SYSTEM
+        type: NotificationType = NotificationType.SYSTEM,
+        channel: NotificationChannel = NotificationChannel.INAPP
     ): Promise<Notification> {
         try {
             // 1. Persist Notification to DB
@@ -24,6 +25,7 @@ export default class NotificationUtil {
                     title,
                     body,
                     type,
+                    channel,
                     data,
                     isRead: false,
                 },
@@ -34,6 +36,7 @@ export default class NotificationUtil {
                 userId,
                 title,
                 body,
+                channel,
                 data: { ...data, notificationId: notification.id },
             });
 

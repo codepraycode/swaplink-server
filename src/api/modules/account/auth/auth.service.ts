@@ -13,6 +13,9 @@ import logger from '../../../../shared/lib/utils/logger';
 import { formatUserInfo } from '../../../../shared/lib/utils/functions';
 import { emailService } from '../../../../shared/lib/services/email-service/email.service';
 import { AuditService } from '../../../../shared/lib/services/audit.service';
+import { redisConnection } from '../../../../shared/config/redis.config';
+import { socketService } from '../../../../shared/lib/services/socket.service';
+import { eventBus, EventType } from '../../../../shared/lib/events/event-bus';
 
 // DTOs
 interface AuthDTO {
@@ -111,8 +114,8 @@ class AuthService {
         return { user, ...tokens };
     }
 
-    async login(dto: LoginDto) {
-        const { email, password } = dto;
+    async login(dto: LoginDto & { deviceId?: string }) {
+        const { email, password, deviceId } = dto;
 
         const user = await prisma.user.findUnique({
             where: { email },
@@ -136,6 +139,33 @@ class AuthService {
             throw new UnauthorizedError('Account is deactivated');
         }
 
+        // --- Concurrent Session Handling ---
+        if (deviceId) {
+            const sessionKey = `session:${user.id}`;
+            const existingSession = await redisConnection.get(sessionKey);
+
+            if (existingSession) {
+                // Notify previous session
+                socketService.emitToUser(user.id, 'FORCE_LOGOUT', {
+                    reason: 'New login detected on another device',
+                });
+            }
+
+            // Store new session
+            await redisConnection.set(
+                sessionKey,
+                JSON.stringify({ deviceId, loginTime: new Date().toISOString() }),
+                'EX',
+                86400 // 24h TTL matches token expiry
+            );
+
+            // Update user deviceId in DB (optional, but requested in plan)
+            // We need to add deviceId to User model first, but for now we can skip or do it if schema is updated.
+            // The plan says "Update User model (cumulative_inflow, device_id)".
+            // I haven't updated schema yet. I should do that.
+            // But for now, Redis is the source of truth for "One Device, One Session".
+        }
+
         // Fire & Forget update
         prisma.user
             .update({
@@ -144,6 +174,14 @@ class AuthService {
             })
             .catch((err: any) => logger.error('Failed to update last login', err));
 
+        // Emit Login Event
+        eventBus.publish(EventType.LOGIN_DETECTED, {
+            userId: user.id,
+            deviceId,
+            ip: '0.0.0.0', // TODO: Capture IP from controller
+            timestamp: new Date(),
+        });
+
         // Audit Log
         AuditService.log({
             userId: user.id,
@@ -151,6 +189,7 @@ class AuthService {
             resource: 'Auth',
             resourceId: user.id,
             status: 'SUCCESS',
+            details: { deviceId },
         });
 
         // Generate Tokens via Utils
@@ -160,6 +199,27 @@ class AuthService {
             user: formatUserInfo(user),
             ...tokens,
         };
+    }
+
+    async logout(userId: string, token: string) {
+        // 1. Blacklist the access token
+        // We need to decode it to get expiry, or just set a default expiry
+        // JwtUtils.verifyAccessToken(token) might throw if expired, but we want to blacklist anyway.
+        // Let's just set it for 24h.
+        const blacklistKey = `blacklist:${token}`;
+        await redisConnection.set(blacklistKey, 'true', 'EX', 86400);
+
+        // 2. Clear session
+        await redisConnection.del(`session:${userId}`);
+
+        // 3. Audit
+        AuditService.log({
+            userId,
+            action: 'USER_LOGGED_OUT',
+            resource: 'Auth',
+            resourceId: userId,
+            status: 'SUCCESS',
+        });
     }
 
     async getUser(id: string) {

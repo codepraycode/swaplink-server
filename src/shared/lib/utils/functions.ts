@@ -18,3 +18,12 @@ export function formatUserInfo(user: any) {
             : null,
     };
 }
+
+/**
+ * Delays the execution of the code for the specified number of seconds.
+ * @param seconds The number of seconds to delay.
+ * @returns A promise that resolves after the specified number of seconds.
+ */
+export function delay(seconds: number) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+}

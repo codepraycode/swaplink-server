@@ -1,11 +1,13 @@
 import bcrypt from 'bcryptjs';
-import { prisma } from '../../../shared/database';
+import { prisma, NotificationType, NotificationChannel } from '../../../shared/database';
 import { redisConnection } from '../../../shared/config/redis.config';
 import {
     BadRequestError,
     ForbiddenError,
     NotFoundError,
 } from '../../../shared/lib/utils/api-error';
+import { eventBus, EventType } from '../../../shared/lib/events/event-bus';
+import NotificationUtil from '../../../shared/lib/services/notification/notification-utils';
 
 export class PinService {
     private readonly MAX_ATTEMPTS = 3;
@@ -28,6 +30,16 @@ export class PinService {
             where: { id: userId },
             data: { transactionPin: hashedPin },
         });
+
+        // Notify User
+        await NotificationUtil.sendToUser(
+            userId,
+            'Transaction PIN Set',
+            'Your transaction PIN has been set successfully. If this was not you, please contact support immediately.',
+            {},
+            NotificationType.SECURITY,
+            NotificationChannel.EMAIL
+        );
 
         return { message: 'Transaction PIN set successfully' };
     }
@@ -61,6 +73,13 @@ export class PinService {
             if (newCount === 1) {
                 await redisConnection.expire(attemptKey, this.LOCKOUT_DURATION_SEC);
             }
+
+            // Emit Security Event
+            eventBus.publish(EventType.FAILED_PIN_ATTEMPTS, {
+                userId,
+                attempts: newCount,
+                timestamp: new Date(),
+            });
 
             const remaining = this.MAX_ATTEMPTS - newCount;
             if (remaining <= 0) {
@@ -111,6 +130,16 @@ export class PinService {
             where: { id: userId },
             data: { transactionPin: hashedPin },
         });
+
+        // Notify User
+        await NotificationUtil.sendToUser(
+            userId,
+            'Transaction PIN Changed',
+            'Your transaction PIN has been changed successfully. If this was not you, please contact support immediately.',
+            {},
+            NotificationType.SECURITY,
+            NotificationChannel.EMAIL
+        );
 
         return { message: 'Transaction PIN updated successfully' };
     }

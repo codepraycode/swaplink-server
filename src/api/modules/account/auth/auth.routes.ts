@@ -37,6 +37,8 @@ router.post(
     authController.refreshToken
 );
 
+router.post('/logout', rateLimiters.auth, authController.logout);
+
 // ======================================================
 // 2. OTP Services (Dual Layer Protection)
 // ======================================================

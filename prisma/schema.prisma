@@ -41,11 +41,16 @@ model User {
   transactionPin   String?
   pinAttempts      Int       @default(0)
   pinLockedUntil   DateTime?
+  
+  // Device & Limits
+  deviceId         String?
+  cumulativeInflow Decimal   @default(0)
 
   // Relations
   wallet           Wallet?   // 1:1 Relation (One user, one wallet)
   bankAccounts     BankAccount[]
   kycDocuments     KycDocument[]
+  kycAttempts      KycAttempt[]
   transactions     Transaction[] // History of transactions initiated by user
   counterpartyTransactions Transaction[] @relation("TransactionCounterparty")
   beneficiaries    Beneficiary[]
@@ -203,6 +208,19 @@ model KycDocument {
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("kyc_documents")
+}
+
+model KycAttempt {
+  id          String   @id @default(uuid())
+  userId      String
+  providerRef String?
+  rawResponse Json?
+  status      String   // PENDING, SUCCESS, FAILED
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("kyc_attempts")
 }
 
 // ==========================================
@@ -374,6 +392,7 @@ model Notification {
   title     String
   body      String
   type      NotificationType
+  channel   NotificationChannel @default(INAPP)
   isRead    Boolean          @default(false)
   data      Json?
   createdAt DateTime         @default(now())
@@ -468,4 +487,12 @@ enum NotificationType {
   TRANSACTION
   SYSTEM
   PROMOTION
+  KYC
+  SECURITY
+}
+
+enum NotificationChannel {
+  PUSH
+  EMAIL
+  INAPP
 }

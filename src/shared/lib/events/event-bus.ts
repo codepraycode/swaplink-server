@@ -5,6 +5,7 @@ export enum EventType {
     // Auth Events
     USER_REGISTERED = 'USER_REGISTERED',
     USER_LOGGED_IN = 'USER_LOGGED_IN',
+    LOGIN_DETECTED = 'LOGIN_DETECTED',
     PASSWORD_RESET_REQUESTED = 'PASSWORD_RESET_REQUESTED',
 
     // Transaction Events
@@ -24,6 +25,9 @@ export enum EventType {
 
     // Audit Events
     AUDIT_LOG = 'AUDIT_LOG',
+
+    // Security Events
+    FAILED_PIN_ATTEMPTS = 'FAILED_PIN_ATTEMPTS',
 }
 
 class EventBus extends EventEmitter {

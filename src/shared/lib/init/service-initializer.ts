@@ -6,6 +6,8 @@ import {
     setupTransactionListeners,
     setupAuditListeners,
 } from '../events/listeners';
+import { setupKycTransactionListeners } from '../events/listeners/kyc-transaction.listener';
+import { setupKycListeners } from '../events/listeners/kyc.listener';
 
 /**
  * Service Initializer
@@ -132,6 +134,8 @@ export async function initializeListeners(): Promise<void> {
     setupAuthListeners();
     setupTransactionListeners();
     setupAuditListeners();
+    setupKycTransactionListeners();
+    setupKycListeners();
 
     logger.info('✅ All listeners initialized successfully');
 }

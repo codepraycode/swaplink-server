@@ -1,60 +1,43 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { prisma, OtpType, Otp } from '../../database';
-
+import { OtpType } from '../../database';
 import { BadRequestError } from '../utils/api-error';
 import logger from '../utils/logger';
-import { ISmsService } from './sms-service/sms.service';
+import { messagingProvider } from './messaging/messaging.provider';
 import { BaseEmailService } from './email-service/base-email.service';
-import { LocalEmailService } from './email-service/local-email.service';
+import { redisConnection } from '../../config/redis.config';
 
 export class OtpService {
-    private smsService: ISmsService;
     private emailService: BaseEmailService;
+    private readonly OTP_TTL = 300; // 5 minutes in seconds
 
-    constructor(smsService?: ISmsService, emailService?: BaseEmailService) {
+    constructor(emailService?: BaseEmailService) {
         // Lazy load to avoid circular dependency
-        this.smsService = smsService || require('./sms-service/sms.service').smsService;
         this.emailService = emailService || require('./email-service/email.service').emailService;
     }
 
     /**
-     * Generate and Store OTP
+     * Generate and Store OTP in Redis
      */
-
-    async generateOtp(identifier: string, type: OtpType, userId?: string): Promise<Otp> {
+    async generateOtp(identifier: string, type: OtpType, userId?: string): Promise<string> {
         // 1. Generate secure 6 digit code
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        // 2. Invalidate previous OTPs
-        // We use updateMany instead of delete to keep audit history,
-        // but ensure 'isUsed' is true so they can't be used again.
-        await prisma.otp.updateMany({
-            where: { identifier, type, isUsed: false },
-            data: { isUsed: true },
-        });
+        // 2. Store in Redis with TTL
+        // Key format: otp:{type}:{identifier}
+        const key = this.getRedisKey(type, identifier);
+        await redisConnection.setex(key, this.OTP_TTL, code);
 
-        // 3. Create new OTP
-        const otpRecord = await prisma.otp.create({
-            data: {
-                identifier,
-                code,
-                type,
-                expiresAt,
-            },
-        });
-
-        // 4. Send OTP via appropriate channel
+        // 3. Send OTP via appropriate channel
         try {
             await this.sendOtp(identifier, code, type);
         } catch (error) {
             logger.error(`[OTP] Failed to send OTP to ${identifier}:`, error);
             // We don't throw here to prevent OTP generation failure
-            // The OTP is still valid in the database
+            // The OTP is still valid in Redis
             throw error;
         }
 
-        return otpRecord;
+        return code;
     }
 
     /**
@@ -65,8 +48,8 @@ export class OtpService {
             case OtpType.PHONE_VERIFICATION:
             case OtpType.TWO_FACTOR:
             case OtpType.WITHDRAWAL_CONFIRMATION:
-                // Send via SMS for phone-related OTPs
-                await this.smsService.sendOtp(identifier, code);
+                // Send via MessagingProvider (SMS/Termii)
+                await messagingProvider.sendOtp(identifier, code);
                 break;
 
             case OtpType.EMAIL_VERIFICATION:
@@ -77,37 +60,34 @@ export class OtpService {
 
             default:
                 logger.warn(`[OTP] Unknown OTP type: ${type} Default to EMAIL`);
-                LocalEmailService.logIntent(`Unknown OTP type: ${type}`, identifier, code);
+                // Fallback to email if possible, or just log
                 break;
         }
     }
 
     /**
-     * Verify OTP
+     * Verify OTP against Redis
      */
     async verifyOtp(identifier: string, code: string, type: OtpType): Promise<boolean> {
-        // 1. Find valid OTP
-        const otpRecord = await prisma.otp.findFirst({
-            where: {
-                identifier,
-                code,
-                type,
-                isUsed: false,
-                expiresAt: { gt: new Date() }, // Check expiration in DB query
-            },
-        });
+        const key = this.getRedisKey(type, identifier);
+        const storedCode = await redisConnection.get(key);
 
-        if (!otpRecord) {
-            throw new BadRequestError('Invalid or expired OTP');
+        if (!storedCode) {
+            throw new BadRequestError('OTP expired or invalid');
         }
 
-        // 2. Mark as used immediately to prevent replay attacks
-        await prisma.otp.update({
-            where: { id: otpRecord.id },
-            data: { isUsed: true },
-        });
+        if (storedCode !== code) {
+            throw new BadRequestError('Invalid OTP code');
+        }
+
+        // 2. Delete from Redis immediately to prevent replay attacks
+        await redisConnection.del(key);
 
         return true;
+    }
+
+    private getRedisKey(type: OtpType, identifier: string): string {
+        return `otp:${type}:${identifier}`;
     }
 }
 
