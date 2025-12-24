@@ -88,6 +88,19 @@ Call this endpoint after the user logs in or grants notification permissions.
     }
     ```
 
+#### Expo Push Setup Guide
+
+For detailed instructions on setting up Expo Push Notifications in your React Native app, refer to the official documentation:
+[Expo Push Notifications Setup](https://docs.expo.dev/push-notifications/overview/)
+
+**Summary of Steps:**
+
+1.  **Install `expo-notifications`**: `npx expo install expo-notifications`
+2.  **Get Permissions**: Request user permission to send notifications.
+3.  **Get Push Token**: Retrieve the `ExponentPushToken` using `Notifications.getExpoPushTokenAsync()`.
+4.  **Send Token to Backend**: Use the `PUT /api/v1/account/user/push-token` endpoint to save the token.
+5.  **Handle Notifications**: Set up listeners for received and tapped notifications.
+
 ### 2. Listen for In-App Notifications (Socket.IO)
 
 The server emits a `NEW_NOTIFICATION` event via Socket.IO when a notification is created.
@@ -122,3 +135,57 @@ FROM_EMAIL=onboarding@resend.dev
 # Expo (Optional, for Push)
 # No specific env var needed for basic Expo usage, but credentials may be required for production builds.
 ```
+
+---
+
+## Testing with Postman
+
+You can use Postman to verify the notification system endpoints.
+
+### Prerequisites
+
+-   **Base URL**: `http://localhost:3000/api/v1` (or your server URL)
+-   **Auth**: All endpoints require a Bearer Token (`Authorization: Bearer <YOUR_JWT>`).
+
+### 1. Register Push Token
+
+Associate a device's push token with the current user.
+
+-   **Method**: `PUT`
+-   **URL**: `{{baseUrl}}/account/user/push-token`
+-   **Body** (JSON):
+    ```json
+    {
+        "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"
+    }
+    ```
+
+### 2. Get All Notifications
+
+Retrieve a paginated list of notifications for the logged-in user.
+
+-   **Method**: `GET`
+-   **URL**: `{{baseUrl}}/notifications`
+
+### 3. Mark Notification as Read
+
+Mark a specific notification as read.
+
+-   **Method**: `PATCH`
+-   **URL**: `{{baseUrl}}/notifications/:id/read`
+-   **Params**:
+    -   `id`: The UUID of the notification.
+
+### 4. Mark All as Read
+
+Mark all notifications for the user as read.
+
+-   **Method**: `PATCH`
+-   **URL**: `{{baseUrl}}/notifications/read-all`
+
+### 5. Triggering a Test Notification
+
+Since notifications are event-driven, you can trigger one by performing an action that emits an event, such as:
+
+-   **P2P Order**: Create a new P2P order (triggers `P2P_ORDER_CREATED`).
+-   **Transaction**: Complete a transfer (triggers `TRANSACTION_COMPLETED`).
