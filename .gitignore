@@ -15,3 +15,9 @@ test_output*.txt
 # User data
 uploads
 swaplink-demo-firebase-adminsdk-fbsvc-ebfd2ff064.json
+
+# logs
+logs
+
+# Agents
+.agent
