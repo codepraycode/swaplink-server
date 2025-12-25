@@ -2,84 +2,73 @@ import express, { Router } from 'express';
 import authController from './auth.controller';
 import rateLimiters from '../../../middlewares/rate-limit.middleware';
 import { authenticate } from '../../../middlewares/auth.middleware';
-import { uploadKyc, uploadAvatar } from '../../../middlewares/upload.middleware'; // You need this for KYC!
-// import { validateBody } from '../../../middlewares/validation';
-// import { AuthSchema } from './auth.validation';
+import { uploadKyc, uploadAvatar } from '../../../middlewares/upload.middleware';
+import { validateDto } from '../../../middlewares/validation.middleware';
+import { deviceIdMiddleware } from '../../../middlewares/auth/device-id.middleware';
+import { RegisterStep1Dto, VerifyOtpDto, LoginDto, SetupTransactionPinDto } from './auth.dto';
 
 const router: Router = express.Router();
-
-// Mock validation for now (Replace with Zod/Joi later)
-const validateBody = (schema: any) => (req: any, res: any, next: any) => next();
-const AuthSchema = {};
 
 // ======================================================
 // 1. Onboarding & Authentication
 // ======================================================
 
+// Step 1: Registration (Name, Email, Password)
 router.post(
-    '/register',
-    rateLimiters.auth, // Strict limit (prevents mass account creation)
-    validateBody(AuthSchema),
-    authController.register
+    '/register/step1',
+    rateLimiters.auth,
+    deviceIdMiddleware,
+    validateDto(RegisterStep1Dto),
+    authController.registerStep1
 );
 
+// Verify OTP (Email or Phone)
+router.post(
+    '/verify-otp',
+    rateLimiters.auth,
+    deviceIdMiddleware,
+    validateDto(VerifyOtpDto),
+    authController.verifyOtp
+);
+
+// Login
 router.post(
     '/login',
-    rateLimiters.auth, // Strict limit (prevents credential stuffing)
-    validateBody(AuthSchema),
-    authController.login
-);
-
-router.post(
-    '/refresh-token',
     rateLimiters.auth,
-    validateBody(AuthSchema),
-    authController.refreshToken
+    deviceIdMiddleware,
+    validateDto(LoginDto),
+    authController.login
 );
 
 router.post('/logout', rateLimiters.auth, authController.logout);
 
 // ======================================================
-// 2. OTP Services (Dual Layer Protection)
+// 2. OTP Services
 // ======================================================
-// We apply Source + Target limits to BOTH Phone and Email
-// to save costs and prevent harassment.
 
-// --- Phone ---
+// Send OTP (Generic)
 router.post(
-    '/otp/phone',
-    [rateLimiters.otpSource, rateLimiters.otpTarget], // <--- Fixed Accessor
-    authController.sendPhoneOtp
+    '/otp/send',
+    [rateLimiters.otpSource, rateLimiters.otpTarget],
+    // validateDto(SendOtpDto), // SendOtpDto was removed, need to check if we use a generic one or create it
+    authController.sendOtp
 );
-
-router.post(
-    '/verify/phone',
-    rateLimiters.auth, // Verification attempts should be strict (prevents brute force guessing)
-    authController.verifyPhoneOtp
-);
-
-// --- Email ---
-router.post(
-    '/otp/email',
-    [rateLimiters.otpSource, rateLimiters.otpTarget], // <--- Added Dual Layer here too
-    authController.sendEmailOtp
-);
-
-router.post('/verify/email', rateLimiters.auth, authController.verifyEmailOtp);
 
 // ======================================================
 // 3. Password Management
 // ======================================================
 
-router.post('/password/reset-request', authController.requestPasswordReset);
-
 router.post(
-    '/password/verify-otp',
-    rateLimiters.auth, // Strict check for the OTP itself
-    authController.verifyResetOtp
+    '/password/reset-request',
+    // validateDto(RequestPasswordResetDto), // Removed
+    authController.requestPasswordReset
 );
 
-router.post('/password/reset', authController.resetPassword);
+router.post(
+    '/password/reset',
+    // validateDto(ResetPasswordDto), // Removed
+    authController.resetPassword
+);
 
 // ======================================================
 // 4. Authentication
@@ -89,16 +78,15 @@ router.use(authenticate);
 
 router.get('/me', authController.me);
 
+router.post('/pin/setup', validateDto(SetupTransactionPinDto), authController.setupPin);
+
 // ======================================================
-// 4. KYC & Compliance
+// 5. KYC & Compliance
 // ======================================================
 
-router.post(
-    '/kyc',
-    rateLimiters.global,
-    uploadKyc.single('document'), // Expects form-data with key 'document'
-    authController.submitKyc
-);
+router.post('/kyc', rateLimiters.global, uploadKyc.single('document'), authController.submitKyc);
+
+router.post('/kyc/bvn', rateLimiters.global, authController.verifyBvn);
 
 router.post('/profile/avatar', uploadAvatar.single('avatar'), authController.updateAvatar);
 

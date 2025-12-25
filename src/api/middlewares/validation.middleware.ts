@@ -1,6 +1,37 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodSchema } from 'zod';
 import { ValidationError } from '../../shared/lib/utils/api-error';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+
+/**
+ * Validates the request body against a class-validator DTO.
+ */
+export const validateDto =
+    (dtoClass: any) => async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const dtoObj = plainToInstance(dtoClass, req.body);
+            const errors = await validate(dtoObj);
+
+            if (errors.length > 0) {
+                const formattedErrors: Record<string, string> = {};
+                errors.forEach(error => {
+                    const constraints = error.constraints;
+                    if (constraints) {
+                        formattedErrors[error.property] = Object.values(constraints)[0];
+                    }
+                });
+                return next(new ValidationError('Invalid input data', formattedErrors));
+            }
+
+            // Optional: Replace body with typed DTO?
+            // req.body = dtoObj; // Be careful, this might strip properties not in DTO if whitelist is on
+            // For now, let's just validate.
+            next();
+        } catch (error) {
+            next(error);
+        }
+    };
 
 /**
  * Validates the request body against a Zod schema.
