@@ -1,8 +1,9 @@
-import { prisma, Prisma, TransactionType, Transaction } from '../../database';
-import { NotFoundError, BadRequestError, InternalError, ConflictError } from '../utils/api-error';
+import { prisma, Prisma, TransactionType, Transaction, UserFlagType } from '../../database';
+import { NotFoundError, BadRequestError, InternalError } from '../utils/api-error';
 import { UserId } from '../../types/query.types';
 import { redisConnection } from '../../config/redis.config';
 import { socketService } from './socket.service';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // --- Interfaces ---
 
@@ -23,13 +24,31 @@ interface TransactionOptions {
     type?: TransactionType; // DEPOSIT, WITHDRAWAL, TRANSFER, etc.
     metadata?: any; // Store webhook payload or external details
     counterpartyId?: string; // Optional: ID of the other party
+    fee?: number; // Optional fee to deduct/record
+}
+
+interface LedgerEntry {
+    userId: string;
+    walletId?: string; // Optional if userId is provided
+    amount: Decimal | number; // Positive for Credit, Negative for Debit
+    type: TransactionType;
+    reference: string;
+    description: string;
+    metadata?: any;
+    counterpartyId?: string;
+    fee?: Decimal | number; // Fee associated with this specific entry (deducted from amount if debit, or separate record?)
+    // Actually, fee is usually a separate ledger entry.
+    // But for simplicity, let's assume this entry is the PRINCIPAL.
 }
 
 export class WalletService {
     // --- Helpers ---
 
-    private calculateAvailableBalance(balance: number, lockedBalance: number): number {
-        return Number(balance) - Number(lockedBalance);
+    private calculateAvailableBalance(
+        balance: Decimal | number,
+        lockedBalance: Decimal | number
+    ): number {
+        return new Decimal(balance).minus(new Decimal(lockedBalance)).toNumber();
     }
 
     private getCacheKey(userId: string) {
@@ -75,10 +94,7 @@ export class WalletService {
             id: wallet.id,
             balance: Number(wallet.balance),
             lockedBalance: Number(wallet.lockedBalance),
-            availableBalance: this.calculateAvailableBalance(
-                Number(wallet.balance),
-                Number(wallet.lockedBalance)
-            ),
+            availableBalance: this.calculateAvailableBalance(wallet.balance, wallet.lockedBalance),
             currency: 'NGN', // Hardcoded for now, or fetch from DB
             virtualAccount: wallet.virtualAccount
                 ? {
@@ -105,10 +121,7 @@ export class WalletService {
             ...wallet,
             balance: Number(wallet.balance),
             lockedBalance: Number(wallet.lockedBalance),
-            availableBalance: this.calculateAvailableBalance(
-                Number(wallet.balance),
-                Number(wallet.lockedBalance)
-            ),
+            availableBalance: this.calculateAvailableBalance(wallet.balance, wallet.lockedBalance),
         };
     }
 
@@ -136,6 +149,7 @@ export class WalletService {
                     createdAt: true,
                     metadata: true,
                     description: true,
+                    fee: true,
                     counterparty: {
                         select: {
                             id: true,
@@ -176,6 +190,96 @@ export class WalletService {
     // ==========================================
 
     /**
+     * Process multiple ledger entries atomically.
+     * This is the core engine for all money movement.
+     */
+    async processLedgerEntry(entries: LedgerEntry[]) {
+        return await prisma.$transaction(async tx => {
+            const results = [];
+
+            for (const entry of entries) {
+                const { userId, amount, type, reference, description, metadata, counterpartyId } =
+                    entry;
+                const decimalAmount = new Decimal(amount);
+
+                // 1. Get Wallet
+                const wallet = await tx.wallet.findUnique({ where: { userId } });
+                if (!wallet) throw new NotFoundError(`Wallet not found for user ${userId}`);
+
+                // 2. Check Balance (if debit)
+                if (decimalAmount.isNegative()) {
+                    const available = new Decimal(wallet.balance).minus(
+                        new Decimal(wallet.lockedBalance)
+                    );
+                    if (available.plus(decimalAmount).isNegative()) {
+                        // decimalAmount is negative, so + means -
+                        throw new BadRequestError(`Insufficient funds for user ${userId}`);
+                    }
+                }
+
+                // 3. Update Balance
+                const updatedWallet = await tx.wallet.update({
+                    where: { id: wallet.id },
+                    data: { balance: { increment: decimalAmount } },
+                });
+
+                // 4. Create Transaction Record
+                const transaction = await tx.transaction.create({
+                    data: {
+                        userId,
+                        walletId: wallet.id,
+                        type,
+                        amount: decimalAmount,
+                        balanceBefore: wallet.balance,
+                        balanceAfter: updatedWallet.balance,
+                        status: 'COMPLETED',
+                        reference,
+                        description,
+                        metadata,
+                        counterpartyId,
+                        fee: entry.fee ? new Decimal(entry.fee) : 0,
+                    },
+                });
+
+                results.push(transaction);
+
+                // 5. 30M Guard (For Credits)
+                if (decimalAmount.isPositive()) {
+                    const user = await tx.user.findUnique({ where: { id: userId } });
+                    if (user) {
+                        const newCumulative = new Decimal(user.cumulativeInflow).plus(
+                            decimalAmount
+                        );
+
+                        // Update Cumulative Inflow
+                        await tx.user.update({
+                            where: { id: userId },
+                            data: { cumulativeInflow: newCumulative },
+                        });
+
+                        // Check Limit
+                        if (
+                            newCumulative.greaterThan(30000000) && // 30M
+                            user.kycLevel !== 'FULL'
+                        ) {
+                            await tx.user.update({
+                                where: { id: userId },
+                                data: {
+                                    flagType: UserFlagType.KYC_LIMIT,
+                                    flagReason: 'Cumulative inflow limit exceeded (30M)',
+                                    flaggedAt: new Date(),
+                                },
+                            });
+                        }
+                    }
+                }
+            }
+
+            return results;
+        });
+    }
+
+    /**
      * Credit a wallet (Deposit)
      * Handles Webhooks (External Ref) and Internal Credits.
      */
@@ -184,59 +288,26 @@ export class WalletService {
         amount: number,
         options: TransactionOptions = {}
     ): Promise<Transaction> {
-        const {
-            reference, // <--- The most important fix
-            description = 'Credit',
-            type = 'DEPOSIT',
-            metadata = {},
-        } = options;
+        const { reference, description = 'Credit', type = 'DEPOSIT', metadata = {} } = options;
 
-        // 1. Determine Reference (Use External if provided, else generate Internal)
         const txReference =
             reference ||
             `TX-CR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
 
-        const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-            // 2. Idempotency Check (DB Level Safety)
-            // If an external reference is passed, ensure it doesn't exist.
-            if (reference) {
-                const existing = await tx.transaction.findUnique({ where: { reference } });
-                if (existing)
-                    throw new ConflictError('Transaction with this reference already exists');
-            }
+        // Use processLedgerEntry for consistency
+        const [transaction] = await this.processLedgerEntry([
+            {
+                userId,
+                amount,
+                type,
+                reference: txReference,
+                description,
+                metadata,
+                counterpartyId: options.counterpartyId,
+            },
+        ]);
 
-            // 3. Get Wallet
-            const wallet = await tx.wallet.findUnique({ where: { userId } });
-            if (!wallet) throw new NotFoundError('Wallet not found');
-
-            const balanceBefore = Number(wallet.balance);
-            const balanceAfter = balanceBefore + amount;
-
-            // 4. Update Balance (Atomic Increment)
-            await tx.wallet.update({
-                where: { id: wallet.id },
-                data: { balance: { increment: amount } },
-            });
-
-            // 5. Create Transaction Record
-            return await tx.transaction.create({
-                data: {
-                    userId,
-                    walletId: wallet.id,
-                    type, // Dynamic Type
-                    amount,
-                    balanceBefore,
-                    balanceAfter,
-                    status: 'COMPLETED',
-                    reference: txReference, // <--- Saves the Bank's Reference!
-                    description,
-                    metadata,
-                    counterpartyId: options.counterpartyId,
-                },
-            });
-        });
-
-        // 6. Post-Transaction
+        // Post-Transaction
         await this.invalidateCache(userId);
 
         // Notify Frontend (Send new balance)
@@ -246,7 +317,10 @@ export class WalletService {
             message: `Credit Alert: +₦${amount.toLocaleString()}`,
         });
 
-        return result;
+        // Emit Transaction Created Event
+        socketService.emitToUser(userId, 'TRANSACTION_CREATED', transaction);
+
+        return transaction;
     }
 
     /**
@@ -263,46 +337,20 @@ export class WalletService {
             reference ||
             `TX-DR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
 
-        const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-            const wallet = await tx.wallet.findUnique({ where: { userId } });
-            if (!wallet) throw new NotFoundError('Wallet not found');
+        // Use processLedgerEntry
+        const [transaction] = await this.processLedgerEntry([
+            {
+                userId,
+                amount: -amount, // Negative for debit
+                type,
+                reference: txReference,
+                description,
+                metadata,
+                counterpartyId: options.counterpartyId,
+            },
+        ]);
 
-            const balanceBefore = Number(wallet.balance);
-            const locked = Number(wallet.lockedBalance);
-            const available = balanceBefore - locked;
-
-            // 1. Strict Balance Check
-            if (available < amount) {
-                throw new BadRequestError('Insufficient funds');
-            }
-
-            const balanceAfter = balanceBefore - amount;
-
-            // 2. Deduct Balance (Atomic Decrement)
-            await tx.wallet.update({
-                where: { id: wallet.id },
-                data: { balance: { decrement: amount } },
-            });
-
-            // 3. Create Transaction Record
-            return await tx.transaction.create({
-                data: {
-                    userId,
-                    walletId: wallet.id,
-                    type,
-                    amount,
-                    balanceBefore,
-                    balanceAfter,
-                    status: 'COMPLETED',
-                    reference: txReference,
-                    description,
-                    metadata,
-                    counterpartyId: options.counterpartyId,
-                },
-            });
-        });
-
-        // 4. Post-Transaction
+        // Post-Transaction
         await this.invalidateCache(userId);
 
         const newBalance = await this.getWalletBalance(userId);
@@ -311,7 +359,10 @@ export class WalletService {
             message: `Debit Alert: -₦${amount.toLocaleString()}`,
         });
 
-        return result;
+        // Emit Transaction Created Event
+        socketService.emitToUser(userId, 'TRANSACTION_CREATED', transaction);
+
+        return transaction;
     }
     /**
      * Lock funds (P2P Escrow)
@@ -322,18 +373,19 @@ export class WalletService {
             const wallet = await tx.wallet.findUnique({ where: { userId } });
             if (!wallet) throw new NotFoundError('Wallet not found');
 
-            const balance = Number(wallet.balance);
-            const locked = Number(wallet.lockedBalance);
-            const available = balance - locked;
+            const balance = new Decimal(wallet.balance);
+            const locked = new Decimal(wallet.lockedBalance);
+            const available = balance.minus(locked);
+            const decimalAmount = new Decimal(amount);
 
-            if (available < amount) {
+            if (available.lessThan(decimalAmount)) {
                 throw new BadRequestError('Insufficient funds to lock');
             }
 
             // Increment Locked Balance
             return await tx.wallet.update({
                 where: { id: wallet.id },
-                data: { lockedBalance: { increment: amount } },
+                data: { lockedBalance: { increment: decimalAmount } },
             });
         });
 
@@ -350,16 +402,17 @@ export class WalletService {
             const wallet = await tx.wallet.findUnique({ where: { userId } });
             if (!wallet) throw new NotFoundError('Wallet not found');
 
-            const locked = Number(wallet.lockedBalance);
+            const locked = new Decimal(wallet.lockedBalance);
+            const decimalAmount = new Decimal(amount);
 
-            if (locked < amount) {
+            if (locked.lessThan(decimalAmount)) {
                 // Should not happen if logic is correct, but safety first
                 throw new BadRequestError('Cannot unlock more than is locked');
             }
 
             return await tx.wallet.update({
                 where: { id: wallet.id },
-                data: { lockedBalance: { decrement: amount } },
+                data: { lockedBalance: { decrement: decimalAmount } },
             });
         });
 

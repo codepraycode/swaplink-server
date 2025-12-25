@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { envConfig } from '../../../shared/config/env.config';
-import { prisma } from '../../../shared/database';
+import { prisma, TransactionType } from '../../../shared/database';
 import { walletService } from '../../../shared/lib/services/wallet.service';
 import logger from '../../../shared/lib/utils/logger';
 import { NotificationService } from '../notification/notification.service';
@@ -57,19 +57,19 @@ export class WebhookService {
         sessionId?: string; // Often provided by banks
     }) {
         const { accountNumber, amount, reference } = data;
+        const INBOUND_FEE = 53.5;
+        const SYSTEM_REVENUE_EMAIL = 'revenue@swaplink.com';
 
         // ====================================================
         // 1. IDEMPOTENCY CHECK (CRITICAL)
         // ====================================================
-        // Check if we have already processed this specific bank reference.
-        // If yes, stop immediately.
         const existingTx = await prisma.transaction.findUnique({
             where: { reference: reference },
         });
 
         if (existingTx) {
             logger.warn(`⚠️ Duplicate Webhook detected (Idempotency): ${reference}`);
-            return; // Return successfully so the Bank stops retrying
+            return;
         }
 
         // ====================================================
@@ -81,26 +81,65 @@ export class WebhookService {
         });
 
         if (!virtualAccount) {
-            // If account doesn't exist, we can't credit.
-            // We log error but DO NOT throw, or the bank will retry forever.
             logger.error(`❌ Virtual Account not found: ${accountNumber}`);
             return;
         }
 
         // ====================================================
-        // 3. Atomic Credit
+        // 3. Prepare Ledger Entries
         // ====================================================
         try {
-            // Ensure creditWallet handles the DB transaction internally
-            // and creates the Transaction record with the 'reference' provided.
-            await walletService.creditWallet(virtualAccount.wallet.userId, amount, {
-                type: 'DEPOSIT',
-                reference, // <--- Must use the BANK'S reference, not a new UUID
+            const revenueUser = await prisma.user.findUnique({
+                where: { email: SYSTEM_REVENUE_EMAIL },
+            });
+            if (!revenueUser) throw new Error('System Revenue User not found');
+
+            const entries = [];
+
+            // 1. Credit User Principal
+            entries.push({
+                userId: virtualAccount.wallet.userId,
+                amount: amount,
+                type: TransactionType.DEPOSIT,
+                reference: reference, // Bank Ref
                 description: 'Deposit via Globus Bank',
                 metadata: data,
             });
 
+            // 2. Deduct Fee (if amount covers it)
+            if (amount > INBOUND_FEE) {
+                // Debit User
+                entries.push({
+                    userId: virtualAccount.wallet.userId,
+                    amount: -INBOUND_FEE,
+                    type: TransactionType.FEE,
+                    reference: `FEE-${reference}`,
+                    description: 'Inbound Deposit Fee',
+                });
+
+                // Credit Revenue
+                entries.push({
+                    userId: revenueUser.id,
+                    amount: INBOUND_FEE,
+                    type: TransactionType.FEE,
+                    reference: `REV-${reference}`,
+                    description: `Fee from ${virtualAccount.wallet.userId}`,
+                    metadata: { originalTx: reference },
+                });
+            }
+
+            // ====================================================
+            // 4. Atomic Execution
+            // ====================================================
+            const results = await walletService.processLedgerEntry(entries);
+            const mainTx = results[0];
+
             logger.info(`✅ Wallet credited: User ${virtualAccount.wallet.userId} +₦${amount}`);
+
+            // Emit Socket Events (handled by processLedgerEntry for individual txs, but we might want a summary?)
+            // processLedgerEntry emits TRANSACTION_CREATED for each.
+            // But WALLET_UPDATED is emitted for each too.
+            // That's fine.
 
             // Send Push Notification
             await NotificationService.sendToUser(
@@ -111,12 +150,13 @@ export class WebhookService {
                     reference,
                     amount,
                     type: 'DEPOSIT_SUCCESS',
+                    transactionId: mainTx.id,
                 },
                 NotificationType.TRANSACTION
             );
         } catch (error) {
             logger.error(`❌ Credit Failed for User ${virtualAccount.wallet.userId}`, error);
-            throw error; // Throwing here causes 500, triggering Bank Retry (Good behavior for DB errors)
+            throw error;
         }
     }
 }

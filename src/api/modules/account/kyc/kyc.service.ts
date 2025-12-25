@@ -4,6 +4,7 @@ import { KycDocumentStatus, KycLevel, KycStatus, prisma } from '../../../../shar
 import { BadRequestError } from '../../../../shared/lib/utils/api-error';
 import { eventBus, EventType } from '../../../../shared/lib/events/event-bus';
 import logger from '../../../../shared/lib/utils/logger';
+import { getBankingQueue } from '../../../../shared/lib/init/service-initializer';
 
 class KycService {
     /**
@@ -79,16 +80,33 @@ class KycService {
             },
         });
 
-        // 3. Update User Name (Optional, but good for consistency)
-        await prisma.user.update({
+        // 3. Update User Name & Upgrade to INTERMEDIATE
+        const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
                 firstName: kycData.firstName,
                 lastName: kycData.lastName,
+                kycLevel: KycLevel.INTERMEDIATE, // Upgrade to Intermediate
             },
+            include: { wallet: true },
         });
 
-        // 4. Check Completeness
+        // 4. Dispatch Account Provisioning Job
+        if (updatedUser.wallet) {
+            try {
+                await getBankingQueue().add('create-virtual-account', {
+                    userId: updatedUser.id,
+                    walletId: updatedUser.wallet.id,
+                });
+                logger.info(`[KYC] Dispatched account provisioning for ${userId}`);
+            } catch (error) {
+                logger.error(`[KYC] Failed to dispatch account provisioning for ${userId}`, error);
+            }
+        } else {
+            logger.warn(`[KYC] User ${userId} has no wallet, skipping account provisioning`);
+        }
+
+        // 5. Check Completeness (for FULL upgrade)
         await this.checkCompleteness(userId);
 
         return { message: 'BVN Verified successfully' };

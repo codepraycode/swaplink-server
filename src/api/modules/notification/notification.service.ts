@@ -1,4 +1,5 @@
-import { prisma, Notification, Prisma } from '../../../shared/database';
+import { prisma, Notification, Prisma, NotificationType } from '../../../shared/database';
+import { socketService } from '../../../shared/lib/services/socket.service';
 
 export class NotificationService {
     /**
@@ -29,5 +30,33 @@ export class NotificationService {
             where: { userId, isRead: false },
             data: { isRead: true },
         });
+    }
+
+    /**
+     * Send a notification to a user.
+     */
+    static async sendToUser(
+        userId: string,
+        title: string,
+        message: string,
+        metadata: any = {},
+        type: NotificationType = NotificationType.SYSTEM
+    ) {
+        // 1. Create in DB
+        const notification = await prisma.notification.create({
+            data: {
+                userId,
+                title,
+                body: message,
+                data: metadata,
+                type,
+                isRead: false,
+            },
+        });
+
+        // 2. Emit Socket Event
+        socketService.emitToUser(userId, 'NOTIFICATION_NEW', notification);
+
+        return notification;
     }
 }

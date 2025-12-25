@@ -26,7 +26,15 @@ export const bankingWorker = new Worker<CreateAccountJob>(
             }
 
             // 2. Call Bank API (Globus)
-            const bankDetails = await globusService.createAccount(user);
+            if (!user.email || !user.phone) {
+                logger.error(`❌ User ${userId} missing email or phone`);
+                return;
+            }
+            const bankDetails = await globusService.generateNuban({
+                ...user,
+                email: user.email,
+                phone: user.phone,
+            });
 
             // 3. Update Database (Create VirtualAccount)
             await prisma.virtualAccount.create({

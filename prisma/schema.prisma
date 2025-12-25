@@ -28,10 +28,15 @@ model User {
   isVerified       Boolean   @default(false)
   emailVerified    Boolean   @default(false)
   phoneVerified    Boolean   @default(false)
-  isActive         Boolean   @default(true)
+  isActive         Boolean   @default(true) // Soft Delete
   twoFactorEnabled Boolean   @default(false)
   pushToken        String?
   
+  // Flagging
+  flagType         UserFlagType @default(NONE)
+  flagReason       String?
+  flaggedAt        DateTime?
+
   // Metadata
   lastLogin        DateTime?
   createdAt        DateTime  @default(now())
@@ -44,7 +49,7 @@ model User {
   
   // Device & Limits
   deviceId         String?
-  cumulativeInflow Decimal   @default(0)
+  cumulativeInflow Decimal   @default(0) @db.Decimal(20, 2)
 
   // Relations
   wallet           Wallet?   // 1:1 Relation (One user, one wallet)
@@ -80,9 +85,14 @@ model Wallet {
   userId        String   @unique // Enforces 1-to-1 relationship
   
   // Balances (Implicitly NGN)
-  balance       Float    @default(0)
-  lockedBalance Float    @default(0) // For pending withdrawals or frozen funds
+  balance       Decimal  @default(0) @db.Decimal(20, 2)
+  lockedBalance Decimal  @default(0) @db.Decimal(20, 2) // For pending withdrawals or frozen funds
   
+  // Flagging
+  flagType      WalletFlagType @default(NONE)
+  flagReason    String?
+  flaggedAt     DateTime?
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -117,9 +127,9 @@ model Transaction {
   
   // Details
   type           TransactionType
-  amount         Float
-  balanceBefore  Float
-  balanceAfter   Float
+  amount         Decimal           @db.Decimal(20, 2)
+  balanceBefore  Decimal           @db.Decimal(20, 2)
+  balanceAfter   Decimal           @db.Decimal(20, 2)
   status         TransactionStatus @default(PENDING)
   reference      String            @unique
   sessionId      String?           // NIBSS Session ID for external transfers
@@ -131,7 +141,7 @@ model Transaction {
   destinationAccount  String?
   destinationName     String?
   // sessionId           String?  // Removed duplicate
-  fee                 Float    @default(0)
+  fee                 Decimal  @default(0) @db.Decimal(20, 2)
   
   // Idempotency
   idempotencyKey      String?  @unique
@@ -495,4 +505,19 @@ enum NotificationChannel {
   PUSH
   EMAIL
   INAPP
+}
+
+enum UserFlagType {
+  NONE
+  KYC_LIMIT
+  SUSPICIOUS
+  FRAUD
+  MANUAL
+}
+
+enum WalletFlagType {
+  NONE
+  LIEN
+  FROZEN
+  INVESTIGATION
 }
