@@ -54,8 +54,8 @@ model User {
   // Relations
   wallet           Wallet?   // 1:1 Relation (One user, one wallet)
   bankAccounts     BankAccount[]
-  kycDocuments     KycDocument[]
   kycAttempts      KycAttempt[]
+  kycInfo          KycInfo?
   transactions     Transaction[] // History of transactions initiated by user
   counterpartyTransactions Transaction[] @relation("TransactionCounterparty")
   beneficiaries    Beneficiary[]
@@ -204,7 +204,7 @@ model BankAccount {
 
 model KycDocument {
   id              String            @id @default(uuid())
-  userId          String
+  kycInfoId       String
   
   documentType    String            // NIN, BVN_SLIP, PASSPORT
   documentUrl     String            // Cloudinary/S3 URL
@@ -215,7 +215,7 @@ model KycDocument {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kycInfo         KycInfo           @relation(fields: [kycInfoId], references: [id], onDelete: Cascade)
 
   @@map("kyc_documents")
 }
@@ -231,6 +231,35 @@ model KycAttempt {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("kyc_attempts")
+}
+
+model KycInfo {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  
+  // Personal Info
+  dob         DateTime?
+  address     String?
+  city        String?
+  state       String?
+  country     String?
+  postalCode  String?
+  
+  // Biometrics
+  selfieUrl   String?
+  videoUrl    String?
+  
+  // IDs
+  bvn         String?
+  nin         String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents   KycDocument[]
+
+  @@map("kyc_info")
 }
 
 // ==========================================

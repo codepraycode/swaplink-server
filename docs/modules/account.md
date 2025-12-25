@@ -19,7 +19,8 @@ The Identity & Security Module is the gatekeeper of the SwapLink platform. It ma
 Key entities in the database (Prisma):
 
 -   **User**: Core identity. Tracks `kycLevel` (NONE, BASIC, FULL), `kycStatus`, and `deviceId`.
--   **KycDocument**: Stores URLs of uploaded IDs/Passports. Linked to User.
+-   **KycInfo**: Stores detailed user info (DOB, Address, Biometrics, IDs). Linked to User (1:1).
+-   **KycDocument**: Stores URLs of uploaded IDs/Passports. Linked to KycInfo.
 -   **KycAttempt**: Logs every BVN/NIN verification attempt (Success/Failure) for audit.
 -   **Otp**: Ephemeral storage for OTP codes (backed by Redis in practice).
 
@@ -40,10 +41,15 @@ sequenceDiagram
     Note over App, Worker: Registration Step 1
     App->>API: POST /register/step1 (email, password, deviceId)
     API->>Auth: registerStep1()
-    Auth->>Redis: Store OTP (TTL 5m)
-    Auth->>Worker: Emit OTP_REQUESTED
-    Worker-->>App: Send Email OTP
-    Auth-->>App: Return { userId }
+    Auth-->>App: Return { userId, message: "OTP sent to email" }
+
+    Note over App, Worker: Registration Step 2
+    App->>API: POST /register/step2 (email, password, phone, deviceId)
+    API->>Auth: registerStep2()
+    Auth->>Redis: Store Phone OTP (TTL 5m)
+    Auth->>Worker: Emit OTP_REQUESTED (Phone)
+    Worker-->>App: Send SMS OTP
+    Auth-->>App: Return { userId, message: "OTP sent to phone" }
 
     Note over App, Worker: Verification
     App->>API: POST /verify-otp (otp, deviceId)
@@ -120,6 +126,27 @@ Initiates registration. Sends an OTP to the provided email.
     }
     ```
 
+#### `POST /auth/register/step2`
+
+Completes registration profile. Verifies password, adds phone number, and sends phone OTP.
+
+-   **Body**:
+    ```json
+    {
+        "email": "john@example.com",
+        "password": "SecurePassword123!",
+        "phone": "+2348012345678",
+        "deviceId": "uuid-v4-device-id"
+    }
+    ```
+-   **Response (200)**:
+    ```json
+    {
+        "success": true,
+        "data": { "userId": "uuid...", "message": "Step 2 successful. OTP sent to phone." }
+    }
+    ```
+
 #### `POST /auth/verify-otp`
 
 Verifies email or phone OTP. Activates account if purpose is verification.
@@ -167,6 +194,32 @@ Uploads an identity document (Tier 1 Requirement).
 -   **Body**:
     -   `document`: (File)
     -   `documentType`: `ID_CARD` | `PASSPORT` | `NIN`
+
+#### `POST /auth/kyc/info`
+
+Submits personal information (DOB, Address, BVN, NIN).
+
+-   **Body**:
+    ```json
+    {
+        "address": "123 Main St",
+        "city": "Lagos",
+        "state": "Lagos",
+        "country": "NG",
+        "postalCode": "100001",
+        "dob": "1990-01-01",
+        "bvn": "12345678901"
+    }
+    ```
+
+#### `POST /auth/kyc/biometrics` (Multipart)
+
+Uploads selfie and liveness video.
+
+-   **Headers**: `Content-Type: multipart/form-data`
+-   **Body**:
+    -   `selfie`: (Image File)
+    -   `video`: (Video File)
 
 #### `POST /auth/kyc/bvn`
 

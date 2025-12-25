@@ -71,6 +71,28 @@ export const uploadAvatar = multer({
     fileFilter: createFilter(uploadConfig.avatar.allowedMimeTypes),
 });
 
+/**
+ * Biometrics Uploader
+ * - Selfie (Image)
+ * - Video (Video)
+ */
+export const uploadBiometrics = multer({
+    storage: storage,
+    limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB for video? Adjust as needed.
+        files: 2,
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.fieldname === 'selfie') {
+            createFilter(uploadConfig.avatar.allowedMimeTypes)(req, file, cb);
+        } else if (file.fieldname === 'video') {
+            createFilter(['video/mp4', 'video/webm', 'video/quicktime'])(req, file, cb);
+        } else {
+            cb(new BadRequestError('Invalid field name') as any);
+        }
+    },
+});
+
 // ======================================================
 // 4. Error Handler Wrapper (Optional but Recommended)
 // ======================================================

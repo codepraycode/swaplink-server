@@ -25,6 +25,20 @@ export class RegisterStep1Dto extends BaseAuthDto {
     password!: string;
 }
 
+export class RegisterStep2Dto extends BaseAuthDto {
+    @IsEmail()
+    @IsNotEmpty()
+    email!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    password!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    phone!: string;
+}
+
 export class VerifyOtpDto extends BaseAuthDto {
     @IsString()
     @IsNotEmpty()

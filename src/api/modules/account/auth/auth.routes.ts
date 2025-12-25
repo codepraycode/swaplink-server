@@ -1,10 +1,17 @@
 import express, { Router } from 'express';
 import authController from './auth.controller';
 import rateLimiters from '../../../middlewares/rate-limit.middleware';
-import { uploadKyc, uploadAvatar } from '../../../middlewares/upload.middleware';
+import { uploadKyc, uploadAvatar, uploadBiometrics } from '../../../middlewares/upload.middleware';
 import { validateDto } from '../../../middlewares/validation.middleware';
 import { deviceIdMiddleware } from '../../../middlewares/auth/device-id.middleware';
-import { RegisterStep1Dto, VerifyOtpDto, LoginDto, SetupTransactionPinDto } from './auth.dto';
+import { SubmitKycInfoDto } from '../kyc/kyc.dto';
+import {
+    RegisterStep1Dto,
+    RegisterStep2Dto,
+    VerifyOtpDto,
+    LoginDto,
+    SetupTransactionPinDto,
+} from './auth.dto';
 import { authenticate } from '../../../middlewares/auth/auth.middleware';
 
 const router: Router = express.Router();
@@ -20,6 +27,15 @@ router.post(
     deviceIdMiddleware,
     validateDto(RegisterStep1Dto),
     authController.registerStep1
+);
+
+// Step 2: Registration (Phone, Password Verify)
+router.post(
+    '/register/step2',
+    rateLimiters.auth,
+    deviceIdMiddleware,
+    validateDto(RegisterStep2Dto),
+    authController.registerStep2
 );
 
 // Verify OTP (Email or Phone)
@@ -87,6 +103,23 @@ router.post('/pin/setup', validateDto(SetupTransactionPinDto), authController.se
 router.post('/kyc', rateLimiters.global, uploadKyc.single('document'), authController.submitKyc);
 
 router.post('/kyc/bvn', rateLimiters.global, authController.verifyBvn);
+
+router.post(
+    '/kyc/info',
+    rateLimiters.global,
+    validateDto(SubmitKycInfoDto),
+    authController.submitKycInfo
+);
+
+router.post(
+    '/kyc/biometrics',
+    rateLimiters.global,
+    uploadBiometrics.fields([
+        { name: 'selfie', maxCount: 1 },
+        { name: 'video', maxCount: 1 },
+    ]),
+    authController.submitBiometrics
+);
 
 router.post('/profile/avatar', uploadAvatar.single('avatar'), authController.updateAvatar);
 

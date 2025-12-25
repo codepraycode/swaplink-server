@@ -17,7 +17,13 @@ import { AuditService } from '../../../../shared/lib/services/audit.service';
 import { redisConnection } from '../../../../shared/config/redis.config';
 import { socketService } from '../../../../shared/lib/services/socket.service';
 import { eventBus, EventType } from '../../../../shared/lib/events/event-bus';
-import { RegisterStep1Dto, SetupTransactionPinDto, VerifyOtpDto, LoginDto } from './auth.dto';
+import {
+    RegisterStep1Dto,
+    RegisterStep2Dto,
+    SetupTransactionPinDto,
+    VerifyOtpDto,
+    LoginDto,
+} from './auth.dto';
 
 class AuthService {
     // --- Helpers ---
@@ -88,6 +94,50 @@ class AuthService {
         });
 
         return { userId: user.id, message: 'Step 1 successful. OTP sent to email.' };
+    }
+
+    /**
+     * Step 2: Verify Password, Add Phone, Send Phone OTP
+     */
+    async registerStep2(dto: RegisterStep2Dto) {
+        const { email, password, phone, deviceId } = dto;
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+
+        const passwordMatch = await this.comparePassowrd(password, user.password);
+        if (!passwordMatch) {
+            throw new UnauthorizedError('Invalid password');
+        }
+
+        // Check if phone is already taken by another user
+        const existingPhone = await prisma.user.findUnique({ where: { phone } });
+        if (existingPhone && existingPhone.id !== user.id) {
+            throw new ConflictError('Phone number already in use');
+        }
+
+        // Update user with phone
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { phone, deviceId },
+        });
+
+        // Send OTP to Phone
+        await this.sendOtp(phone, 'phone');
+
+        // Audit Log
+        AuditService.log({
+            userId: user.id,
+            action: 'USER_REGISTERED_STEP2',
+            resource: 'User',
+            resourceId: user.id,
+            details: { step: 2, phone },
+            status: 'SUCCESS',
+        });
+
+        return { userId: user.id, message: 'Step 2 successful. OTP sent to phone.' };
     }
 
     /**

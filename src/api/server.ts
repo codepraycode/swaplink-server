@@ -12,6 +12,7 @@ import {
     initializeListeners,
     initializeQueues,
 } from '../shared/lib/init/service-initializer';
+import { initializeSystemResources } from '../shared/lib/init/system-init';
 
 let server: any;
 const SERVER_URL = envConfig.SERVER_URL;
@@ -32,6 +33,9 @@ const startServer = async () => {
 
         // 6. Initialize Event Listeners
         await initializeListeners();
+
+        // 7. Initialize System Resources (User/Wallet)
+        await initializeSystemResources();
 
         // 3. Start HTTP server
         logger.info('🔄 Starting HTTP server...');

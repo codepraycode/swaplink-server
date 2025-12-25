@@ -4,6 +4,7 @@ import { KycDocumentStatus, KycLevel, KycStatus, prisma } from '../../../../shar
 import { BadRequestError } from '../../../../shared/lib/utils/api-error';
 import { eventBus, EventType } from '../../../../shared/lib/events/event-bus';
 import logger from '../../../../shared/lib/utils/logger';
+import { SubmitKycInfoDto } from './kyc.dto';
 import { getBankingQueue } from '../../../../shared/lib/init/service-initializer';
 
 class KycService {
@@ -14,10 +15,17 @@ class KycService {
         // 1. Upload file
         const documentUrl = await storageService.uploadFile(file, 'kyc');
 
-        // 2. Create KYC Document record
+        // 2. Ensure KycInfo exists
+        const kycInfo = await prisma.kycInfo.upsert({
+            where: { userId },
+            create: { userId },
+            update: {},
+        });
+
+        // 3. Create KYC Document record
         await prisma.kycDocument.create({
             data: {
-                userId,
+                kycInfoId: kycInfo.id,
                 documentType,
                 documentUrl,
                 status: KycDocumentStatus.PENDING,
@@ -121,17 +129,23 @@ class KycService {
         // 2. ID Document Uploaded (KycDocument)
         // 3. Liveness Check (Optional for now, or implied by ID upload in this simple flow)
 
-        const [bvnAttempt, idDoc] = await Promise.all([
+        const [bvnAttempt, kycInfo] = await Promise.all([
             prisma.kycAttempt.findFirst({
                 where: { userId, status: 'SUCCESS' }, // Assuming successful attempt means BVN verified
             }),
-            prisma.kycDocument.findFirst({
-                where: {
-                    userId,
-                    documentType: { in: ['ID_CARD', 'PASSPORT', 'NIN'] },
+            prisma.kycInfo.findUnique({
+                where: { userId },
+                include: {
+                    documents: {
+                        where: {
+                            documentType: { in: ['ID_CARD', 'PASSPORT', 'NIN'] },
+                        },
+                    },
                 },
             }),
         ]);
+
+        const idDoc = kycInfo?.documents?.[0];
 
         if (bvnAttempt && idDoc) {
             // Upgrade to FULL
@@ -151,6 +165,55 @@ class KycService {
 
             logger.info(`[KYC] User ${userId} upgraded to FULL KYC`);
         }
+    }
+
+    async submitKycInfo(userId: string, dto: SubmitKycInfoDto) {
+        const { dob, address, city, state, country, postalCode, bvn, nin } = dto;
+
+        // Create or Update KycInfo
+        const kycInfo = await prisma.kycInfo.upsert({
+            where: { userId },
+            create: {
+                userId,
+                dob: new Date(dob),
+                address,
+                city,
+                state,
+                country,
+                postalCode,
+                bvn,
+                nin,
+            },
+            update: {
+                dob: new Date(dob),
+                address,
+                city,
+                state,
+                country,
+                postalCode,
+                bvn,
+                nin,
+            },
+        });
+
+        return kycInfo;
+    }
+
+    async updateBiometrics(userId: string, selfieUrl?: string, videoUrl?: string) {
+        const data: any = {};
+        if (selfieUrl) data.selfieUrl = selfieUrl;
+        if (videoUrl) data.videoUrl = videoUrl;
+
+        const kycInfo = await prisma.kycInfo.upsert({
+            where: { userId },
+            create: {
+                userId,
+                ...data,
+            },
+            update: data,
+        });
+
+        return kycInfo;
     }
 }
 

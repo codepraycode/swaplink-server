@@ -18,6 +18,15 @@ class AuthController {
         }
     };
 
+    registerStep2 = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const result = await authService.registerStep2(req.body);
+            sendSuccess(res, result, 'Step 2 successful');
+        } catch (error) {
+            next(error);
+        }
+    };
+
     verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const result = await authService.verifyOtp(req.body);
@@ -143,6 +152,37 @@ class AuthController {
 
             const result = await kycService.verifyBvn(userId, bvn);
             sendSuccess(res, result, 'BVN verified successfully');
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    submitKycInfo = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userId = (req as any).user.userId;
+            const result = await kycService.submitKycInfo(userId, req.body);
+            sendSuccess(res, result, 'KYC Info submitted successfully');
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    submitBiometrics = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userId = (req as any).user.userId;
+            const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+            let selfieUrl, videoUrl;
+
+            if (files?.selfie?.[0]) {
+                selfieUrl = await storageService.uploadFile(files.selfie[0], 'kyc/biometrics');
+            }
+            if (files?.video?.[0]) {
+                videoUrl = await storageService.uploadFile(files.video[0], 'kyc/biometrics');
+            }
+
+            const result = await kycService.updateBiometrics(userId, selfieUrl, videoUrl);
+            sendSuccess(res, result, 'Biometrics submitted successfully');
         } catch (error) {
             next(error);
         }
