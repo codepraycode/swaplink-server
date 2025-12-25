@@ -18,6 +18,7 @@ swaplink-demo-firebase-adminsdk-fbsvc-ebfd2ff064.json
 
 # logs
 logs
+*.log
 
 # Agents
 .agent
