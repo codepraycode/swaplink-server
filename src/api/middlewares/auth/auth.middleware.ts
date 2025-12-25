@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { JwtUtils } from '../../shared/lib/utils/jwt-utils';
-import { UnauthorizedError } from '../../shared/lib/utils/api-error';
+import { UnauthorizedError } from '../../../shared/lib/utils/api-error';
+import { JwtUtils } from '../../../shared/lib/utils/jwt-utils';
 
 /**
  * Authentication Middleware

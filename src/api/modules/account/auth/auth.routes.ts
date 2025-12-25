@@ -1,11 +1,11 @@
 import express, { Router } from 'express';
 import authController from './auth.controller';
 import rateLimiters from '../../../middlewares/rate-limit.middleware';
-import { authenticate } from '../../../middlewares/auth.middleware';
 import { uploadKyc, uploadAvatar } from '../../../middlewares/upload.middleware';
 import { validateDto } from '../../../middlewares/validation.middleware';
 import { deviceIdMiddleware } from '../../../middlewares/auth/device-id.middleware';
 import { RegisterStep1Dto, VerifyOtpDto, LoginDto, SetupTransactionPinDto } from './auth.dto';
+import { authenticate } from '../../../middlewares/auth/auth.middleware';
 
 const router: Router = express.Router();
 

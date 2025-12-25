@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { P2PPaymentMethodController } from './p2p-payment-method.controller';
-import { authenticate } from '../../../middlewares/auth.middleware';
+import { authenticate } from '../../../middlewares/auth/auth.middleware';
 
 const router: Router = Router();
 

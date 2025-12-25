@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { systemController } from './system.controller';
 import { requireRole } from '../../middlewares/role.middleware';
 import { UserRole } from '../../../shared/database';
-import { authenticate } from '../../middlewares/auth.middleware';
+import { authenticate } from '../../middlewares/auth/auth.middleware';
 
 const router: Router = Router();
 

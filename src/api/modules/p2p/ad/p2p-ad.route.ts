@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { P2PAdController } from './p2p-ad.controller';
-import { authenticate } from '../../../middlewares/auth.middleware';
+import { authenticate } from '../../../middlewares/auth/auth.middleware';
 
 const router: Router = Router();
 

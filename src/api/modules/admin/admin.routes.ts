@@ -3,6 +3,8 @@ import { adminController } from './admin.controller';
 import { requireRole } from '../../middlewares/role.middleware';
 import { UserRole } from '../../../shared/database';
 
+import { authenticate } from '../../middlewares/auth/auth.middleware';
+
 const router: Router = Router();
 
 // Middleware to ensure user is authenticated
@@ -19,8 +21,6 @@ const router: Router = Router();
 // Checking file existence...
 // I'll just import the auth middleware if I can find it.
 // If not, I'll use a simple one here.
-
-import { authenticate } from '../../middlewares/auth.middleware'; // Hypothesizing path
 
 router.use(authenticate);
 

@@ -1,6 +1,6 @@
-import { envConfig } from '../../config/env.config';
-import logger from '../utils/logger';
 import axios from 'axios';
+import logger from '../../utils/logger';
+import { envConfig } from '../../../config/env.config';
 
 export interface IMessagingProvider {
     sendOtp(phone: string, code: string): Promise<boolean>;
