@@ -10,7 +10,21 @@ import { validate } from 'class-validator';
 export const validateDto =
     (dtoClass: any) => async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const dtoObj = plainToInstance(dtoClass, req.body);
+            if (!dtoClass) {
+                return next(new Error('Validation DTO is undefined. Check for circular imports.'));
+            }
+
+            // Ensure req.body exists; if not, use an empty object
+            const body = req.body || {};
+
+            // Convert plain JS object to Class Instance
+            const dtoObj = plainToInstance(dtoClass, body);
+
+            // Check if dtoObj is null/undefined before passing to validate()
+            if (!dtoObj) {
+                return next(new ValidationError('Request body is required'));
+            }
+
             const errors = await validate(dtoObj);
 
             if (errors.length > 0) {
@@ -24,9 +38,9 @@ export const validateDto =
                 return next(new ValidationError('Invalid input data', formattedErrors));
             }
 
-            // Optional: Replace body with typed DTO?
-            // req.body = dtoObj; // Be careful, this might strip properties not in DTO if whitelist is on
-            // For now, let's just validate.
+            // It's highly recommended to replace req.body with the instance
+            // so decorators like @Type() and @Transform() work in your controllers
+            req.body = dtoObj;
             next();
         } catch (error) {
             next(error);

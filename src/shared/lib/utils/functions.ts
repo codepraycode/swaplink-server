@@ -27,3 +27,21 @@ export function formatUserInfo(user: any) {
 export function delay(seconds: number) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
+
+/**
+ * Converts a string into a URL-friendly slug.
+ * Example: "Hello World! @2025" -> "hello-world-2025"
+ */
+export const slugify = (text: string): string => {
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .normalize('NFD') // Separate base letter from accents (e.g., 'é' -> 'e' + '´')
+        .replace(/[\u0300-\u036f]/g, '') // Remove those accents
+        .replace(/\s+/g, '-') // Replace spaces with -
+        .replace(/[^\w-]+/g, '') // Remove all non-word chars (except hyphens)
+        .replace(/--+/g, '-') // Replace multiple - with single -
+        .replace(/^-+/, '') // Trim - from start
+        .replace(/-+$/, ''); // Trim - from end
+};

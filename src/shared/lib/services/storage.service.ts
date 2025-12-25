@@ -3,6 +3,7 @@ import { envConfig } from '../../config/env.config';
 import logger from '../utils/logger';
 import fs from 'fs';
 import path from 'path';
+import { slugify } from '../utils/functions';
 
 export class StorageService {
     private s3Client: S3Client;
@@ -36,9 +37,9 @@ export class StorageService {
                 fs.mkdirSync(uploadDir, { recursive: true });
             }
 
-            const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${
-                file.originalname
-            }`;
+            const fileName = slugify(
+                `${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`
+            );
             const filePath = path.join(uploadDir, fileName);
 
             await fs.promises.writeFile(filePath, file.buffer);
