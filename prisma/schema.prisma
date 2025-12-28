@@ -1,12 +1,12 @@
-// prisma/schema.prisma
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/database/generated/prisma"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ==========================================
@@ -15,29 +15,63 @@ datasource db {
 
 model User {
   id               String    @id @default(uuid())
-  email            String    @unique
-  phone            String    @unique
+  email            String?   @unique
+  phone            String?   @unique
   password         String
   firstName        String
   lastName         String
+  avatarUrl        String?
   
   // KYC & Status
   kycLevel         KycLevel  @default(NONE)
   kycStatus        KycStatus @default(PENDING)
   isVerified       Boolean   @default(false)
-  isActive         Boolean   @default(true)
+  emailVerified    Boolean   @default(false)
+  phoneVerified    Boolean   @default(false)
+  isActive         Boolean   @default(true) // Soft Delete
   twoFactorEnabled Boolean   @default(false)
+  pushToken        String?
   
+  // Flagging
+  flagType         UserFlagType @default(NONE)
+  flagReason       String?
+  flaggedAt        DateTime?
+
   // Metadata
   lastLogin        DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
+  // Security
+  transactionPin   String?
+  pinAttempts      Int       @default(0)
+  pinLockedUntil   DateTime?
+  
+  // Device & Limits
+  deviceId         String?
+  cumulativeInflow Decimal   @default(0) @db.Decimal(20, 2)
+
   // Relations
   wallet           Wallet?   // 1:1 Relation (One user, one wallet)
   bankAccounts     BankAccount[]
-  kycDocuments     KycDocument[]
+  kycAttempts      KycAttempt[]
+  kycInfo          KycInfo?
   transactions     Transaction[] // History of transactions initiated by user
+  counterpartyTransactions Transaction[] @relation("TransactionCounterparty")
+  beneficiaries    Beneficiary[]
+  
+  // P2P Relations
+  p2pPaymentMethods P2PPaymentMethod[]
+  p2pAds            P2PAd[]
+  makerOrders       P2POrder[]        @relation("MakerOrders")
+  takerOrders       P2POrder[]        @relation("TakerOrders")
+  p2pChats          P2PChat[]
+  
+  // Admin
+  role             UserRole          @default(USER)
+  adminLogs        AdminLog[]
+  auditLogs        AuditLog[]
+  notifications    Notification[]
 
   @@map("users")
 }
@@ -51,17 +85,39 @@ model Wallet {
   userId        String   @unique // Enforces 1-to-1 relationship
   
   // Balances (Implicitly NGN)
-  balance       Float    @default(0)
-  lockedBalance Float    @default(0) // For pending withdrawals or frozen funds
+  balance       Decimal  @default(0) @db.Decimal(20, 2)
+  lockedBalance Decimal  @default(0) @db.Decimal(20, 2) // For pending withdrawals or frozen funds
   
+  // Flagging
+  flagType      WalletFlagType @default(NONE)
+  flagReason    String?
+  flaggedAt     DateTime?
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions  Transaction[]
+  virtualAccount VirtualAccount?
 
   @@map("wallets")
+}
+
+model VirtualAccount {
+  id            String   @id @default(uuid())
+  walletId      String   @unique
+  accountNumber String   @unique
+  accountName   String
+  bankName      String   @default("Globus Bank")
+  provider      String   @default("GLOBUS")
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  wallet        Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("virtual_accounts")
 }
 
 model Transaction {
@@ -71,13 +127,24 @@ model Transaction {
   
   // Details
   type           TransactionType
-  amount         Float
-  balanceBefore  Float
-  balanceAfter   Float
+  amount         Decimal           @db.Decimal(20, 2)
+  balanceBefore  Decimal           @db.Decimal(20, 2)
+  balanceAfter   Decimal           @db.Decimal(20, 2)
   status         TransactionStatus @default(PENDING)
   reference      String            @unique
+  sessionId      String?           // NIBSS Session ID for external transfers
   description    String?           // E.g., "Transfer to John Doe"
   metadata       Json?             // Store external gateway refs (Paystack/Flutterwave)
+
+  // Banking Fields
+  destinationBankCode String?
+  destinationAccount  String?
+  destinationName     String?
+  // sessionId           String?  // Removed duplicate
+  fee                 Decimal  @default(0) @db.Decimal(20, 2)
+  
+  // Idempotency
+  idempotencyKey      String?  @unique
   
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
@@ -85,8 +152,29 @@ model Transaction {
   // Relations
   user   User   @relation(fields: [userId], references: [id])
   wallet Wallet @relation(fields: [walletId], references: [id])
+  counterparty User?  @relation("TransactionCounterparty", fields: [counterpartyId], references: [id])
+  counterpartyId String?
 
   @@map("transactions")
+}
+
+model Beneficiary {
+  id            String   @id @default(uuid())
+  userId        String
+  accountNumber String
+  accountName   String
+  bankCode      String
+  bankName      String
+  isInternal    Boolean  @default(false)
+  avatarUrl     String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  user          User     @relation(fields: [userId], references: [id])
+  
+  @@unique([userId, accountNumber, bankCode])
+  @@map("beneficiaries")
 }
 
 // ==========================================
@@ -116,7 +204,7 @@ model BankAccount {
 
 model KycDocument {
   id              String            @id @default(uuid())
-  userId          String
+  kycInfoId       String
   
   documentType    String            // NIN, BVN_SLIP, PASSPORT
   documentUrl     String            // Cloudinary/S3 URL
@@ -127,9 +215,51 @@ model KycDocument {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kycInfo         KycInfo           @relation(fields: [kycInfoId], references: [id], onDelete: Cascade)
 
   @@map("kyc_documents")
+}
+
+model KycAttempt {
+  id          String   @id @default(uuid())
+  userId      String
+  providerRef String?
+  rawResponse Json?
+  status      String   // PENDING, SUCCESS, FAILED
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("kyc_attempts")
+}
+
+model KycInfo {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  
+  // Personal Info
+  dob         DateTime?
+  address     String?
+  city        String?
+  state       String?
+  country     String?
+  postalCode  String?
+  
+  // Biometrics
+  selfieUrl   String?
+  videoUrl    String?
+  
+  // IDs
+  bvn         String?
+  nin         String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents   KycDocument[]
+
+  @@map("kyc_info")
 }
 
 // ==========================================
@@ -151,8 +281,177 @@ model Otp {
 }
 
 // ==========================================
+// P2P MODULE
+// ==========================================
+
+model P2PPaymentMethod {
+  id            String   @id @default(uuid())
+  userId        String
+  currency      String   // USD, CAD, EUR, GBP
+  bankName      String
+  accountNumber String
+  accountName   String
+  details       Json     // Dynamic: Routing No, IBAN, Sort Code
+  isPrimary     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  
+  ads           P2PAd[]
+  user          User     @relation(fields: [userId], references: [id])
+  @@map("p2p_payment_methods")
+}
+
+model P2PAd {
+  id              String   @id @default(uuid())
+  userId          String
+  type            AdType   // BUY_FX (Maker gives NGN), SELL_FX (Maker gives FX)
+  currency        String
+  
+  totalAmount     Float    // Initial FX amount
+  remainingAmount Float    // Available FX amount
+  price           Float    // Rate (NGN per 1 FX)
+  minLimit        Float
+  maxLimit        Float
+  
+  paymentMethodId String?  // Required if Maker is RECEIVING FX
+  
+  terms           String?
+  autoReply       String?
+  status          AdStatus @default(ACTIVE)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User              @relation(fields: [userId], references: [id])
+  paymentMethod   P2PPaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  orders          P2POrder[]
+  
+  // Optimistic locking / Versioning
+  version         Int      @default(0) 
+
+  @@map("p2p_ads")
+}
+
+model P2POrder {
+  id              String      @id @default(uuid())
+  adId            String
+  makerId         String      // Ad Owner
+  takerId         String      // Ad Clicker
+  
+  // Money
+  amount          Float       // FX Amount
+  price           Float       // Locked Rate
+  totalNgn        Float       // amount * price
+  fee             Float       @default(0) // System Fee (NGN)
+  receiveAmount   Float?      // totalNgn - fee (What NGN receiver gets)
+  
+  // Payment Snapshot (Safety against user deleting method mid-trade)
+  bankName        String?     
+  accountNumber   String?
+  accountName     String?
+  bankDetails     Json?       // Snapshot of full details
+  
+  // Meta
+  status          OrderStatus @default(PENDING)
+  paymentProofUrl String?
+  
+  // Dispute Meta
+  disputeReason   String?
+  resolvedBy      String?
+  resolutionNotes String?
+  resolvedAt      DateTime?
+  
+  expiresAt       DateTime    // 15 mins TTL
+  completedAt     DateTime?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  ad              P2PAd       @relation(fields: [adId], references: [id])
+  maker           User        @relation("MakerOrders", fields: [makerId], references: [id])
+  taker           User        @relation("TakerOrders", fields: [takerId], references: [id])
+  messages        P2PChat[]
+
+  @@map("p2p_orders")
+}
+
+// ==========================================
+// ADMIN & AUDIT
+// ==========================================
+
+model AdminLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String   // e.g., "RESOLVE_RELEASE", "RESOLVE_REFUND", "CREATE_ADMIN"
+  targetId  String   // Order ID or User ID
+  metadata  Json?    // Snapshot of decision/notes
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  admin     User     @relation(fields: [adminId], references: [id])
+  @@map("admin_logs")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  resource   String
+  resourceId String?
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  status     String   @default("SUCCESS")
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id])
+  @@map("audit_logs")
+}
+
+model P2PChat {
+  id        String   @id @default(uuid())
+  orderId   String
+  senderId  String
+  message   String?
+  imageUrl  String?
+  system      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  order     P2POrder @relation(fields: [orderId], references: [id])
+  sender    User     @relation(fields: [senderId], references: [id])
+  @@map("p2p_chats")
+}
+
+// ==========================================
+// NOTIFICATIONS
+// ==========================================
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  title     String
+  body      String
+  type      NotificationType
+  channel   NotificationChannel @default(INAPP)
+  isRead    Boolean          @default(false)
+  data      Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ==========================================
 // ENUMS
 // ==========================================
+
+enum UserRole {
+  USER
+  SUPPORT
+  ADMIN
+  SUPER_ADMIN
+}
 
 enum KycLevel {
   NONE
@@ -195,4 +494,59 @@ enum OtpType {
   PASSWORD_RESET
   TWO_FACTOR
   WITHDRAWAL_CONFIRMATION
+}
+
+enum AdType {
+  BUY_FX
+  SELL_FX
+}
+
+enum AdStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CLOSED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  COMPLETED
+  CANCELLED
+  DISPUTE
+}
+
+enum ChatType {
+  TEXT
+  IMAGE
+  SYSTEM
+}
+
+enum NotificationType {
+  TRANSACTION
+  SYSTEM
+  PROMOTION
+  KYC
+  SECURITY
+}
+
+enum NotificationChannel {
+  PUSH
+  EMAIL
+  INAPP
+}
+
+enum UserFlagType {
+  NONE
+  KYC_LIMIT
+  SUSPICIOUS
+  FRAUD
+  MANUAL
+}
+
+enum WalletFlagType {
+  NONE
+  LIEN
+  FROZEN
+  INVESTIGATION
 }

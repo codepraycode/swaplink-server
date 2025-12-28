@@ -1,5 +1,5 @@
-import prisma from '../lib/utils/database';
-import logger from '../lib/utils/logger';
+import prisma from '../shared/lib/utils/database';
+import logger from '../shared/lib/utils/logger';
 
 jest.setTimeout(30000);
 
@@ -9,7 +9,7 @@ const isUnitTest = process.env.IS_UNIT_TEST === 'true';
 
 beforeAll(async () => {
     // SKIP DB connection for unit tests
-    if (isUnitTest) return;
+    if (process.env.IS_UNIT_TEST === 'true') return;
 
     logger.debug(`🧪 Test Environment: ${process.env.NODE_ENV}`);
     try {

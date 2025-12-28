@@ -10,10 +10,15 @@ services:
       POSTGRES_USER: swaplink_user
       POSTGRES_PASSWORD: swaplink_password
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swaplink_user -d swaplink_mvp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - swaplink-network
 
@@ -21,11 +26,57 @@ services:
     image: redis:7-alpine
     container_name: swaplink-redis
     ports:
-      - "6379:6379"
+      - "6381:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - swaplink-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: swaplink-api
+    profiles: ["app"]
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://swaplink_user:swaplink_password@postgres:5432/swaplink_mvp
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=supersecret
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - swaplink-network
+    command: sh -c "npx prisma migrate deploy && node dist/api/server.js"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: swaplink-worker
+    profiles: ["app"]
+    environment:
+      - DATABASE_URL=postgresql://swaplink_user:swaplink_password@postgres:5432/swaplink_mvp
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - swaplink-network
+    command: node dist/worker/index.js
 
 volumes:
   postgres_data:

@@ -1,0 +1,94 @@
+import { prisma, User } from '../../../../shared/database/';
+import bcrypt from 'bcryptjs';
+import { BadRequestError, NotFoundError } from '../../../../shared/lib/utils/api-error';
+import { AuditService } from '../../../../shared/lib/services/audit.service';
+
+export class UserService {
+    /**
+     * Update the push token for a user.
+     * @param userId The ID of the user.
+     * @param token The Expo push token.
+     */
+    static async updatePushToken(userId: string, token: string): Promise<User> {
+        return await prisma.user.update({
+            where: { id: userId },
+            data: { pushToken: token },
+        });
+    }
+
+    static async changePassword(
+        userId: string,
+        data: { oldPassword: string; newPassword: string }
+    ): Promise<User> {
+        const { oldPassword, newPassword } = data;
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+
+        const isValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isValid) {
+            throw new BadRequestError('Invalid old password');
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword },
+        });
+
+        AuditService.log({
+            userId: userId,
+            action: 'PASSWORD_CHANGED',
+            resource: 'User',
+            resourceId: userId,
+            status: 'SUCCESS',
+        });
+
+        return updatedUser;
+    }
+
+    static async updateProfile(
+        userId: string,
+        data: Partial<
+            Omit<
+                User,
+                | 'id'
+                | 'createdAt'
+                | 'updatedAt'
+                | 'pushToken'
+                | 'password'
+                | 'emailVerified'
+                | 'phoneVerified'
+                | 'kycVerified'
+                | 'kycLevel'
+                | 'kycDocument'
+                | 'twoFactorEnabled'
+                | 'lastLogin'
+                | 'transactionPin'
+                | 'pinAttempts'
+                | 'pinLockedUntil'
+                | 'role'
+                | 'isActive'
+            >
+        >
+    ): Promise<User> {
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data,
+        });
+
+        AuditService.log({
+            userId: userId,
+            action: 'PROFILE_UPDATED',
+            resource: 'User',
+            resourceId: userId,
+            details: data,
+            status: 'SUCCESS',
+        });
+
+        return updatedUser;
+    }
+}
