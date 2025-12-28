@@ -46,39 +46,17 @@ sequenceDiagram
 
     Note over Taker, Maker: Taker sends FX (Off-chain) or NGN (On-chain)
 
-    Taker->>API: POST /p2p/orders/:id/paid
+    Taker->>API: PATCH /p2p/orders/:id/pay
     API->>P2POrderService: markAsPaid()
     P2POrderService->>DB: Update Status (PAID)
     P2POrderService->>Maker: Notify "Order Paid"
 
-    Maker->>API: POST /p2p/orders/:id/release
-    API->>P2POrderService: releaseFunds()
+    Maker->>API: PATCH /p2p/orders/:id/confirm
+    API->>P2POrderService: confirmOrder()
     P2POrderService->>DB: Atomic Transfer (Debit Payer, Credit Receiver, Fee)
     DB-->>P2POrderService: Success
     P2POrderService-->>Maker: Order Completed
     P2POrderService->>Taker: Notify "Funds Released"
-```
-
-### 2. Dispute Flow
-
-When a trade goes wrong (e.g., payment not received).
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant API
-    participant P2PDisputeService
-    participant Admin
-
-    User->>API: POST /p2p/disputes (Raise Dispute)
-    API->>P2PDisputeService: raiseDispute()
-    P2PDisputeService->>DB: Update Status (DISPUTE)
-    P2PDisputeService->>Admin: Notify Admin
-    P2PDisputeService->>User: System Message in Chat
-
-    Admin->>API: POST /p2p/disputes/:id/resolve
-    API->>P2PDisputeService: resolveDispute(RELEASE/REFUND)
-    P2PDisputeService->>DB: Execute Settlement or Refund
 ```
 
 ---
@@ -135,27 +113,20 @@ Execute trades.
         "amount": 100 // Amount of FX to trade
     }
     ```
--   **Mark Paid**: `POST {{baseUrl}}/p2p/orders/:id/paid`
-    ```json
-    {
-        "proofUrl": "https://..." // Optional
-    }
-    ```
--   **Release Funds**: `POST {{baseUrl}}/p2p/orders/:id/release`
+-   **Get Order**: `GET {{baseUrl}}/p2p/orders/:id`
+-   **Mark Paid**: `PATCH {{baseUrl}}/p2p/orders/:id/pay`
+    -   _Note_: Taker calls this after sending funds off-chain.
+-   **Confirm (Release Funds)**: `PATCH {{baseUrl}}/p2p/orders/:id/confirm`
     -   _Note_: Only the Maker can release funds.
+-   **Cancel Order**: `PATCH {{baseUrl}}/p2p/orders/:id/cancel`
 
 ### 4. Chat
 
-Real-time messaging.
+Manage chat attachments and history.
 
--   **Send Message**: `POST {{baseUrl}}/p2p/chat`
-    ```json
-    {
-        "orderId": "uuid...",
-        "message": "Hello, I have sent the payment."
-    }
-    ```
--   **Get History**: `GET {{baseUrl}}/p2p/chat/:orderId`
+-   **Upload Image**: `POST {{baseUrl}}/p2p/chat/upload` (Multipart)
+    -   Body: `image` (File)
+-   **Get History**: `GET {{baseUrl}}/p2p/chat/:orderId/messages`
 
 ---
 
