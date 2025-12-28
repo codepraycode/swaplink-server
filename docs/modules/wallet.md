@@ -9,6 +9,8 @@ The Wallet & Core Banking Module is the financial heart of SwapLink. It manages 
 ### System Components
 
 -   **WalletService**: Core logic for balance management, transfers, and atomic ledger entries.
+-   **PinService**: Manages transaction PINs (Set, Update, Verify) and issues idempotency keys.
+-   **BeneficiaryService**: Manages saved recipients for quick transfers.
 -   **GlobusService**: Integration layer for Globus Bank API (Account creation, Transfers, Requery).
 -   **TransferWorker**: Background worker for processing asynchronous external transfers.
 -   **ReconciliationJob**: Cron jobs for detecting and resolving stuck transactions and daily discrepancies.
@@ -25,29 +27,44 @@ The Wallet & Core Banking Module is the financial heart of SwapLink. It manages 
 
 ## Workflows
 
-### 1. Internal Transfer (P2P)
+### 1. Transfer Flow (Internal & External)
 
-Internal transfers are **synchronous** and **atomic**. Money moves instantly between two SwapLink users.
+Transfers follow a secure **2-step process**:
+
+1.  **Verify PIN**: User enters PIN. Server verifies and returns a time-limited `idempotencyKey`.
+2.  **Process Transfer**: Client sends transfer details with the `idempotencyKey`.
+
+#### Internal Transfer (P2P)
+
+Internal transfers are **synchronous** and **atomic**.
 
 ```mermaid
 sequenceDiagram
     participant Sender
     participant API
+    participant PinService
     participant WalletService
     participant DB
 
-    Sender->>API: POST /transfers/internal
-    API->>WalletService: processInternalTransfer()
-    WalletService->>DB: Atomic Transaction (Debit Sender, Credit Receiver, Fees)
+    Note over Sender, DB: Step 1: Verify PIN
+    Sender->>API: POST /wallet/verify-pin (pin)
+    API->>PinService: verifyPinForTransfer()
+    PinService-->>API: Return { idempotencyKey }
+    API-->>Sender: 200 OK
+
+    Note over Sender, DB: Step 2: Process Transfer
+    Sender->>API: POST /wallet/process (amount, account, key)
+    API->>WalletService: processTransfer()
+    WalletService->>DB: Atomic Transaction (Debit Sender, Credit Receiver)
     DB-->>WalletService: Success
     WalletService-->>Sender: 200 OK (Completed)
     WalletService->>Sender: Socket: WALLET_UPDATED
     WalletService->>Receiver: Socket: WALLET_UPDATED
 ```
 
-### 2. External Transfer (Outbound)
+#### External Transfer (Outbound)
 
-External transfers are **asynchronous**. The request is queued and processed by a worker.
+External transfers are **asynchronous**.
 
 ```mermaid
 sequenceDiagram
@@ -57,7 +74,12 @@ sequenceDiagram
     participant Worker
     participant Globus
 
-    User->>API: POST /transfers/external
+    Note over User, Globus: Step 1: Verify PIN (Same as above)
+    User->>API: POST /wallet/verify-pin
+    API-->>User: idempotencyKey
+
+    Note over User, Globus: Step 2: Process Transfer
+    User->>API: POST /wallet/process
     API->>DB: Create Transaction (PENDING)
     API->>Queue: Add Job
     API-->>User: 202 Accepted
@@ -96,7 +118,36 @@ Retrieve current balance and virtual account details.
     }
     ```
 
-### 2. Name Enquiry
+### 2. Get Transactions
+
+Retrieve transaction history with pagination and filtering.
+
+-   **Method**: `GET`
+-   **URL**: `{{baseUrl}}/wallet/transactions?page=1&limit=20&type=DEPOSIT`
+-   **Response**:
+    ```json
+    {
+        "transactions": [
+            {
+                "id": "uuid...",
+                "amount": 5000,
+                "type": "DEPOSIT",
+                "status": "SUCCESS",
+                "createdAt": "2023-10-27T10:00:00Z"
+            }
+        ],
+        "meta": { "total": 100, "page": 1, "limit": 20 }
+    }
+    ```
+
+### 3. Get Beneficiaries
+
+Retrieve saved beneficiaries.
+
+-   **Method**: `GET`
+-   **URL**: `{{baseUrl}}/wallet/beneficiaries`
+
+### 4. Name Enquiry
 
 Resolve an account number before transfer.
 
@@ -112,41 +163,71 @@ Resolve an account number before transfer.
     }
     ```
 
-### 3. Initiate Transfer
+### 5. PIN Management
 
-Send money to an internal or external account.
+#### Set or Update PIN
 
 -   **Method**: `POST`
--   **URL**: `{{baseUrl}}/wallet/transfer`
+-   **URL**: `{{baseUrl}}/wallet/pin`
+-   **Body (Set)**: `{ "newPin": "1234" }`
+-   **Body (Update)**: `{ "oldPin": "1234", "newPin": "5678" }`
+
+#### Verify PIN (Step 1 of Transfer)
+
+-   **Method**: `POST`
+-   **URL**: `{{baseUrl}}/wallet/verify-pin`
+-   **Body**: `{ "pin": "1234" }`
+-   **Response**: `{ "idempotencyKey": "uuid..." }`
+
+### 6. Process Transfer (Step 2)
+
+Send money to an internal or external account. Requires `idempotencyKey` from PIN verification.
+
+-   **Method**: `POST`
+-   **URL**: `{{baseUrl}}/wallet/process`
+-   **Headers**: `idempotency-key: <uuid>` (Optional, can be in body)
 -   **Body**:
     ```json
     {
         "amount": 5000,
         "accountNumber": "1234567890",
-        "bankCode": "000", // Use "000" for internal if applicable, or real bank code
+        "bankCode": "000",
         "narration": "Payment for services",
-        "pin": "1234" // Transaction PIN
+        "idempotencyKey": "uuid..." // If not in header
     }
     ```
 
-### 4. Webhook (Simulation)
+### 7. Webhook (Globus Bank)
 
-Simulate an inbound deposit from Globus Bank.
+Simulate an inbound deposit from Globus Bank. This endpoint handles credit notifications.
 
 -   **Method**: `POST`
--   **URL**: `{{baseUrl}}/webhooks/globus/inflow`
--   **Headers**: `x-globus-signature: <calculated_signature>` (See WebhookService for logic)
+-   **URL**: `{{baseUrl}}/webhooks/globus`
+-   **Headers**: `x-globus-signature: <hmac_sha256_signature>` (Calculated using `GLOBUS_WEBHOOK_SECRET` and raw request body)
 -   **Body**:
     ```json
     {
-        "accountNumber": "1100000000", // User's Virtual Account
-        "amount": 10000,
-        "reference": "REF-12345",
-        "originatorName": "Sender Name",
-        "originatorAccount": "0000000000",
-        "originatorBank": "Access Bank"
+        "type": "credit_notification",
+        "data": {
+            "accountNumber": "1100000000", // User's Virtual Account
+            "amount": 10000,
+            "reference": "REF-12345",
+            "sessionId": "SESSION-987654321", // Optional
+            "originatorName": "Sender Name",
+            "originatorAccount": "0000000000",
+            "originatorBank": "Access Bank"
+        }
     }
     ```
+
+#### Processing Logic
+
+1.  **Signature Verification**: Validates `x-globus-signature` against the raw body using HMAC-SHA256.
+2.  **Idempotency Check**: Checks if a transaction with the same `reference` already exists. If so, ignores the request.
+3.  **Wallet Lookup**: Finds the user wallet associated with the `accountNumber`.
+4.  **Fee Deduction**: Automatically deducts an inbound fee (e.g., ₦53.50) if the amount covers it.
+5.  **Atomic Credit**: Credits the user's wallet and records the transaction atomically.
+6.  **Notification**: Sends a push notification to the user.
 
 ---
 
@@ -181,8 +262,8 @@ Fetch transactions with pagination.
 
 Transactions require a 4-digit PIN.
 
--   **Setup**: `POST /api/v1/account/pin/set` (First time)
--   **Verify**: Prompt user for PIN before calling the transfer endpoint.
+-   **Setup/Update**: `POST /api/v1/wallet/pin`
+-   **Verify**: Call `POST /api/v1/wallet/verify-pin` to get `idempotencyKey` before calling `process`.
 
 ### 4. Handling Deep Links
 
