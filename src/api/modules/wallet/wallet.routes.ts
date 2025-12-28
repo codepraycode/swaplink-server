@@ -6,6 +6,7 @@ const router: Router = Router();
 
 router.use(authenticate);
 
+router.get('/', WalletController.getWalletInfo);
 // PIN Management
 router.post('/pin', WalletController.setOrUpdatePin);
 
@@ -13,7 +14,7 @@ router.post('/pin', WalletController.setOrUpdatePin);
 router.post('/verify-pin', WalletController.verifyPin);
 
 // Name Enquiry
-router.post('/name-enquiry', WalletController.nameEnquiry);
+router.get('/name-enquiry', WalletController.nameEnquiry);
 
 // Process Transfer (Step 2)
 router.post('/process', WalletController.processTransfer);

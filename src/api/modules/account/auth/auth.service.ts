@@ -144,7 +144,7 @@ class AuthService {
      * Verify OTP (Generic)
      */
     async verifyOtp(dto: VerifyOtpDto) {
-        const { identifier, otp, purpose, deviceId } = dto;
+        const { identifier, otp, purpose } = dto;
 
         let otpType: OtpType;
         if (purpose === 'EMAIL_VERIFICATION') otpType = OtpType.EMAIL_VERIFICATION;
@@ -156,15 +156,45 @@ class AuthService {
 
         // Post-verification actions
         if (purpose === 'EMAIL_VERIFICATION') {
-            const user = await prisma.user.update({
+            const existingUser = await prisma.user.findUnique({ where: { email: identifier } });
+            if (!existingUser) throw new NotFoundError('User not found');
+
+            const isNowVerified = existingUser.phoneVerified;
+            const newKycLevel =
+                isNowVerified && existingUser.kycLevel === KycLevel.NONE
+                    ? KycLevel.BASIC
+                    : existingUser.kycLevel;
+
+            const updateData: any = { emailVerified: true };
+            if (isNowVerified) {
+                updateData.isVerified = true;
+                updateData.kycLevel = newKycLevel;
+            }
+
+            await prisma.user.update({
                 where: { email: identifier },
-                data: { emailVerified: true },
+                data: updateData,
             });
             return { message: 'Email verified successfully.' };
         } else if (purpose === 'PHONE_VERIFICATION') {
+            const existingUser = await prisma.user.findUnique({ where: { phone: identifier } });
+            if (!existingUser) throw new NotFoundError('User not found');
+
+            const isNowVerified = existingUser.emailVerified;
+            const newKycLevel =
+                isNowVerified && existingUser.kycLevel === KycLevel.NONE
+                    ? KycLevel.BASIC
+                    : existingUser.kycLevel;
+
+            const updateData: any = { phoneVerified: true };
+            if (isNowVerified) {
+                updateData.isVerified = true;
+                updateData.kycLevel = newKycLevel;
+            }
+
             const user = await prisma.user.update({
                 where: { phone: identifier },
-                data: { phoneVerified: true, isVerified: true, kycLevel: KycLevel.BASIC },
+                data: updateData,
             });
 
             // Post-Registration Actions (moved from old register method)
@@ -284,6 +314,36 @@ class AuthService {
         };
     }
 
+    async refreshToken(token: string) {
+        // 1. Verify Token
+        const decoded = JwtUtils.verifyRefreshToken(token);
+
+        // 2. Check blacklist
+        const blacklistKey = `blacklist:${token}`;
+        const isBlacklisted = await redisConnection.get(blacklistKey);
+        if (isBlacklisted) {
+            throw new UnauthorizedError('Token has been revoked');
+        }
+
+        // 3. Check if user exists & is active
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+        });
+
+        if (!user) {
+            throw new UnauthorizedError('User not found');
+        }
+
+        if (!user.isActive) {
+            throw new UnauthorizedError('Account is deactivated');
+        }
+
+        // 4. Generate New Tokens
+        const tokens = this.generateTokens(user);
+
+        return tokens;
+    }
+
     async logout(userId: string, token: string) {
         const blacklistKey = `blacklist:${token}`;
         await redisConnection.set(blacklistKey, 'true', 'EX', 86400);
@@ -357,7 +417,7 @@ class AuthService {
         return { message: 'Password reset successfully' };
     }
 
-    async submitKyc(id: string, data: any) {
+    async submitKyc(id: string, _data: any) {
         const updatedUser = await prisma.user.update({
             where: { id },
             data: {

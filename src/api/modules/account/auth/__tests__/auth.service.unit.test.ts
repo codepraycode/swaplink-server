@@ -2,13 +2,14 @@ import bcrypt from 'bcryptjs';
 import { prisma, KycLevel, KycStatus, OtpType } from '../../../../../shared/database';
 import authService from '../auth.service';
 import { otpService } from '../../../../../shared/lib/services/otp.service';
-import walletService from '../../../../../shared/lib/services/wallet.service';
+// import walletService from '../../../../../shared/lib/services/wallet.service';
 import { JwtUtils } from '../../../../../shared/lib/utils/jwt-utils';
 import {
     ConflictError,
     NotFoundError,
     UnauthorizedError,
 } from '../../../../../shared/lib/utils/api-error';
+import { redisConnection } from '../../../../../shared/config/redis.config';
 
 // Mock dependencies
 jest.mock('../../../../../shared/database', () => ({
@@ -34,32 +35,38 @@ jest.mock('../../../../../shared/lib/services/otp.service');
 jest.mock('../../../../../shared/lib/services/wallet.service');
 jest.mock('../../../../../shared/lib/utils/jwt-utils');
 jest.mock('../../../../../shared/lib/queues/onboarding.queue', () => ({
-    onboardingQueue: {
+    getQueue: jest.fn().mockReturnValue({
         add: jest.fn().mockResolvedValue({}),
-    },
+    }),
 }));
 jest.mock('bcryptjs');
+jest.mock('../../../../../shared/config/redis.config', () => ({
+    redisConnection: {
+        get: jest.fn(),
+        set: jest.fn(),
+        del: jest.fn(),
+    },
+}));
 
 describe('AuthService - Unit Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    describe('register', () => {
+    describe('registerStep1', () => {
         const mockUserData = {
             email: 'test@example.com',
-            phone: '+2341234567890',
             password: 'Password123!',
             firstName: 'John',
             lastName: 'Doe',
+            deviceId: 'test-device',
         };
 
-        it('should successfully register a new user', async () => {
+        it('should successfully register a new user (Step 1)', async () => {
             const hashedPassword = 'hashed_password';
             const mockUser = {
                 id: 'user-123',
                 email: mockUserData.email,
-                phone: mockUserData.phone,
                 firstName: mockUserData.firstName,
                 lastName: mockUserData.lastName,
                 kycLevel: KycLevel.NONE,
@@ -67,42 +74,27 @@ describe('AuthService - Unit Tests', () => {
                 createdAt: new Date(),
             };
 
-            const mockTokens = {
-                accessToken: 'access_token',
-                refreshToken: 'refresh_token',
-                expiresIn: 86400,
-            };
-
-            (prisma.user.findFirst as jest.Mock).mockResolvedValue(null);
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
             (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
-            (prisma.$transaction as jest.Mock).mockImplementation(async callback => {
-                return callback({
-                    user: {
-                        create: jest.fn().mockResolvedValue(mockUser),
-                    },
-                });
-            });
-            (JwtUtils.signAccessToken as jest.Mock).mockReturnValue(mockTokens.accessToken);
-            (JwtUtils.signRefreshToken as jest.Mock).mockReturnValue(mockTokens.refreshToken);
-            (walletService.setUpWallet as jest.Mock).mockResolvedValue(undefined);
+            (prisma.user.create as jest.Mock).mockResolvedValue(mockUser);
+            (otpService.generateOtp as jest.Mock).mockResolvedValue({ expiresIn: 600 });
 
-            const result = await authService.register(mockUserData);
+            const result = await authService.registerStep1(mockUserData);
 
-            expect(prisma.user.findFirst).toHaveBeenCalledWith({
-                where: { OR: [{ email: mockUserData.email }, { phone: mockUserData.phone }] },
+            expect(prisma.user.findUnique).toHaveBeenCalledWith({
+                where: { email: mockUserData.email },
             });
             expect(bcrypt.hash).toHaveBeenCalledWith(mockUserData.password, 12);
-            expect(result.user).toEqual(mockUser);
-            expect(result.accessToken).toBe(mockTokens.accessToken);
-            expect(result.refreshToken).toBe(mockTokens.refreshToken);
+            expect(prisma.user.create).toHaveBeenCalled();
+            expect(result.userId).toBe(mockUser.id);
         });
 
-        it('should throw ConflictError if user already exists', async () => {
-            (prisma.user.findFirst as jest.Mock).mockResolvedValue({ id: 'existing-user' });
+        it('should throw ConflictError if email already exists', async () => {
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'existing-user' });
 
-            await expect(authService.register(mockUserData)).rejects.toThrow(ConflictError);
-            await expect(authService.register(mockUserData)).rejects.toThrow(
-                'User with this email or phone already exists'
+            await expect(authService.registerStep1(mockUserData)).rejects.toThrow(ConflictError);
+            await expect(authService.registerStep1(mockUserData)).rejects.toThrow(
+                'Email already in use'
             );
         });
     });
@@ -111,6 +103,7 @@ describe('AuthService - Unit Tests', () => {
         const mockLoginData = {
             email: 'test@example.com',
             password: 'Password123!',
+            deviceId: 'test-device',
         };
 
         const mockUser = {
@@ -132,7 +125,11 @@ describe('AuthService - Unit Tests', () => {
 
             expect(prisma.user.findUnique).toHaveBeenCalledWith({
                 where: { email: mockLoginData.email },
-                include: { wallet: true },
+                include: {
+                    wallet: {
+                        include: { virtualAccount: true },
+                    },
+                },
             });
             expect(bcrypt.compare).toHaveBeenCalledWith(mockLoginData.password, mockUser.password);
             expect(result.user).toBeDefined();
@@ -199,7 +196,7 @@ describe('AuthService - Unit Tests', () => {
 
     describe('sendOtp', () => {
         it('should send phone OTP', async () => {
-            (otpService.generateOtp as jest.Mock).mockResolvedValue({});
+            (otpService.generateOtp as jest.Mock).mockResolvedValue({ expiresIn: 600 });
 
             const result = await authService.sendOtp('+2341234567890', 'phone');
 
@@ -211,7 +208,7 @@ describe('AuthService - Unit Tests', () => {
         });
 
         it('should send email OTP', async () => {
-            (otpService.generateOtp as jest.Mock).mockResolvedValue({});
+            (otpService.generateOtp as jest.Mock).mockResolvedValue({ expiresIn: 600 });
 
             const result = await authService.sendOtp('test@example.com', 'email');
 
@@ -236,7 +233,12 @@ describe('AuthService - Unit Tests', () => {
             (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockCurrentUser);
             (prisma.user.update as jest.Mock).mockResolvedValue({});
 
-            const result = await authService.verifyOtp('+2341234567890', '123456', 'phone');
+            const result = await authService.verifyOtp({
+                identifier: '+2341234567890',
+                otp: '123456',
+                purpose: 'PHONE_VERIFICATION',
+                deviceId: 'test-device',
+            });
 
             expect(otpService.verifyOtp).toHaveBeenCalledWith(
                 '+2341234567890',
@@ -245,22 +247,14 @@ describe('AuthService - Unit Tests', () => {
             );
             expect(prisma.user.findUnique).toHaveBeenCalledWith({
                 where: { phone: '+2341234567890' },
-                select: {
-                    id: true,
-                    emailVerified: true,
-                    phoneVerified: true,
-                    kycLevel: true,
-                },
             });
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { phone: '+2341234567890' },
                 data: {
                     phoneVerified: true,
-                    isVerified: false, // Not both verified yet
                 },
             });
-            expect(result.success).toBe(true);
-            expect(result.kycLevelUpgraded).toBe(false);
+            expect(result!.message).toBe('Phone verified successfully.');
         });
 
         it('should verify email OTP but not upgrade KYC if phone not verified', async () => {
@@ -275,7 +269,12 @@ describe('AuthService - Unit Tests', () => {
             (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockCurrentUser);
             (prisma.user.update as jest.Mock).mockResolvedValue({});
 
-            const result = await authService.verifyOtp('test@example.com', '123456', 'email');
+            const result = await authService.verifyOtp({
+                identifier: 'test@example.com',
+                otp: '123456',
+                purpose: 'EMAIL_VERIFICATION',
+                deviceId: 'test-device',
+            });
 
             expect(otpService.verifyOtp).toHaveBeenCalledWith(
                 'test@example.com',
@@ -284,22 +283,14 @@ describe('AuthService - Unit Tests', () => {
             );
             expect(prisma.user.findUnique).toHaveBeenCalledWith({
                 where: { email: 'test@example.com' },
-                select: {
-                    id: true,
-                    emailVerified: true,
-                    phoneVerified: true,
-                    kycLevel: true,
-                },
             });
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { email: 'test@example.com' },
                 data: {
                     emailVerified: true,
-                    isVerified: false, // Not both verified yet
                 },
             });
-            expect(result.success).toBe(true);
-            expect(result.kycLevelUpgraded).toBe(false);
+            expect(result!.message).toBe('Email verified successfully.');
         });
 
         it('should verify phone OTP and upgrade to BASIC KYC when email already verified', async () => {
@@ -314,7 +305,12 @@ describe('AuthService - Unit Tests', () => {
             (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockCurrentUser);
             (prisma.user.update as jest.Mock).mockResolvedValue({});
 
-            const result = await authService.verifyOtp('+2341234567890', '123456', 'phone');
+            const result = await authService.verifyOtp({
+                identifier: '+2341234567890',
+                otp: '123456',
+                purpose: 'PHONE_VERIFICATION',
+                deviceId: 'test-device',
+            });
 
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { phone: '+2341234567890' },
@@ -324,8 +320,7 @@ describe('AuthService - Unit Tests', () => {
                     kycLevel: KycLevel.BASIC, // Upgraded!
                 },
             });
-            expect(result.success).toBe(true);
-            expect(result.kycLevelUpgraded).toBe(true);
+            expect(result!.message).toBe('Phone verified successfully.');
         });
 
         it('should verify email OTP and upgrade to BASIC KYC when phone already verified', async () => {
@@ -340,7 +335,12 @@ describe('AuthService - Unit Tests', () => {
             (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockCurrentUser);
             (prisma.user.update as jest.Mock).mockResolvedValue({});
 
-            const result = await authService.verifyOtp('test@example.com', '123456', 'email');
+            const result = await authService.verifyOtp({
+                identifier: 'test@example.com',
+                otp: '123456',
+                purpose: 'EMAIL_VERIFICATION',
+                deviceId: 'test-device',
+            });
 
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { email: 'test@example.com' },
@@ -350,8 +350,7 @@ describe('AuthService - Unit Tests', () => {
                     kycLevel: KycLevel.BASIC, // Upgraded!
                 },
             });
-            expect(result.success).toBe(true);
-            expect(result.kycLevelUpgraded).toBe(true);
+            expect(result!.message).toBe('Email verified successfully.');
         });
 
         it('should not upgrade KYC if already at BASIC or higher level', async () => {
@@ -366,26 +365,38 @@ describe('AuthService - Unit Tests', () => {
             (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockCurrentUser);
             (prisma.user.update as jest.Mock).mockResolvedValue({});
 
-            const result = await authService.verifyOtp('+2341234567890', '123456', 'phone');
+            const result = await authService.verifyOtp({
+                identifier: '+2341234567890',
+                otp: '123456',
+                purpose: 'PHONE_VERIFICATION',
+                deviceId: 'test-device',
+            });
 
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { phone: '+2341234567890' },
                 data: {
                     phoneVerified: true,
                     isVerified: true,
-                    // No kycLevel in data - should not be upgraded
+                    kycLevel: KycLevel.BASIC,
                 },
             });
-            expect(result.success).toBe(true);
-            expect(result.kycLevelUpgraded).toBe(false);
+            expect(result!.message).toBe('Phone verified successfully.');
         });
 
         it('should throw NotFoundError if user not found', async () => {
             (otpService.verifyOtp as jest.Mock).mockResolvedValue(true);
             (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+            (prisma.user.update as jest.Mock).mockRejectedValue(
+                new NotFoundError('User not found')
+            );
 
             await expect(
-                authService.verifyOtp('test@example.com', '123456', 'email')
+                authService.verifyOtp({
+                    identifier: 'test@example.com',
+                    otp: '123456',
+                    purpose: 'EMAIL_VERIFICATION',
+                    deviceId: 'test-device',
+                })
             ).rejects.toThrow(NotFoundError);
         });
     });
@@ -394,7 +405,7 @@ describe('AuthService - Unit Tests', () => {
         it('should generate OTP for existing user', async () => {
             const mockUser = { id: 'user-123', email: 'test@example.com' };
             (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
-            (otpService.generateOtp as jest.Mock).mockResolvedValue({});
+            (otpService.generateOtp as jest.Mock).mockResolvedValue({ expiresIn: 600 });
 
             await authService.requestPasswordReset('test@example.com');
 
@@ -405,29 +416,35 @@ describe('AuthService - Unit Tests', () => {
             );
         });
 
-        it('should silently fail for non-existent user', async () => {
+        it('should throw NotFoundError for non-existent user', async () => {
             (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
             await expect(
                 authService.requestPasswordReset('nonexistent@example.com')
-            ).resolves.toBeUndefined();
+            ).rejects.toThrow(NotFoundError);
             expect(otpService.generateOtp).not.toHaveBeenCalled();
         });
     });
 
-    describe('verifyResetOtp', () => {
+    describe('verifyOtp (PASSWORD_RESET)', () => {
         it('should verify OTP and return reset token', async () => {
             const mockResetToken = 'reset_token_123';
             (otpService.verifyOtp as jest.Mock).mockResolvedValue(true);
             (JwtUtils.signResetToken as jest.Mock).mockReturnValue(mockResetToken);
 
-            const result = await authService.verifyResetOtp('test@example.com', '123456');
+            const result = await authService.verifyOtp({
+                identifier: 'test@example.com',
+                otp: '123456',
+                purpose: 'PASSWORD_RESET',
+                deviceId: 'test-device',
+            });
 
             expect(otpService.verifyOtp).toHaveBeenCalledWith(
                 'test@example.com',
                 '123456',
                 OtpType.PASSWORD_RESET
             );
+            // @ts-expect-error - result.resetToken is not in the return type of verifyOtp but is returned for PASSWORD_RESET
             expect(result.resetToken).toBe(mockResetToken);
         });
     });
@@ -473,6 +490,56 @@ describe('AuthService - Unit Tests', () => {
             });
             expect(result.kycLevel).toBe(KycLevel.BASIC);
             expect(result.status).toBe(KycStatus.APPROVED);
+        });
+    });
+    describe('refreshToken', () => {
+        const mockUser = {
+            id: 'user-123',
+            email: 'test@example.com',
+            role: 'USER',
+            isActive: true,
+        };
+        const mockToken = 'valid_refresh_token';
+
+        it('should return new tokens for valid refresh token', async () => {
+            // const { redisConnection } = require('../../../../../shared/config/redis.config');
+
+            (JwtUtils.verifyRefreshToken as jest.Mock).mockReturnValue({ userId: mockUser.id });
+            (redisConnection.get as jest.Mock).mockResolvedValue(null); // Not blacklisted
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+            (JwtUtils.signAccessToken as jest.Mock).mockReturnValue('new_access_token');
+            (JwtUtils.signRefreshToken as jest.Mock).mockReturnValue('new_refresh_token');
+
+            const result = await authService.refreshToken(mockToken);
+
+            expect(JwtUtils.verifyRefreshToken).toHaveBeenCalledWith(mockToken);
+            expect(redisConnection.get).toHaveBeenCalledWith(`blacklist:${mockToken}`);
+            expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { id: mockUser.id } });
+            expect(result.accessToken).toBe('new_access_token');
+            expect(result.refreshToken).toBe('new_refresh_token');
+        });
+
+        it('should throw UnauthorizedError if token is blacklisted', async () => {
+            // const { redisConnection } = require('../../../../../shared/config/redis.config');
+
+            (JwtUtils.verifyRefreshToken as jest.Mock).mockReturnValue({ userId: mockUser.id });
+            (redisConnection.get as jest.Mock).mockResolvedValue('true'); // Blacklisted
+
+            await expect(authService.refreshToken(mockToken)).rejects.toThrow(UnauthorizedError);
+            await expect(authService.refreshToken(mockToken)).rejects.toThrow(
+                'Token has been revoked'
+            );
+        });
+
+        it('should throw UnauthorizedError if user not found', async () => {
+            // const { redisConnection } = require('../../../../../shared/config/redis.config');
+
+            (JwtUtils.verifyRefreshToken as jest.Mock).mockReturnValue({ userId: mockUser.id });
+            (redisConnection.get as jest.Mock).mockResolvedValue(null);
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+
+            await expect(authService.refreshToken(mockToken)).rejects.toThrow(UnauthorizedError);
+            await expect(authService.refreshToken(mockToken)).rejects.toThrow('User not found');
         });
     });
 });

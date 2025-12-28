@@ -149,7 +149,7 @@ Completes registration profile. Verifies password, adds phone number, and sends 
 
 #### `POST /auth/verify-otp`
 
-Verifies email or phone OTP. Activates account if purpose is verification.
+Verifies email or phone OTP. Activates account (`isVerified=true`) and upgrades `kycLevel` to `BASIC` if both email and phone are verified.
 
 -   **Body**:
     ```json
@@ -180,6 +180,30 @@ Authenticates user and issues tokens. Invalidates previous sessions.
         "data": {
             "user": { "id": "...", "email": "...", "kycLevel": "NONE" },
             "tokens": { "accessToken": "...", "refreshToken": "..." }
+        }
+    }
+    ```
+
+#### `POST /auth/refresh-token`
+
+Refreshes the access token using a valid refresh token.
+
+-   **Body**:
+    ```json
+    {
+        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+    ```
+-   **Response (200)**:
+    ```json
+    {
+        "success": true,
+        "data": {
+            "tokens": {
+                "accessToken": "...",
+                "refreshToken": "...",
+                "expiresIn": 86400
+            }
         }
     }
     ```

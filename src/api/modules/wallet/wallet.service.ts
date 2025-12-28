@@ -31,6 +31,16 @@ export class WalletService {
     private readonly SYSTEM_REVENUE_EMAIL = 'revenue@swaplink.com';
     private readonly TRANSFER_FEE = 53.5;
 
+    async getWallet(userId: string) {
+        const wallet = await prisma.wallet.findUnique({
+            where: { userId },
+            include: { virtualAccount: true, transactions: true },
+        });
+
+        if (!wallet) throw new NotFoundError('Wallet not found');
+        return wallet;
+    }
+
     /**
      * Process a transfer request (Hybrid: Internal or External)
      * Note: PIN verification is done in a separate step before this

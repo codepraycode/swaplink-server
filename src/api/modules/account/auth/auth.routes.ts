@@ -11,6 +11,7 @@ import {
     VerifyOtpDto,
     LoginDto,
     SetupTransactionPinDto,
+    RefreshTokenDto,
 } from './auth.dto';
 import { authenticate } from '../../../middlewares/auth/auth.middleware';
 
@@ -54,6 +55,14 @@ router.post(
     deviceIdMiddleware,
     validateDto(LoginDto),
     authController.login
+);
+
+// Refresh Token
+router.post(
+    '/refresh-token',
+    rateLimiters.auth,
+    validateDto(RefreshTokenDto),
+    authController.refreshToken
 );
 
 router.post('/logout', rateLimiters.auth, authController.logout);

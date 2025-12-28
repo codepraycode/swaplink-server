@@ -60,9 +60,30 @@ class AuthController {
         }
     };
 
+    refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { refreshToken } = req.body;
+            const result = await authService.refreshToken(refreshToken);
+
+            sendSuccess(
+                res,
+                {
+                    tokens: {
+                        accessToken: result.accessToken,
+                        refreshToken: result.refreshToken,
+                        expiresIn: result.expiresIn,
+                    },
+                },
+                'Token refreshed successfully'
+            );
+        } catch (error) {
+            next(error);
+        }
+    };
+
     logout = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user.userId;
+            const userId = req.user!.userId;
             const token = req.headers.authorization?.split(' ')[1];
 
             if (token) {
@@ -78,7 +99,7 @@ class AuthController {
     me = async (req: Request, res: Response, next: NextFunction) => {
         try {
             // Assuming your 'authenticate' middleware attaches user to req
-            const userId = (req as any).user.userId;
+            const userId = req.user!.userId;
             const user = await authService.getUser(userId);
 
             sendSuccess(res, { user }, 'User profile retrieved successfully');
@@ -129,7 +150,7 @@ class AuthController {
 
     submitKyc = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user.userId;
+            const userId = req.user!.userId;
 
             if (!req.file) throw new BadRequestError('KYC Document is required');
             const { documentType } = req.body;
@@ -145,7 +166,7 @@ class AuthController {
 
     verifyBvn = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user.userId;
+            const userId = req.user!.userId;
             const { bvn } = req.body;
 
             if (!bvn) throw new BadRequestError('BVN is required');
@@ -159,7 +180,7 @@ class AuthController {
 
     submitKycInfo = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user.userId;
+            const userId = req.user!.userId;
             const result = await kycService.submitKycInfo(userId, req.body);
             sendSuccess(res, result, 'KYC Info submitted successfully');
         } catch (error) {
@@ -169,7 +190,7 @@ class AuthController {
 
     submitBiometrics = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user.userId;
+            const userId = req.user!.userId;
             const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
             let selfieUrl, videoUrl;
@@ -190,7 +211,7 @@ class AuthController {
 
     updateAvatar = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user.userId;
+            const userId = req.user!.userId;
 
             if (!req.file) throw new Error('Avatar image is required');
 
@@ -205,7 +226,7 @@ class AuthController {
 
     getVerificationStatus = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user.userId;
+            const userId = req.user!.userId;
             const user = await authService.getUser(userId);
 
             const statusData = {
@@ -227,7 +248,7 @@ class AuthController {
 
     setupPin = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user.userId;
+            const userId = req.user!.userId;
             const result = await authService.setupPin(userId, req.body);
             sendSuccess(res, result, 'Transaction PIN set successfully');
         } catch (error) {
