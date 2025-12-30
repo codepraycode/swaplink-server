@@ -3,6 +3,7 @@ import { bankingWorker } from './banking.worker';
 import { onboardingWorker } from './onboarding.worker';
 import { notificationWorker } from './notification.worker';
 import { p2pOrderWorker } from './p2p-order.worker';
+import { kycWorker } from './kyc.worker';
 import { startReconciliationJob } from './reconciliation.job';
 import { initializeQueues, closeQueues } from '../shared/lib/init/service-initializer';
 import logger from '../shared/lib/utils/logger';
@@ -39,6 +40,7 @@ process.on('SIGTERM', async () => {
         onboardingWorker.close(),
         notificationWorker.close(),
         p2pOrderWorker.close(),
+        kycWorker.close(),
         closeQueues(),
     ]);
     process.exit(0);
@@ -52,6 +54,7 @@ process.on('SIGINT', async () => {
         onboardingWorker.close(),
         notificationWorker.close(),
         p2pOrderWorker.close(),
+        kycWorker.close(),
         closeQueues(),
     ]);
     process.exit(0);

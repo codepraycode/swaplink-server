@@ -23,6 +23,7 @@ let transferQueue: Queue | null = null;
 let bankingQueue: Queue | null = null;
 let p2pOrderQueue: Queue | null = null;
 let notificationQueue: Queue | null = null;
+let kycQueue: Queue | null = null;
 
 /**
  * Initialize all BullMQ queues
@@ -113,6 +114,21 @@ export async function initializeQueues(): Promise<void> {
         });
         logger.info('  ✅ Notification Queue initialized');
 
+        // KYC Queue
+        logger.debug('  → Initializing KYC Queue...');
+        kycQueue = new Queue('kyc-verification', {
+            connection: redisConnection,
+            defaultJobOptions: {
+                attempts: 3,
+                backoff: {
+                    type: 'exponential',
+                    delay: 2000,
+                },
+                removeOnComplete: true,
+            },
+        });
+        logger.info('  ✅ KYC Queue initialized');
+
         logger.info('✅ All queues initialized successfully');
     } catch (error) {
         logger.error('❌ Failed to initialize queues:', error);
@@ -196,6 +212,17 @@ export function getNotificationQueue(): Queue {
 }
 
 /**
+ * Get KYC Queue instance
+ * @throws Error if queue is not initialized
+ */
+export function getKycQueue(): Queue {
+    if (!kycQueue) {
+        throw new Error('KYC Queue not initialized. Call initializeQueues() first.');
+    }
+    return kycQueue;
+}
+
+/**
  * Gracefully close all queues
  */
 export async function closeQueues(): Promise<void> {
@@ -217,6 +244,9 @@ export async function closeQueues(): Promise<void> {
     }
     if (notificationQueue) {
         closePromises.push(notificationQueue.close());
+    }
+    if (kycQueue) {
+        closePromises.push(kycQueue.close());
     }
 
     await Promise.all(closePromises);

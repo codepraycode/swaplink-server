@@ -1,17 +1,25 @@
-import { IsString, IsNotEmpty, IsOptional, IsDateString } from 'class-validator';
+import {
+    IsString,
+    IsNotEmpty,
+    IsOptional,
+    IsDateString,
+    ValidateNested,
+    IsObject,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class SubmitKycInfoDto {
+export class AddressDto {
     @IsString()
     @IsNotEmpty()
-    address!: string;
+    street!: string;
 
     @IsString()
     @IsNotEmpty()
     city!: string;
 
     @IsString()
-    @IsNotEmpty()
-    state!: string;
+    @IsOptional()
+    state?: string;
 
     @IsString()
     @IsNotEmpty()
@@ -20,16 +28,38 @@ export class SubmitKycInfoDto {
     @IsString()
     @IsNotEmpty()
     postalCode!: string;
+}
+
+export class GovernmentIdDto {
+    @IsString()
+    @IsNotEmpty()
+    type!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    number!: string;
+}
+
+export class SubmitKycUnifiedDto {
+    @IsString()
+    @IsNotEmpty()
+    firstName!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    lastName!: string;
 
     @IsDateString()
     @IsNotEmpty()
-    dob!: string;
+    dateOfBirth!: string;
 
-    @IsString()
-    @IsOptional()
-    bvn?: string;
+    @IsObject()
+    @ValidateNested()
+    @Type(() => AddressDto)
+    address!: AddressDto;
 
-    @IsString()
-    @IsOptional()
-    nin?: string;
+    @IsObject()
+    @ValidateNested()
+    @Type(() => GovernmentIdDto)
+    governmentId!: GovernmentIdDto;
 }

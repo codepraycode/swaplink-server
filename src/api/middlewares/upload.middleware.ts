@@ -1,10 +1,7 @@
 import multer, { FileFilterCallback } from 'multer';
-import { Request } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { BadRequestError } from '../../shared/lib/utils/api-error';
 import { uploadConfig } from '../../shared/config/upload.config';
-import { envConfig } from '../../shared/config/env.config';
-import path from 'path';
-import fs from 'fs';
 
 // ======================================================
 // 1. Storage Strategy
@@ -44,20 +41,6 @@ const createFilter = (allowedMimeTypes: string[]) => {
 // ======================================================
 
 /**
- * KYC Document Uploader
- * - Allows PDF, JPG, PNG
- * - Max 5MB
- */
-export const uploadKyc = multer({
-    storage: storage,
-    limits: {
-        fileSize: uploadConfig.kyc.maxSize,
-        files: 1, // Max 1 file per field
-    },
-    fileFilter: createFilter(uploadConfig.kyc.allowedMimeTypes),
-});
-
-/**
  * Profile Picture Uploader
  * - Allows JPG, PNG (No PDF)
  * - Max 2MB
@@ -72,26 +55,43 @@ export const uploadAvatar = multer({
 });
 
 /**
- * Biometrics Uploader
- * - Selfie (Image)
- * - Video (Video)
+ * Chat proof of payment uploader
+ * - Allows JPG, PNG, (No PDF)
+ * - Max 2MB
  */
-export const uploadBiometrics = multer({
+export const uploadProof = multer({
     storage: storage,
     limits: {
-        fileSize: 50 * 1024 * 1024, // 50MB for video? Adjust as needed.
-        files: 2,
+        fileSize: uploadConfig.proof.maxSize,
+        files: 1,
+    },
+    fileFilter: createFilter(uploadConfig.proof.allowedMimeTypes),
+});
+
+/**
+ * Unified KYC Uploader
+ * - Handles ID Documents (Front/Back), Proof of Address, and Selfie
+ */
+export const uploadKycUnified: any = multer({
+    storage: storage,
+    limits: {
+        fileSize: uploadConfig.kyc.maxSize, // Using KYC max size for all
     },
     fileFilter: (req, file, cb) => {
-        if (file.fieldname === 'selfie') {
+        if (['idDocumentFront', 'idDocumentBack', 'proofOfAddress'].includes(file.fieldname)) {
+            createFilter(uploadConfig.kyc.allowedMimeTypes)(req, file, cb);
+        } else if (file.fieldname === 'selfie') {
             createFilter(uploadConfig.avatar.allowedMimeTypes)(req, file, cb);
-        } else if (file.fieldname === 'video') {
-            createFilter(['video/mp4', 'video/webm', 'video/quicktime'])(req, file, cb);
         } else {
-            cb(new BadRequestError('Invalid field name') as any);
+            cb(new BadRequestError(`Unexpected field: ${file.fieldname}`) as any);
         }
     },
-});
+}).fields([
+    { name: 'idDocumentFront', maxCount: 1 },
+    { name: 'idDocumentBack', maxCount: 1 },
+    { name: 'proofOfAddress', maxCount: 1 },
+    { name: 'selfie', maxCount: 1 },
+]);
 
 // ======================================================
 // 4. Error Handler Wrapper (Optional but Recommended)
@@ -99,13 +99,17 @@ export const uploadBiometrics = multer({
 // Multer throws generic errors (like "File too large").
 // This wraps them into your nice API Error format.
 
-export const handleUploadError = (err: any, next: any) => {
+export const handleUploadError = (err: any, req: Request, res: Response, next: NextFunction) => {
     if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
             return next(new BadRequestError('File is too large. Please upload a smaller file.'));
         }
         if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-            return next(new BadRequestError('Too many files or invalid field name.'));
+            return next(
+                new BadRequestError(
+                    `Too many files or invalid field name${err.field ? ` (${err.field})` : ''}.`
+                )
+            );
         }
     }
     next(err);

@@ -1,10 +1,13 @@
 import express, { Router } from 'express';
 import authController from './auth.controller';
 import rateLimiters from '../../../middlewares/rate-limit.middleware';
-import { uploadKyc, uploadAvatar, uploadBiometrics } from '../../../middlewares/upload.middleware';
+import {
+    uploadKycUnified,
+    uploadAvatar,
+    handleUploadError,
+} from '../../../middlewares/upload.middleware';
 import { validateDto } from '../../../middlewares/validation.middleware';
 import { deviceIdMiddleware } from '../../../middlewares/auth/device-id.middleware';
-import { SubmitKycInfoDto } from '../kyc/kyc.dto';
 import {
     RegisterStep1Dto,
     RegisterStep2Dto,
@@ -109,28 +112,20 @@ router.post('/pin/setup', validateDto(SetupTransactionPinDto), authController.se
 // 5. KYC & Compliance
 // ======================================================
 
-router.post('/kyc', rateLimiters.global, uploadKyc.single('document'), authController.submitKyc);
-
-router.post('/kyc/bvn', rateLimiters.global, authController.verifyBvn);
-
 router.post(
-    '/kyc/info',
+    '/kyc',
     rateLimiters.global,
-    validateDto(SubmitKycInfoDto),
-    authController.submitKycInfo
+    uploadKycUnified,
+    handleUploadError as any,
+    authController.submitKyc
 );
 
 router.post(
-    '/kyc/biometrics',
-    rateLimiters.global,
-    uploadBiometrics.fields([
-        { name: 'selfie', maxCount: 1 },
-        { name: 'video', maxCount: 1 },
-    ]),
-    authController.submitBiometrics
+    '/profile/avatar',
+    uploadAvatar.single('avatar'),
+    handleUploadError as any,
+    authController.updateAvatar
 );
-
-router.post('/profile/avatar', uploadAvatar.single('avatar'), authController.updateAvatar);
 
 router.get('/verification-status', authController.getVerificationStatus);
 

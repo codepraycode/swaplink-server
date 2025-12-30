@@ -9,8 +9,8 @@ export const SENSITIVE_KEYS = [
     'accessToken',
     'refreshToken',
     'authorization',
-    'bvn',
-    'nin',
+
+    'governmentId',
     'cardNumber',
     'cvv',
     'secret',

@@ -24,7 +24,7 @@ model User {
   
   // KYC & Status
   kycLevel         KycLevel  @default(NONE)
-  kycStatus        KycStatus @default(PENDING)
+  kycStatus        KycStatus @default(STALE)
   isVerified       Boolean   @default(false)
   emailVerified    Boolean   @default(false)
   phoneVerified    Boolean   @default(false)
@@ -54,7 +54,6 @@ model User {
   // Relations
   wallet           Wallet?   // 1:1 Relation (One user, one wallet)
   bankAccounts     BankAccount[]
-  kycAttempts      KycAttempt[]
   kycInfo          KycInfo?
   transactions     Transaction[] // History of transactions initiated by user
   counterpartyTransactions Transaction[] @relation("TransactionCounterparty")
@@ -210,6 +209,7 @@ model KycDocument {
   documentUrl     String            // Cloudinary/S3 URL
   status          KycDocumentStatus @default(PENDING)
   rejectionReason String?
+  metadata        Json?
   verifiedAt      DateTime?
   
   createdAt       DateTime          @default(now())
@@ -220,18 +220,7 @@ model KycDocument {
   @@map("kyc_documents")
 }
 
-model KycAttempt {
-  id          String   @id @default(uuid())
-  userId      String
-  providerRef String?
-  rawResponse Json?
-  status      String   // PENDING, SUCCESS, FAILED
-  createdAt   DateTime @default(now())
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("kyc_attempts")
-}
 
 model KycInfo {
   id          String   @id @default(uuid())
@@ -250,8 +239,8 @@ model KycInfo {
   videoUrl    String?
   
   // IDs
-  bvn         String?
-  nin         String?
+
+  governmentId String?
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -464,6 +453,7 @@ enum KycStatus {
   PENDING
   APPROVED
   REJECTED
+  STALE
 }
 
 enum KycDocumentStatus {

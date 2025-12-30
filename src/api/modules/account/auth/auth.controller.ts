@@ -102,7 +102,7 @@ class AuthController {
             const userId = req.user!.userId;
             const user = await authService.getUser(userId);
 
-            sendSuccess(res, { user }, 'User profile retrieved successfully');
+            sendSuccess(res, user, 'User profile retrieved successfully');
         } catch (error) {
             next(error);
         }
@@ -151,59 +151,73 @@ class AuthController {
     submitKyc = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const userId = req.user!.userId;
-
-            if (!req.file) throw new BadRequestError('KYC Document is required');
-            const { documentType } = req.body;
-
-            if (!documentType) throw new BadRequestError('Document type is required');
-
-            const result = await kycService.submitKycDocument(userId, req.file, documentType);
-            sendSuccess(res, result, 'KYC submitted successfully');
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    verifyBvn = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const userId = req.user!.userId;
-            const { bvn } = req.body;
-
-            if (!bvn) throw new BadRequestError('BVN is required');
-
-            const result = await kycService.verifyBvn(userId, bvn);
-            sendSuccess(res, result, 'BVN verified successfully');
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    submitKycInfo = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const userId = req.user!.userId;
-            const result = await kycService.submitKycInfo(userId, req.body);
-            sendSuccess(res, result, 'KYC Info submitted successfully');
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    submitBiometrics = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const userId = req.user!.userId;
             const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-            let selfieUrl, videoUrl;
+            // 1. Extract Files
+            const idDocumentFront = files?.idDocumentFront?.[0];
+            const idDocumentBack = files?.idDocumentBack?.[0];
+            const proofOfAddress = files?.proofOfAddress?.[0];
+            const selfie = files?.selfie?.[0];
 
-            if (files?.selfie?.[0]) {
-                selfieUrl = await storageService.uploadFile(files.selfie[0], 'kyc/biometrics');
-            }
-            if (files?.video?.[0]) {
-                videoUrl = await storageService.uploadFile(files.video[0], 'kyc/biometrics');
+            if (!idDocumentFront || !proofOfAddress || !selfie) {
+                throw new BadRequestError(
+                    'Missing required files (idDocumentFront, proofOfAddress, selfie)'
+                );
             }
 
-            const result = await kycService.updateBiometrics(userId, selfieUrl, videoUrl);
-            sendSuccess(res, result, 'Biometrics submitted successfully');
+            // 2. Extract and Transform Body
+            // Multer populates req.body with text fields.
+            // We expect fields like address[street], governmentId[type], etc.
+            // We need to construct the object manually or use a parser.
+            // Since we know the structure, we can map it manually for safety.
+
+            const body = req.body;
+
+            const kycData = {
+                firstName: body.firstName,
+                lastName: body.lastName,
+                dateOfBirth: body.dateOfBirth,
+                address: {
+                    street: body.address.street,
+                    city: body.address.city,
+                    state: body.address.state,
+                    country: body.address.country,
+                    postalCode: body.address.postalCode,
+                },
+                governmentId: {
+                    type: body.governmentId.type,
+                    number: body.governmentId.number,
+                },
+            };
+
+            // 3. Validate DTO
+            // We can use class-validator here if we want strict validation
+            // import { validate } from 'class-validator';
+            // import { plainToInstance } from 'class-transformer';
+            // const dto = plainToInstance(SubmitKycUnifiedDto, kycData);
+            // const errors = await validate(dto);
+            // if (errors.length > 0) throw new BadRequestError(formatErrors(errors));
+
+            // For now, let's pass it to the service which can also validate or we assume basic presence checks above.
+            // But let's do basic validation here.
+            if (!kycData.firstName || !kycData.lastName || !kycData.dateOfBirth) {
+                throw new BadRequestError('Missing personal details');
+            }
+            if (!kycData.address.street || !kycData.address.city || !kycData.address.country) {
+                throw new BadRequestError('Missing address details');
+            }
+            if (!kycData.governmentId.type || !kycData.governmentId.number) {
+                throw new BadRequestError('Missing government ID details');
+            }
+
+            const result = await kycService.submitKycUnified(userId, kycData, {
+                idDocumentFront,
+                idDocumentBack,
+                proofOfAddress,
+                selfie,
+            });
+
+            sendSuccess(res, result, 'KYC submitted successfully');
         } catch (error) {
             next(error);
         }

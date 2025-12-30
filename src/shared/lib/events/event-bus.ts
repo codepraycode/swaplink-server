@@ -23,6 +23,7 @@ export enum EventType {
     KYC_SUBMITTED = 'KYC_SUBMITTED',
     KYC_APPROVED = 'KYC_APPROVED',
     KYC_REJECTED = 'KYC_REJECTED',
+    KYC_UPDATED = 'KYC_UPDATED',
 
     // Audit Events
     AUDIT_LOG = 'AUDIT_LOG',
