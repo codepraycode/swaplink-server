@@ -204,7 +204,7 @@ export class P2PAdService {
                         // phoneNumber: true,
                     },
                 },
-                paymentMethod: { select: { bankName: true } }, // Don't expose full details in feed
+                paymentMethod: true,
             },
         });
     }

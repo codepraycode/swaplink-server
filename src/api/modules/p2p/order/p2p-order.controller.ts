@@ -44,7 +44,7 @@ export class P2POrderController {
             const { userId } = JwtUtils.ensureAuthentication(req);
             const { id } = req.params;
             const result = await P2POrderService.confirmOrder(userId, id);
-            return sendSuccess(res, result, 'Order confirmed and funds released');
+            return sendSuccess(res, result, 'Order confirmed. Funds will be released soon.');
         } catch (error) {
             next(error);
         }

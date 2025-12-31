@@ -16,7 +16,6 @@ import {
 
 import { getQueue as getP2POrderQueue } from '../../../../shared/lib/queues/p2p-order.queue';
 import { P2PChatService } from '../chat/p2p-chat.service';
-import { envConfig } from '../../../../shared/config/env.config';
 import { Decimal } from '@prisma/client/runtime/library';
 import { NotificationService } from '../../notification/notification.service';
 
@@ -203,81 +202,68 @@ export class P2POrderService {
         if (!order) throw new NotFoundError('Order not found');
 
         // Who is FX Receiver?
-        // If BUY_FX, Maker is FX Receiver.
-        // If SELL_FX, Taker is FX Receiver.
+        // If BUY_FX, Maker is FX Receiver (receives FX, created the ad to buy FX).
+        // If SELL_FX, Taker is FX Receiver (receives FX, responding to ad selling FX).
+        // Only the FX Receiver (who also receives NGN in the reverse flow) can confirm.
 
         const isFxReceiver =
             (order.ad.type === AdType.BUY_FX && userId === order.makerId) ||
             (order.ad.type === AdType.SELL_FX && userId === order.takerId);
 
-        if (!isFxReceiver) throw new ForbiddenError('Only the FX Receiver can confirm order');
+        if (!isFxReceiver)
+            throw new ForbiddenError('Only the ad creator can confirm and release funds');
         if (order.status !== OrderStatus.PAID)
             throw new BadRequestError('Order must be marked as paid first');
 
-        // Execute Transfer
-        // NGN Payer funds are LOCKED.
-        // We need to:
-        // 1. Unlock funds (from Payer).
-        // 2. Debit Payer.
-        // 3. Credit Receiver (minus fee).
-        // 4. Credit System (fee).
-
-        const payerId = order.ad.type === AdType.BUY_FX ? order.makerId : order.takerId;
-        const receiverId = order.ad.type === AdType.BUY_FX ? order.takerId : order.makerId;
-
-        const feePercent = 0.01; // 1% fee? Plan says "Fee Extraction".
+        // Calculate fee and receive amount
+        const feePercent = 0.01; // 1% fee
         const fee = order.totalNgn * feePercent;
         const receiveAmount = order.totalNgn - fee;
 
-        await prisma.$transaction(async tx => {
-            // 1. Unlock Payer Funds
-            // We can use walletService.unlockFunds but that requires separate transaction?
-            // Ideally we do it all in one TX.
-            // But walletService uses its own TX.
-            // We can replicate logic or extend walletService to accept TX.
-            // For now, let's assume we can call walletService methods sequentially if we accept slight risk,
-            // OR we implement raw updates here.
-            // Let's implement raw updates for atomicity.
-
-            // Unlock & Debit Payer
-            await tx.wallet.update({
-                where: { userId: payerId },
-                data: {
-                    lockedBalance: { decrement: order.totalNgn },
-                    balance: { decrement: order.totalNgn },
-                },
-            });
-
-            // Credit Receiver
-            await tx.wallet.update({
-                where: { userId: receiverId },
-                data: { balance: { increment: receiveAmount } },
-            });
-
-            // Credit System
-            await tx.wallet.update({
-                where: { userId: envConfig.SYSTEM_USER_ID },
-                data: { balance: { increment: fee } },
-            });
-
-            // Update Order
-            await tx.p2POrder.update({
-                where: { id: orderId },
-                data: {
-                    status: OrderStatus.COMPLETED,
-                    completedAt: new Date(),
-                    fee,
-                    receiveAmount,
-                },
-            });
-
-            // Create Transaction Records (Payer, Receiver)
-            // ... (Skipping for brevity, but should be done)
+        // 1. Update Order Status to COMPLETED and store fee/receiveAmount
+        await prisma.p2POrder.update({
+            where: { id: orderId },
+            data: {
+                status: OrderStatus.COMPLETED,
+                completedAt: new Date(),
+                fee,
+                receiveAmount,
+            },
         });
 
-        await P2PChatService.createSystemMessage(orderId, 'Order confirmed. Funds released.');
+        // 2. Trigger Async Fund Release via Worker
+        await getP2POrderQueue().add('release-funds', { orderId });
 
-        return { message: 'Order completed successfully' };
+        // 3. System Message
+        await P2PChatService.createSystemMessage(
+            orderId,
+            'Order confirmed. Funds will be released shortly.'
+        );
+
+        // 4. Notify both parties
+        const payerId = order.ad.type === AdType.BUY_FX ? order.makerId : order.takerId;
+        const receiverId = order.ad.type === AdType.BUY_FX ? order.takerId : order.makerId;
+
+        await NotificationService.sendToUser(
+            payerId,
+            'Order Completed',
+            `Order #${orderId.slice(0, 8)} has been completed. Funds are being processed.`,
+            { orderId, type: 'order' },
+            NotificationType.TRANSACTION
+        );
+
+        await NotificationService.sendToUser(
+            receiverId,
+            'Order Completed',
+            `Order #${orderId.slice(
+                0,
+                8
+            )} has been completed. You will receive your funds shortly.`,
+            { orderId, type: 'order' },
+            NotificationType.TRANSACTION
+        );
+
+        return { message: 'Order completed. Funds will be released soon.' };
     }
 
     static async cancelOrder(userId: string, orderId: string): Promise<{ message: string }> {

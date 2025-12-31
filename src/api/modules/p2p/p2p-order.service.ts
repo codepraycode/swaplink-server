@@ -1,9 +1,9 @@
-import { prisma, OrderStatus, AdType, TransactionType } from '../../../shared/database';
+import { prisma, OrderStatus, AdType } from '../../../shared/database';
 import { BadRequestError, NotFoundError, InternalError } from '../../../shared/lib/utils/api-error';
 import { p2pFeeService } from './p2p-fee.service';
-import { serviceRevenueService } from '../revenue/service-revenue.service';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../../../shared/database';
+import { getQueue } from '../../../shared/lib/queues/p2p-order.queue';
 
 export class P2POrderService {
     /**
@@ -173,125 +173,31 @@ export class P2POrderService {
 
     /**
      * Release Funds (Maker)
-     * - Atomic Settlement.
+     * - Marks order as completed.
+     * - Triggers async fund release worker.
      */
     async releaseFunds(userId: string, orderId: string) {
-        return await prisma.$transaction(async tx => {
-            const order = await tx.p2POrder.findUnique({
-                where: { id: orderId },
-                include: { ad: true },
-            });
-            if (!order) throw new NotFoundError('Order not found');
-            if (order.makerId !== userId) throw new BadRequestError('Not authorized');
-            if (order.status !== OrderStatus.PAID) throw new BadRequestError('Order not paid');
-
-            // 1. Identify NGN Payer and Receiver
-            // BUY_FX: Maker (NGN Payer) -> Taker (NGN Receiver)
-            // SELL_FX: Taker (NGN Payer) -> Maker (NGN Receiver)
-
-            const isBuyFx = order.ad.type === AdType.BUY_FX;
-            const payerId = isBuyFx ? order.makerId : order.takerId;
-            const receiverId = isBuyFx ? order.takerId : order.makerId;
-
-            // 2. Get Revenue Wallet
-            const revenueWallet = await serviceRevenueService.getRevenueWallet();
-
-            // 3. Debit Payer (From Locked Balance)
-            await tx.wallet.update({
-                where: { userId: payerId },
-                data: {
-                    lockedBalance: { decrement: order.totalNgn },
-                },
-            });
-
-            // 4. Credit Receiver (Total - Fee)
-            // 4. Credit Receiver (Total - Fee)
-            await tx.wallet.update({
-                where: { userId: receiverId },
-                data: {
-                    balance: { increment: Number(order.receiveAmount) },
-                },
-            });
-
-            // Update User Cumulative Inflow
-            await tx.user.update({
-                where: { id: receiverId },
-                data: {
-                    cumulativeInflow: { increment: Number(order.receiveAmount) },
-                },
-            });
-
-            // 5. Credit Revenue (Fee)
-            await tx.wallet.update({
-                where: { id: revenueWallet.id },
-                data: {
-                    balance: { increment: order.fee },
-                },
-            });
-
-            // 6. Create Transaction Records
-            // Payer Debit
-            await tx.transaction.create({
-                data: {
-                    userId: payerId,
-                    walletId: (
-                        await tx.wallet.findUniqueOrThrow({
-                            where: { userId: payerId },
-                        })
-                    ).id,
-                    type: TransactionType.TRANSFER,
-                    amount: -order.totalNgn,
-                    balanceBefore: 0, // TODO: Fetch actual balance if needed
-                    balanceAfter: 0,
-                    status: 'COMPLETED',
-                    reference: `P2P-DEBIT-${order.id}`,
-                    description: `P2P ${isBuyFx ? 'Buy' : 'Sell'} Order`,
-                },
-            });
-
-            // Receiver Credit
-            await tx.transaction.create({
-                data: {
-                    userId: receiverId,
-                    walletId: (
-                        await tx.wallet.findUniqueOrThrow({
-                            where: { userId: receiverId },
-                        })
-                    ).id,
-                    type: TransactionType.DEPOSIT,
-                    amount: Number(order.receiveAmount),
-                    balanceBefore: 0,
-                    balanceAfter: 0,
-                    status: 'COMPLETED',
-                    reference: `P2P-CREDIT-${order.id}`,
-                    description: `P2P ${isBuyFx ? 'Sell' : 'Buy'} Proceeds`,
-                },
-            });
-
-            // Fee Credit
-            await tx.transaction.create({
-                data: {
-                    userId: revenueWallet.userId,
-                    walletId: revenueWallet.id,
-                    type: TransactionType.FEE,
-                    amount: order.fee,
-                    balanceBefore: 0,
-                    balanceAfter: 0,
-                    status: 'COMPLETED',
-                    reference: `P2P-FEE-${order.id}`,
-                    description: `Fee for Order ${order.id}`,
-                },
-            });
-
-            // 7. Update Order Status
-            return tx.p2POrder.update({
-                where: { id: orderId },
-                data: {
-                    status: OrderStatus.COMPLETED,
-                    completedAt: new Date(),
-                },
-            });
+        const order = await prisma.p2POrder.findUnique({
+            where: { id: orderId },
+            include: { ad: true },
         });
+        if (!order) throw new NotFoundError('Order not found');
+        if (order.makerId !== userId) throw new BadRequestError('Not authorized');
+        if (order.status !== OrderStatus.PAID) throw new BadRequestError('Order not paid');
+
+        // 1. Update Order Status to COMPLETED
+        const updatedOrder = await prisma.p2POrder.update({
+            where: { id: orderId },
+            data: {
+                status: OrderStatus.COMPLETED,
+                completedAt: new Date(),
+            },
+        });
+
+        // 2. Trigger Async Fund Release
+        await getQueue().add('release-funds', { orderId });
+
+        return updatedOrder;
     }
 }
 
