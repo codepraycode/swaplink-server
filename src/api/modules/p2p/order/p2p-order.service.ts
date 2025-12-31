@@ -170,30 +170,6 @@ export class P2POrderService {
         return fullOrder!;
     }
 
-    static async markAsPaid(userId: string, orderId: string): Promise<P2POrder> {
-        const order = await prisma.p2POrder.findUnique({
-            where: { id: orderId },
-            include: { ad: true },
-        });
-        if (!order) throw new NotFoundError('Order not found');
-
-        // Who is the FX Payer?
-        // If BUY_FX (Maker wants FX), Taker is FX Payer.
-        // If SELL_FX (Maker gives FX), Maker is FX Payer.
-
-        const isFxPayer =
-            (order.ad.type === AdType.BUY_FX && userId === order.takerId) ||
-            (order.ad.type === AdType.SELL_FX && userId === order.makerId);
-
-        if (!isFxPayer) throw new ForbiddenError('Only the FX Payer can mark as paid');
-        if (order.status !== OrderStatus.PENDING) throw new BadRequestError('Order is not pending');
-
-        return await prisma.p2POrder.update({
-            where: { id: orderId },
-            data: { status: OrderStatus.PAID },
-        });
-    }
-
     static async confirmOrder(userId: string, orderId: string): Promise<{ message: string }> {
         const order = await prisma.p2POrder.findUnique({
             where: { id: orderId },

@@ -28,17 +28,6 @@ export class P2POrderController {
         }
     }
 
-    static async markAsPaid(req: Request, res: Response, next: NextFunction) {
-        try {
-            const { userId } = JwtUtils.ensureAuthentication(req);
-            const { id } = req.params;
-            const order = await P2POrderService.markAsPaid(userId, id);
-            return sendSuccess(res, order, 'Order marked as paid');
-        } catch (error) {
-            next(error);
-        }
-    }
-
     static async confirm(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId } = JwtUtils.ensureAuthentication(req);

@@ -141,11 +141,16 @@ export class P2POrderService {
 
     /**
      * Mark Order as Paid (Taker)
+     * - Requires proof of payment to be uploaded
      */
-    async markAsPaid(userId: string, orderId: string, proofUrl?: string) {
+    async markAsPaid(userId: string, orderId: string, proofUrl: string) {
+        if (!proofUrl) {
+            throw new BadRequestError('Payment proof is required');
+        }
+
         const order = await prisma.p2POrder.findUnique({ where: { id: orderId } });
         if (!order) throw new NotFoundError('Order not found');
-        if (order.takerId !== userId) throw new BadRequestError('Not authorized');
+        // if (order.takerId !== userId) throw new BadRequestError('Not authorized');
         if (order.status !== OrderStatus.PENDING) throw new BadRequestError('Order not pending');
 
         const updatedOrder = await prisma.p2POrder.update({
