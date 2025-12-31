@@ -197,6 +197,11 @@ export class P2POrderService {
         if (order.status === OrderStatus.COMPLETED || order.status === OrderStatus.CANCELLED)
             throw new BadRequestError('Order is completed');
 
+        // Check if user is part of the order
+        if (userId !== order.makerId && userId !== order.takerId) {
+            throw new ForbiddenError('Access denied');
+        }
+
         // Who pays NGN?
         // If BUY_FX: Maker buys FX with NGN → Maker pays NGN
         // If SELL_FX: Taker buys FX with NGN → Taker pays NGN
@@ -235,6 +240,11 @@ export class P2POrderService {
         });
         if (!order) throw new NotFoundError('Order not found');
 
+        // Check if user is part of the order
+        if (userId !== order.makerId && userId !== order.takerId) {
+            throw new ForbiddenError('Access denied');
+        }
+
         // Who confirms the order?
         // The person who LOCKED the NGN (The NGN Payer / FX Buyer).
         // They confirm that they received the FX in their external bank account.
@@ -246,7 +256,7 @@ export class P2POrderService {
 
         if (!isNgnPayer)
             throw new ForbiddenError(
-                'Only the buyer of FX (NGN payer) can confirm receipt and release funds'
+                'Only the buyer of FX (NGN payer) can confirm receipt and release funds. You are the seller.'
             );
         if (order.status !== OrderStatus.PAID)
             throw new BadRequestError('Order must be marked as paid first');

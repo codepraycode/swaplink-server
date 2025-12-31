@@ -24,7 +24,15 @@ export class P2PAdService {
             throw new BadRequestError('Max limit cannot be greater than Total amount');
 
         // Logic based on Type
-        const type: AdType = givenType === 'BUY' ? AdType.BUY_FX : AdType.SELL_FX;
+        // Handle both 'BUY'/'SELL' (legacy/frontend) and 'BUY_FX'/'SELL_FX' (enum)
+        let type: AdType;
+        if (givenType === 'BUY' || givenType === AdType.BUY_FX) {
+            type = AdType.BUY_FX;
+        } else if (givenType === 'SELL' || givenType === AdType.SELL_FX) {
+            type = AdType.SELL_FX;
+        } else {
+            throw new BadRequestError('Invalid ad type');
+        }
         if (type === AdType.BUY_FX) {
             if (!paymentMethodId)
                 throw new BadRequestError('Payment method is required for Buy FX ads');
