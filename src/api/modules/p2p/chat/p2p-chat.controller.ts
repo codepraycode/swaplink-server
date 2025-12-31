@@ -4,26 +4,27 @@ import { storageService } from '../../../../shared/lib/services/storage.service'
 import { P2PChatService } from './p2p-chat.service';
 import { p2pOrderService } from '../p2p-order.service';
 import { JwtUtils } from '../../../../shared/lib/utils/jwt-utils';
+import { BadRequestError } from '../../../../shared/lib/utils/api-error';
 
 export class P2PChatController {
     static async uploadImage(req: Request, res: Response, next: NextFunction) {
         try {
             const user = JwtUtils.ensureAuthentication(req);
             const userId = user.id;
-            const orderId = req.params.orderId;
+            const orderId = req.query.orderId as string;
 
             if (!orderId) {
-                throw new Error('Order ID is required');
+                throw new BadRequestError('Order ID is required');
             }
             if (!req.file) {
-                throw new Error('No file uploaded');
+                throw new BadRequestError('No file uploaded');
             }
 
             // Upload to S3/R2
             const url = await storageService.uploadFile(req.file, 'p2p-chat');
 
             if (!url) {
-                throw new Error('Failed to upload file');
+                throw new BadRequestError('Failed to upload file');
             }
 
             // mark as paid

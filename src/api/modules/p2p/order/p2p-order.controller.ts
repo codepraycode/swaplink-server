@@ -28,6 +28,19 @@ export class P2POrderController {
         }
     }
 
+    static async getAll(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = JwtUtils.ensureAuthentication(req);
+            const orders = await P2POrderService.getUserOrders(userId);
+            const transformed = orders.map(order =>
+                P2POrderController.transformOrder(order, userId)
+            );
+            return sendSuccess(res, transformed, 'Orders retrieved successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
     static async confirm(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId } = JwtUtils.ensureAuthentication(req);

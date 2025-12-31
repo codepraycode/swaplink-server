@@ -7,6 +7,7 @@ const router: Router = Router();
 router.use(authenticate);
 
 router.post('/', P2POrderController.create);
+router.get('/', P2POrderController.getAll);
 router.get('/:id', P2POrderController.getOne);
 router.patch('/:id/confirm', P2POrderController.confirm);
 router.patch('/:id/cancel', P2POrderController.cancel);

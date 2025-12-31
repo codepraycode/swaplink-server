@@ -177,17 +177,17 @@ export class P2POrderService {
         });
         if (!order) throw new NotFoundError('Order not found');
 
-        // Who is FX Receiver?
-        // If BUY_FX, Maker is FX Receiver (receives FX, created the ad to buy FX).
-        // If SELL_FX, Taker is FX Receiver (receives FX, responding to ad selling FX).
-        // Only the FX Receiver (who also receives NGN in the reverse flow) can confirm.
+        // Who receives NGN payment?
+        // If SELL_FX: Maker sells FX and receives NGN → Maker confirms
+        // If BUY_FX: Taker sells FX and receives NGN → Taker confirms
+        // Only the NGN receiver can confirm they received the payment.
 
-        const isFxReceiver =
-            (order.ad.type === AdType.BUY_FX && userId === order.makerId) ||
-            (order.ad.type === AdType.SELL_FX && userId === order.takerId);
+        const isNgnReceiver =
+            (order.ad.type === AdType.SELL_FX && userId === order.makerId) ||
+            (order.ad.type === AdType.BUY_FX && userId === order.takerId);
 
-        if (!isFxReceiver)
-            throw new ForbiddenError('Only the ad creator can confirm and release funds');
+        if (!isNgnReceiver)
+            throw new ForbiddenError('Only the payment receiver can confirm the order');
         if (order.status !== OrderStatus.PAID)
             throw new BadRequestError('Order must be marked as paid first');
 
@@ -314,5 +314,23 @@ export class P2POrderService {
             throw new ForbiddenError('Access denied');
 
         return order;
+    }
+
+    static async getUserOrders(userId: string): Promise<P2POrder[]> {
+        const orders = await prisma.p2POrder.findMany({
+            where: {
+                OR: [{ makerId: userId }, { takerId: userId }],
+            },
+            include: {
+                ad: true,
+                maker: true,
+                taker: true,
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+
+        return orders;
     }
 }
