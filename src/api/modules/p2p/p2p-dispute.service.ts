@@ -1,6 +1,6 @@
 import { prisma, OrderStatus } from '../../../shared/database';
 import { BadRequestError, NotFoundError } from '../../../shared/lib/utils/api-error';
-import { p2pChatService } from './p2p-chat.service';
+import { P2PChatService } from './chat/p2p-chat.service';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../../../shared/database';
 
@@ -33,11 +33,10 @@ export class P2PDisputeService {
         });
 
         // Send System Message to Chat
-        await p2pChatService.sendMessage(userId, {
+        await P2PChatService.createSystemMessage(
             orderId,
-            message: `DISPUTE RAISED: ${reason}. Admin has been notified.`,
-            system: true,
-        });
+            `DISPUTE RAISED: ${reason}. Admin has been notified.`
+        );
 
         // Notify Admin (TODO: Email/Slack integration)
         // For now, we log it. Real admin notification would go here.

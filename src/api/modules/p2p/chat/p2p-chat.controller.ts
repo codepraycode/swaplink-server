@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { sendSuccess } from '../../../../shared/lib/utils/api-response';
 import { storageService } from '../../../../shared/lib/services/storage.service';
 import { P2PChatService } from './p2p-chat.service';
-import { p2pOrderService } from '../p2p-order.service';
+import { P2POrderService } from '../order/p2p-order.service';
 import { JwtUtils } from '../../../../shared/lib/utils/jwt-utils';
 import { BadRequestError } from '../../../../shared/lib/utils/api-error';
 
@@ -28,7 +28,7 @@ export class P2PChatController {
             }
 
             // mark as paid
-            await p2pOrderService.markAsPaid(userId, orderId, url);
+            await P2POrderService.markAsPaid(userId, orderId, url);
 
             return sendSuccess(res, { url }, 'Image uploaded successfully');
         } catch (error) {

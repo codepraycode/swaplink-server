@@ -501,10 +501,12 @@ enum AdStatus {
 enum OrderStatus {
   PENDING
   PAID
+  PROCESSING  // Fund release in progress (set by worker)
   COMPLETED
   CANCELLED
   DISPUTE
 }
+
 
 enum ChatType {
   TEXT

@@ -35,6 +35,17 @@ export class P2POrderService {
         if (amount < ad.minLimit || amount > ad.maxLimit)
             throw new BadRequestError(`Amount must be between ${ad.minLimit} and ${ad.maxLimit}`);
 
+        // Check if remaining amount after this order would be less than minLimit
+        const newRemainingAmount = ad.remainingAmount - amount;
+        if (newRemainingAmount > 0 && newRemainingAmount < ad.minLimit) {
+            throw new BadRequestError(
+                `Order would leave ${newRemainingAmount} ${ad.currency} remaining, which is below the minimum order of ${ad.minLimit}. ` +
+                    `Please order at least ${
+                        ad.remainingAmount - ad.minLimit + 1
+                    } or the full remaining amount of ${ad.remainingAmount}.`
+            );
+        }
+
         const totalNgn = amount * ad.price;
         const makerId = ad.userId;
         const takerId = userId;
@@ -169,6 +180,56 @@ export class P2POrderService {
 
         return fullOrder!;
     }
+    /**
+     * Mark Order as Paid
+     * - Only the NGN Payer can mark as paid
+     * - Requires proof of payment
+     */
+    static async markAsPaid(userId: string, orderId: string, proofUrl: string) {
+        if (!proofUrl) throw new BadRequestError('Payment proof is required');
+
+        const order = await prisma.p2POrder.findUnique({
+            where: { id: orderId },
+            include: { ad: true },
+        });
+
+        if (!order) throw new NotFoundError('Order not found');
+        if (order.status !== OrderStatus.PENDING) throw new BadRequestError('Order is not pending');
+
+        // Who pays NGN?
+        // If BUY_FX: Maker buys FX with NGN → Maker pays NGN
+        // If SELL_FX: Taker buys FX with NGN → Taker pays NGN
+        const isNgnPayer =
+            (order.ad.type === AdType.BUY_FX && userId === order.makerId) ||
+            (order.ad.type === AdType.SELL_FX && userId === order.takerId);
+
+        if (!isNgnPayer) throw new ForbiddenError('Only the buyer can mark order as paid');
+
+        const updatedOrder = await prisma.p2POrder.update({
+            where: { id: orderId },
+            data: {
+                status: OrderStatus.PAID,
+                paymentProofUrl: proofUrl,
+            },
+        });
+
+        // Notify Seller (NGN Receiver)
+        const sellerId = isNgnPayer
+            ? userId === order.makerId
+                ? order.takerId
+                : order.makerId
+            : ''; // Should be opposite of payer
+
+        await NotificationService.sendToUser(
+            sellerId,
+            'Order Paid',
+            `Order #${order.id.slice(0, 8)} marked as paid. Please verify and release funds.`,
+            { orderId: order.id },
+            NotificationType.TRANSACTION
+        );
+
+        return updatedOrder;
+    }
 
     static async confirmOrder(userId: string, orderId: string): Promise<{ message: string }> {
         const order = await prisma.p2POrder.findUnique({
@@ -196,12 +257,12 @@ export class P2POrderService {
         const fee = order.totalNgn * feePercent;
         const receiveAmount = order.totalNgn - fee;
 
-        // 1. Update Order Status to COMPLETED and store fee/receiveAmount
+        // 1. Update Order Status to PROCESSING and store fee/receiveAmount
         await prisma.p2POrder.update({
             where: { id: orderId },
             data: {
-                status: OrderStatus.COMPLETED,
-                completedAt: new Date(),
+                status: OrderStatus.PROCESSING, // Worker will mark as COMPLETED
+                completedAt: null, // Will be set by worker
                 fee,
                 receiveAmount,
             },

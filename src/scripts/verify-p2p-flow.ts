@@ -1,7 +1,7 @@
 import { prisma, AdType } from '../shared/database';
-import { p2pAdService } from '../api/modules/p2p/p2p-ad.service';
-import { p2pOrderService } from '../api/modules/p2p/p2p-order.service';
-import { p2pChatService } from '../api/modules/p2p/p2p-chat.service';
+import { P2PAdService } from '../api/modules/p2p/ad/p2p-ad.service';
+import { P2POrderService } from '../api/modules/p2p/order/p2p-order.service';
+import { P2PChatService } from '../api/modules/p2p/chat/p2p-chat.service';
 import logger from '../shared/lib/utils/logger';
 
 async function verifyP2PFlow() {
@@ -52,7 +52,7 @@ async function verifyP2PFlow() {
 
         // 3. Create Ad (BUY_FX)
         // Maker wants to Buy 100 USD at 1500 NGN/USD. Total NGN needed = 150,000.
-        const ad = await p2pAdService.createAd(maker.id, {
+        const ad = await P2PAdService.createAd(maker.id, {
             type: AdType.BUY_FX,
             currency: 'USD',
             totalAmount: 100,
@@ -72,7 +72,7 @@ async function verifyP2PFlow() {
 
         // 4. Create Order
         // Taker sells 50 USD. Total NGN = 75,000.
-        const order = await p2pOrderService.createOrder(taker.id, {
+        const order = await P2POrderService.createOrder(taker.id, {
             adId: ad.id,
             amount: 50,
         });
@@ -87,19 +87,16 @@ async function verifyP2PFlow() {
         logger.info(`   Ad Remaining: ${adAfterOrder?.remainingAmount} (Expected: 50)`);
 
         // 5. Chat
-        await p2pChatService.sendMessage(taker.id, {
-            orderId: order.id,
-            message: 'Hello, I have sent the FX.',
-        });
+        await P2PChatService.saveMessage(taker.id, order.id, 'Hello, I have sent the FX.');
         logger.info('✅ Chat Message Sent');
 
         // 6. Mark as Paid
-        await p2pOrderService.markAsPaid(taker.id, order.id, 'http://proof.url');
+        await P2POrderService.markAsPaid(taker.id, order.id, 'http://proof.url');
         logger.info('✅ Order Marked as Paid');
 
         // 7. Release Funds
-        await p2pOrderService.releaseFunds(maker.id, order.id);
-        logger.info('✅ Funds Released');
+        await P2POrderService.confirmOrder(maker.id, order.id);
+        logger.info('✅ Funds Released (Order Confirmed)');
 
         // 8. Verify Final Balances
         const makerWalletFinal = await prisma.wallet.findUnique({ where: { userId: maker.id } });

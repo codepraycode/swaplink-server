@@ -1,100 +1,42 @@
-import { Worker, Job } from 'bullmq';
-import { redisConnection } from '../shared/config/redis.config';
 import { prisma, OrderStatus, AdType, TransactionType, NotificationType } from '../shared/database';
-import logger from '../shared/lib/utils/logger';
 import { serviceRevenueService } from '../api/modules/revenue/service-revenue.service';
-import { NotificationService } from '../api/modules/notification/notification.service';
+import logger from '../shared/lib/utils/logger';
 
-interface OrderJobData {
-    orderId: string;
-}
+const fixStuckOrder = async (orderId: string) => {
+    console.log(`Fixing stuck order ${orderId}...`);
 
-const processOrderExpiration = async (job: Job<OrderJobData>) => {
-    const { orderId } = job.data;
-    logger.info(`Checking expiration for order ${orderId}`);
+    const order = await prisma.p2POrder.findUnique({
+        where: { id: orderId },
+        include: { ad: true },
+    });
 
-    try {
-        const order = await prisma.p2POrder.findUnique({
-            where: { id: orderId },
-            include: { ad: true },
-        });
-
-        if (!order) {
-            logger.warn(`Order ${orderId} not found during expiration check`);
-            return;
-        }
-
-        if (order.status !== OrderStatus.PENDING) {
-            logger.info(`Order ${orderId} is ${order.status}. No expiration needed.`);
-            return;
-        }
-
-        // Order is PENDING and timed out. Cancel it.
-        logger.info(`Order ${orderId} expired. Cancelling...`);
-
-        await prisma.$transaction(async tx => {
-            // 1. Refund Logic (Replicated from P2POrderService.cancelOrder)
-            if (order.ad.type === AdType.SELL_FX) {
-                // Taker locked funds. Refund Taker.
-                await tx.wallet.update({
-                    where: { userId: order.takerId },
-                    data: { lockedBalance: { decrement: order.totalNgn } },
-                });
-            } else {
-                // Maker locked funds (in Ad). Return to Ad.
-                await tx.p2PAd.update({
-                    where: { id: order.adId },
-                    data: { remainingAmount: { increment: order.amount } },
-                });
-            }
-
-            // 2. Update Order Status
-            await tx.p2POrder.update({
-                where: { id: orderId },
-                data: { status: OrderStatus.CANCELLED },
-            });
-        });
-
-        logger.info(`Order ${orderId} cancelled successfully.`);
-
-        // TODO: Emit socket event to notify users?
-    } catch (error) {
-        logger.error(`Error processing expiration for order ${orderId}`, error);
-        throw error;
+    if (!order) {
+        console.error('Order not found');
+        return;
     }
-};
 
-const processFundRelease = async (job: Job<OrderJobData>) => {
-    const { orderId } = job.data;
-    logger.info(`Processing fund release for order ${orderId}`);
+    console.log(`Order status: ${order.status}`);
+
+    // Check if funds already moved
+    const existingTx = await prisma.transaction.findFirst({
+        where: { reference: `P2P-DEBIT-${orderId}` },
+    });
+
+    if (existingTx) {
+        console.log('Funds already released (Transaction exists).');
+        return;
+    }
+
+    console.log('Funds NOT released. Processing manual release...');
 
     try {
-        // Idempotency Check
-        const existingTx = await prisma.transaction.findFirst({
-            where: { reference: `P2P-DEBIT-${orderId}` },
-        });
-        if (existingTx) {
-            logger.info(`Funds already released for order ${orderId}. Skipping.`);
-            return;
-        }
-
         await prisma.$transaction(async tx => {
-            const order = await tx.p2POrder.findUnique({
-                where: { id: orderId },
-                include: { ad: true },
-            });
-            if (!order) throw new Error('Order not found');
-
-            // Note: Order status might already be COMPLETED by the API, so we don't check for PAID here strictly.
-            // But we should ensure we are not processing a CANCELLED order.
-            if (order.status === OrderStatus.CANCELLED) {
-                throw new Error('Cannot release funds for cancelled order');
-            }
-
             // 1. Identify NGN Payer and Receiver
             const isBuyFx = order.ad.type === AdType.BUY_FX;
             const payerId = isBuyFx ? order.makerId : order.takerId;
             const receiverId = isBuyFx ? order.takerId : order.makerId;
+
+            console.log(`Payer: ${payerId}, Receiver: ${receiverId}`);
 
             // 2. Get Revenue Wallet
             const revenueWallet = await serviceRevenueService.getRevenueWallet();
@@ -106,6 +48,7 @@ const processFundRelease = async (job: Job<OrderJobData>) => {
                     lockedBalance: { decrement: order.totalNgn },
                 },
             });
+            console.log(`Debited payer locked balance: ${order.totalNgn}`);
 
             // 4. Credit Receiver (Total - Fee)
             await tx.wallet.update({
@@ -114,6 +57,7 @@ const processFundRelease = async (job: Job<OrderJobData>) => {
                     balance: { increment: Number(order.receiveAmount) },
                 },
             });
+            console.log(`Credited receiver balance: ${order.receiveAmount}`);
 
             // Update User Cumulative Inflow
             await tx.user.update({
@@ -131,8 +75,7 @@ const processFundRelease = async (job: Job<OrderJobData>) => {
                 },
             });
 
-            // 6. Create Transaction Records with Proper Balance Tracking
-
+            // 6. Create Transaction Records
             // Fetch wallets with current balances
             const payerWallet = await tx.wallet.findUniqueOrThrow({
                 where: { userId: payerId },
@@ -223,60 +166,23 @@ const processFundRelease = async (job: Job<OrderJobData>) => {
                 },
             });
 
-            // 7. Update Order Status to COMPLETED
+            // Ensure order is COMPLETED
             await tx.p2POrder.update({
                 where: { id: orderId },
-                data: {
-                    status: OrderStatus.COMPLETED,
-                    completedAt: new Date(),
-                },
+                data: { status: OrderStatus.COMPLETED, completedAt: new Date() },
             });
         });
 
-        logger.info(`Funds released successfully for order ${orderId}`);
-
-        // Notify Users
-        const order = await prisma.p2POrder.findUnique({
-            where: { id: orderId },
-            include: { ad: true },
-        });
-        if (order) {
-            const isBuyFx = order.ad.type === AdType.BUY_FX;
-            const receiverId = isBuyFx ? order.takerId : order.makerId;
-
-            await NotificationService.sendToUser(
-                receiverId,
-                'Funds Released',
-                `You have received NGN ${order.receiveAmount} for Order #${order.id.slice(0, 8)}.`,
-                { orderId: order.id },
-                NotificationType.TRANSACTION
-            );
-        }
+        console.log('✅ Order fixed successfully!');
     } catch (error) {
-        logger.error(`Error processing fund release for order ${orderId}`, error);
-        throw error;
+        console.error('Error fixing order:', error);
     }
 };
 
-export const p2pOrderWorker = new Worker(
-    'p2p-order-queue',
-    async job => {
-        if (job.name === 'order-timeout') {
-            return await processOrderExpiration(job);
-        } else if (job.name === 'release-funds') {
-            return await processFundRelease(job);
-        }
-    },
-    {
-        connection: redisConnection,
-        concurrency: 5,
-    }
-);
-
-p2pOrderWorker.on('completed', job => {
-    logger.info(`P2P Order Job ${job.id} (${job.name}) completed`);
-});
-
-p2pOrderWorker.on('failed', (job, err) => {
-    logger.error(`P2P Order Job ${job?.id} (${job?.name}) failed`, err);
-});
+// Run
+fixStuckOrder('8e05edc7-1665-42a7-b5a9-c181c1d572e9')
+    .then(() => process.exit(0))
+    .catch(e => {
+        console.error(e);
+        process.exit(1);
+    });

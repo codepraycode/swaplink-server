@@ -5,7 +5,7 @@
     "main": "dist/server.js",
     "scripts": {
         "dev": "cross-env NODE_ENV=development ts-node-dev src/api/server.ts",
-        "worker": "cross-env NODE_ENV=development ts-node src/worker/index.ts",
+        "worker": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only src/worker/index.ts",
         "dev:all": "concurrently -n \"API,WORKER\" -c \"blue,magenta\" \"pnpm run dev\" \"pnpm run worker\"",
         "build": "cross-env NODE_ENV=production pnpm run db:generate && tsc",
         "build:check": "tsc --noEmit",
