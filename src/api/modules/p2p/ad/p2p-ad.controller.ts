@@ -16,6 +16,16 @@ export class P2PAdController {
 
     static async getAll(req: Request, res: Response, next: NextFunction) {
         try {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.setHeader('Surrogate-Control', 'no-store');
+
+            // Force 200 OK by removing conditional headers from request
+            // This prevents Express from sending 304 if the client sends If-None-Match
+            delete req.headers['if-none-match'];
+            delete req.headers['if-modified-since'];
+
             const ads = await P2PAdService.getAds(req.query);
             return sendSuccess(res, ads, 'Ads retrieved successfully');
         } catch (error) {

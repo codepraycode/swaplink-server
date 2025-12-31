@@ -3,7 +3,7 @@ import { envConfig } from '../../config/env.config';
 import logger from '../utils/logger';
 import fs from 'fs';
 import path from 'path';
-import { slugify } from '../utils/functions';
+import { slugify, slugifyFilename } from '../utils/functions';
 
 export class StorageService {
     private s3Client: S3Client;
@@ -32,19 +32,17 @@ export class StorageService {
     private async uploadLocal(file: Express.Multer.File, folder: string): Promise<string> {
         try {
             const uploadDir = path.join(process.cwd(), 'uploads', folder);
+            if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
-            }
+            // USE THE NEW FILENAME LOGIC HERE
+            const timestamp = Date.now();
+            const random = Math.round(Math.random() * 1e9);
+            const safeName = slugifyFilename(file.originalname);
+            const fileName = `${timestamp}-${random}-${safeName}`;
 
-            const fileName = slugify(
-                `${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`
-            );
             const filePath = path.join(uploadDir, fileName);
-
             await fs.promises.writeFile(filePath, file.buffer);
 
-            // Return Local URL
             return `${envConfig.SERVER_URL}/uploads/${folder}/${fileName}`;
         } catch (error) {
             logger.error('Local Upload Error:', error);
@@ -54,27 +52,21 @@ export class StorageService {
 
     private async uploadS3(file: Express.Multer.File, folder: string): Promise<string> {
         try {
-            const fileName = `${folder}/${Date.now()}-${Math.round(Math.random() * 1e9)}-${
-                file.originalname
-            }`;
+            const safeName = slugifyFilename(file.originalname);
+            const fileName = `${folder}/${Date.now()}-${Math.round(
+                Math.random() * 1e9
+            )}-${safeName}`;
 
             const command = new PutObjectCommand({
                 Bucket: this.bucketName,
                 Key: fileName,
                 Body: file.buffer,
-                ContentType: file.mimetype,
+                ContentType: file.mimetype, // Multer provides this (e.g., 'image/jpeg')
+                ContentDisposition: 'inline', // Ensures browser displays instead of downloading
                 ACL: 'public-read',
             });
 
             await this.s3Client.send(command);
-
-            // Return Cloud URL
-            // If using Cloudflare R2 with custom domain, use that.
-            // Otherwise construct standard S3 URL or use Endpoint.
-            // For R2, AWS_ENDPOINT is usually the API endpoint, not the public access URL.
-            // User should ideally provide a PUBLIC_URL_BASE.
-            // For now, we'll try to construct a usable URL.
-
             return `${envConfig.AWS_ENDPOINT}/${this.bucketName}/${fileName}`;
         } catch (error) {
             logger.error('S3 Upload Error:', error);

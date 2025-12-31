@@ -1,3 +1,5 @@
+import path from 'path';
+
 export function isEmpty(data: any) {
     return !data;
 }
@@ -30,18 +32,28 @@ export function delay(seconds: number) {
 
 /**
  * Converts a string into a URL-friendly slug.
- * Example: "Hello World! @2025" -> "hello-world-2025"
  */
 export const slugify = (text: string): string => {
     return text
         .toString()
         .toLowerCase()
         .trim()
-        .normalize('NFD') // Separate base letter from accents (e.g., 'é' -> 'e' + '´')
-        .replace(/[\u0300-\u036f]/g, '') // Remove those accents
-        .replace(/\s+/g, '-') // Replace spaces with -
-        .replace(/[^\w-]+/g, '') // Remove all non-word chars (except hyphens)
-        .replace(/--+/g, '-') // Replace multiple - with single -
-        .replace(/^-+/, '') // Trim - from start
-        .replace(/-+$/, ''); // Trim - from end
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]+/g, '') // This line removes the "." in extensions
+        .replace(/--+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+};
+
+/**
+ * Specifically for files: Slugs the name but preserves the extension.
+ * Example: "My Photo @2025.JPG" -> "my-photo-2025.jpg"
+ */
+export const slugifyFilename = (filename: string): string => {
+    const extension = path.extname(filename); // .jpg
+    const nameOnly = path.basename(filename, extension); // My Photo @2025
+
+    return `${slugify(nameOnly)}${extension.toLowerCase()}`;
 };

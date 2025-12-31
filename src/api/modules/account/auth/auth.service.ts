@@ -432,14 +432,6 @@ class AuthService {
         };
     }
 
-    async updateAvatar(userId: string, avatarUrl: string) {
-        return await prisma.user.update({
-            where: { id: userId },
-            data: { avatarUrl },
-            select: { id: true, firstName: true, lastName: true, avatarUrl: true },
-        });
-    }
-
     async setupPin(userId: string, dto: SetupTransactionPinDto) {
         const { pin, confirmPin } = dto;
         if (pin !== confirmPin) throw new BadRequestError('Pins do not match');

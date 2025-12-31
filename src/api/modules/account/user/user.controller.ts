@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { sendSuccess } from '../../../../shared/lib/utils/api-response';
 import { JwtUtils } from '../../../../shared/lib/utils/jwt-utils';
 import { BadRequestError } from '../../../../shared/lib/utils/api-error';
+import { storageService } from '../../../../shared/lib/services/storage.service';
 
 export class UserController {
     static async updatePushToken(req: Request, res: Response, next: NextFunction) {
@@ -52,6 +53,21 @@ export class UserController {
             return sendSuccess(res, updatedUser, 'Profile updated successfully');
         } catch (error) {
             console.error('Error updating profile:', error);
+            next(error);
+        }
+    }
+
+    static async updateAvatar(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = req.user!.userId;
+
+            if (!req.file) throw new Error('Avatar image is required');
+
+            const avatarUrl = await storageService.uploadFile(req.file, 'avatars');
+
+            const result = await UserService.updateAvatar(userId, avatarUrl);
+            sendSuccess(res, result, 'Avatar updated successfully');
+        } catch (error) {
             next(error);
         }
     }

@@ -120,13 +120,6 @@ router.post(
     authController.submitKyc
 );
 
-router.post(
-    '/profile/avatar',
-    uploadAvatar.single('avatar'),
-    handleUploadError as any,
-    authController.updateAvatar
-);
-
 router.get('/verification-status', authController.getVerificationStatus);
 
 export default router;

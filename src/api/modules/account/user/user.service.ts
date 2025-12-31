@@ -16,6 +16,14 @@ export class UserService {
         });
     }
 
+    static async updateAvatar(userId: string, avatarUrl: string) {
+        return await prisma.user.update({
+            where: { id: userId },
+            data: { avatarUrl },
+            select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+        });
+    }
+
     static async changePassword(
         userId: string,
         data: { oldPassword: string; newPassword: string }

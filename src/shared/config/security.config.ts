@@ -32,24 +32,25 @@ export const rateLimitConfig = {
     global: {
         windowMs: 15 * 60 * 1000,
         max: 300,
-        message: 'Too many requests.',
+        message: 'We are receiving too many requests from you.',
     },
     auth: {
         windowMs: 15 * 60 * 1000,
         max: 10,
-        message: 'Too many login attempts.',
+        message:
+            'Too many failed login attempts. For your security, please wait before trying again.',
     },
     // OTP Target: Prevents spamming ONE number
     otpTarget: {
         windowMs: 60 * 60 * 1000, // 1 hour
         max: 5,
-        message: 'Too many OTP requests for this number.',
+        message: 'You have requested too many OTPs for this number.',
     },
     // OTP Source: Prevents ONE device spamming ANY number
     otpSource: {
         windowMs: 60 * 60 * 1000, // 1 hour
         max: 10,
-        message: 'Suspicious OTP activity. Try again later.',
+        message: 'We have detected unusual activity. Please try again later.',
     },
 };
 

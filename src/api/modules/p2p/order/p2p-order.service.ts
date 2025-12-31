@@ -1,5 +1,11 @@
-import { prisma, OrderStatus, AdType, AdStatus, P2POrder } from '../../../../shared/database';
-import { walletService } from '../../../../shared/lib/services/wallet.service';
+import {
+    prisma,
+    OrderStatus,
+    AdType,
+    AdStatus,
+    P2POrder,
+    NotificationType,
+} from '../../../../shared/database';
 import {
     BadRequestError,
     NotFoundError,
@@ -11,11 +17,12 @@ import {
 import { getQueue as getP2POrderQueue } from '../../../../shared/lib/queues/p2p-order.queue';
 import { P2PChatService } from '../chat/p2p-chat.service';
 import { envConfig } from '../../../../shared/config/env.config';
-import { logDebug } from '../../../../shared/lib/utils/logger';
+import { Decimal } from '@prisma/client/runtime/library';
+import { NotificationService } from '../../notification/notification.service';
 
 export class P2POrderService {
     static async createOrder(userId: string, data: any): Promise<P2POrder> {
-        const { adId, amount, paymentMethodId } = data;
+        const { adId, amount, paymentMethodId, currency } = data;
 
         // 1. Fetch Ad
         const ad = await prisma.p2PAd.findUnique({
@@ -29,27 +36,6 @@ export class P2POrderService {
         if (amount < ad.minLimit || amount > ad.maxLimit)
             throw new BadRequestError(`Amount must be between ${ad.minLimit} and ${ad.maxLimit}`);
 
-        // 2. Atomic Update (Concurrency Check)
-        // Decrement remainingAmount ONLY if it's >= amount
-        const updatedAd = await prisma.p2PAd.updateMany({
-            where: {
-                id: adId,
-                remainingAmount: { gte: amount },
-                version: ad.version, // Optimistic locking (optional if using atomic decrement)
-            },
-            data: {
-                remainingAmount: { decrement: amount },
-                version: { increment: 1 },
-            },
-        });
-
-        if (updatedAd.count === 0) {
-            throw new ConflictError(
-                'Ad balance insufficient or updated by another user. Please retry.'
-            );
-        }
-
-        // 3. Funds Locking Logic
         const totalNgn = amount * ad.price;
         const makerId = ad.userId;
         const takerId = userId;
@@ -59,10 +45,7 @@ export class P2POrderService {
 
         if (ad.type === AdType.BUY_FX) {
             // Maker WANTS FX (Gives NGN). Maker funds already locked in Ad.
-            // Taker GIVES FX. Taker needs to provide Payment Method (to receive NGN? No, NGN goes to wallet).
-            // Wait, Taker GIVES FX. Taker needs Maker's Bank Details to send FX.
-            // Maker's Bank Details are in `ad.paymentMethod`.
-
+            // Taker GIVES FX. Taker needs Maker's Bank Details to send FX.
             if (!ad.paymentMethod)
                 throw new InternalError('Maker payment method missing for Buy FX ad');
 
@@ -76,18 +59,21 @@ export class P2POrderService {
             // SELL_FX: Maker GIVES FX (Wants NGN).
             // Taker GIVES NGN. Taker WANTS FX.
             // Taker needs to lock NGN funds.
-            await walletService.lockFunds(takerId, totalNgn);
-
             // Taker needs to provide Payment Method (to receive FX).
-            // So `paymentMethodId` in request is required.
             if (!paymentMethodId)
-                throw new BadRequestError('Payment method required to receive FX');
+                throw new BadRequestError(
+                    `Payment method required to receive ${currency || 'Unknown'}`
+                );
 
             const takerMethod = await prisma.p2PPaymentMethod.findUnique({
-                where: { id: paymentMethodId },
+                where: { id: paymentMethodId, currency },
             });
             if (!takerMethod || takerMethod.userId !== takerId)
-                throw new BadRequestError('Invalid payment method');
+                throw new BadRequestError(
+                    `Invalid payment method for ${
+                        currency || 'Unknown'
+                    }. Please provide a valid payment method.`
+                );
 
             bankSnapshot = {
                 bankName: takerMethod.bankName,
@@ -97,32 +83,83 @@ export class P2POrderService {
             };
         }
 
-        // 4. Create Order
-        const order = await prisma.p2POrder.create({
-            data: {
-                adId,
-                makerId,
-                takerId,
-                amount,
-                price: ad.price,
-                totalNgn,
-                status: OrderStatus.PENDING,
-                expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
-                ...bankSnapshot,
-            },
+        // 2. Transaction: Reserve Ad Amount + Lock Funds + Create Order
+        const order = await prisma.$transaction(async tx => {
+            // A. Atomic Ad Update
+            const updatedAd = await tx.p2PAd.updateMany({
+                where: {
+                    id: adId,
+                    remainingAmount: { gte: amount },
+                },
+                data: {
+                    remainingAmount: { decrement: amount },
+                    version: { increment: 1 },
+                },
+            });
+
+            if (updatedAd.count === 0) {
+                throw new ConflictError(
+                    'Ad balance insufficient or updated by another user. Please retry.'
+                );
+            }
+
+            // B. Funds Locking Logic (If SELL_FX)
+            if (ad.type === AdType.SELL_FX) {
+                // Taker needs to lock NGN funds.
+                const wallet = await tx.wallet.findUnique({ where: { userId: takerId } });
+                if (!wallet) throw new NotFoundError('Wallet not found');
+
+                const balance = new Decimal(wallet.balance);
+                const locked = new Decimal(wallet.lockedBalance);
+                const available = balance.minus(locked);
+                const decimalAmount = new Decimal(totalNgn);
+
+                if (available.lessThan(decimalAmount)) {
+                    throw new BadRequestError('Insufficient funds to lock');
+                }
+
+                await tx.wallet.update({
+                    where: { id: wallet.id },
+                    data: { lockedBalance: { increment: decimalAmount } },
+                });
+            }
+
+            // C. Create Order
+            return await tx.p2POrder.create({
+                data: {
+                    adId,
+                    makerId,
+                    takerId,
+                    amount,
+                    price: ad.price,
+                    totalNgn,
+                    status: OrderStatus.PENDING,
+                    expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+                    ...bankSnapshot,
+                },
+            });
         });
 
-        // 5. Schedule Expiration Job
+        // 3. Schedule Expiration Job
         await getP2POrderQueue().add(
             'checkOrderExpiration',
             { orderId: order.id },
             { delay: 15 * 60 * 1000 }
         );
 
-        // 6. System Message
+        // 4. System Message
         await P2PChatService.createSystemMessage(
             order.id,
             `Order created. Please pay ${order.totalNgn} NGN.`
+        );
+
+        // 5. Notification to Ad Owner (Maker)
+        await NotificationService.sendToUser(
+            makerId,
+            'New Order Received',
+            `You have a new order for ${amount} ${ad.currency} from a buyer.`,
+            { orderId: order.id, type: 'order' },
+            NotificationType.TRANSACTION
         );
 
         return order;

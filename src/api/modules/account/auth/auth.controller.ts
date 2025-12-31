@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { sendCreated, sendSuccess } from '../../../../shared/lib/utils/api-response';
 import { HttpStatusCode } from '../../../../shared/lib/utils/http-status-codes';
 import authService from './auth.service';
-import { storageService } from '../../../../shared/lib/services/storage.service';
 import { BadRequestError } from '../../../../shared/lib/utils/api-error';
 import { kycService } from '../kyc/kyc.service';
 
@@ -113,9 +112,9 @@ class AuthController {
     sendOtp = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { identifier, type } = req.body;
-            // Assuming body has identifier and type if not using DTO, or DTO is generic
-            // But SendOtpDto was removed.
-            // Let's assume the client sends { identifier: '...', type: 'email' | 'phone' }
+            if (!identifier) throw new BadRequestError('Missing identifier');
+            if (!type) throw new BadRequestError('Missing type');
+            if (type !== 'phone' && type !== 'email') throw new BadRequestError('Invalid type');
             const result = await authService.sendOtp(identifier, type);
             sendSuccess(res, result, 'OTP sent successfully');
         } catch (error) {
@@ -218,21 +217,6 @@ class AuthController {
             });
 
             sendSuccess(res, result, 'KYC submitted successfully');
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    updateAvatar = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const userId = req.user!.userId;
-
-            if (!req.file) throw new Error('Avatar image is required');
-
-            const avatarUrl = await storageService.uploadFile(req.file, 'avatars');
-
-            const result = await authService.updateAvatar(userId, avatarUrl);
-            sendSuccess(res, result, 'Avatar updated successfully');
         } catch (error) {
             next(error);
         }

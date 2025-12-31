@@ -1,2 +1,4 @@
--- AlterTable
-ALTER TABLE "users" ALTER COLUMN "kycStatus" SET DEFAULT 'STALE';
+-- AlterEnum
+ALTER TYPE "KycStatus" ADD VALUE IF NOT EXISTS 'STALE';
+
+

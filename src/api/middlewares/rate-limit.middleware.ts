@@ -7,11 +7,31 @@ import { envConfig } from '../../shared/config/env.config';
  * Standard JSON Response Handler
  */
 const standardHandler = (req: Request, res: Response, next: any, options: any) => {
+    const resetTime = (req as any).rateLimit?.resetTime;
+    let retryAfterSeconds = Math.ceil(options.windowMs / 1000);
+
+    if (resetTime) {
+        const now = new Date();
+        const diff = Math.ceil((resetTime.getTime() - now.getTime()) / 1000);
+        if (diff > 0) retryAfterSeconds = diff;
+    }
+
+    const minutes = Math.floor(retryAfterSeconds / 60);
+    const seconds = retryAfterSeconds % 60;
+
+    let timeString = '';
+    if (minutes > 0) timeString += `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    if (seconds > 0) {
+        if (timeString) timeString += ' and ';
+        timeString += `${seconds} second${seconds !== 1 ? 's' : ''}`;
+    }
+    if (!timeString) timeString = 'a moment';
+
     res.status(options.statusCode).json({
         success: false,
         error: 'Too Many Requests',
-        message: options.message,
-        retryAfter: Math.ceil(options.windowMs / 1000), // seconds
+        message: `${options.message} Please try again in ${timeString}.`,
+        retryAfter: retryAfterSeconds,
     });
 };
 
