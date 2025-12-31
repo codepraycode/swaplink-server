@@ -131,46 +131,79 @@ const processFundRelease = async (job: Job<OrderJobData>) => {
                 },
             });
 
-            // 6. Create Transaction Records
-            // Payer Debit
+            // 6. Create Transaction Records with Proper Balance Tracking
+
+            // Fetch wallets with current balances
+            const payerWallet = await tx.wallet.findUniqueOrThrow({
+                where: { userId: payerId },
+            });
+            const receiverWallet = await tx.wallet.findUniqueOrThrow({
+                where: { userId: receiverId },
+            });
+
+            // Calculate balances (after the updates above)
+            const payerBalanceBefore =
+                Number(payerWallet.balance) + Number(payerWallet.lockedBalance);
+            const payerBalanceAfter = Number(payerWallet.balance);
+            const receiverBalanceBefore =
+                Number(receiverWallet.balance) - Number(order.receiveAmount);
+            const receiverBalanceAfter = Number(receiverWallet.balance);
+
+            // Payer Debit Transaction
             await tx.transaction.create({
                 data: {
                     userId: payerId,
-                    walletId: (
-                        await tx.wallet.findUniqueOrThrow({
-                            where: { userId: payerId },
-                        })
-                    ).id,
+                    walletId: payerWallet.id,
                     type: TransactionType.TRANSFER,
                     amount: -order.totalNgn,
-                    balanceBefore: 0, // TODO: Fetch actual balance if needed
-                    balanceAfter: 0,
+                    balanceBefore: payerBalanceBefore,
+                    balanceAfter: payerBalanceAfter,
                     status: 'COMPLETED',
                     reference: `P2P-DEBIT-${order.id}`,
-                    description: `P2P ${isBuyFx ? 'Buy' : 'Sell'} Order`,
+                    description: `P2P ${isBuyFx ? 'Purchase' : 'Sale'}: ${order.amount} ${
+                        order.ad.currency
+                    } @ ₦${order.price}/${order.ad.currency}`,
+                    metadata: {
+                        orderId: order.id,
+                        type: isBuyFx ? 'BUY_FX' : 'SELL_FX',
+                        currency: order.ad.currency,
+                        fxAmount: order.amount,
+                        rate: order.price,
+                        fee: order.fee,
+                        counterpartyId: receiverId,
+                    },
                 },
             });
 
-            // Receiver Credit
+            // Receiver Credit Transaction
             await tx.transaction.create({
                 data: {
                     userId: receiverId,
-                    walletId: (
-                        await tx.wallet.findUniqueOrThrow({
-                            where: { userId: receiverId },
-                        })
-                    ).id,
+                    walletId: receiverWallet.id,
                     type: TransactionType.DEPOSIT,
                     amount: Number(order.receiveAmount),
-                    balanceBefore: 0,
-                    balanceAfter: 0,
+                    balanceBefore: receiverBalanceBefore,
+                    balanceAfter: receiverBalanceAfter,
                     status: 'COMPLETED',
                     reference: `P2P-CREDIT-${order.id}`,
-                    description: `P2P ${isBuyFx ? 'Sell' : 'Buy'} Proceeds`,
+                    description: `P2P ${isBuyFx ? 'Sale' : 'Purchase'}: ${order.amount} ${
+                        order.ad.currency
+                    } @ ₦${order.price}/${order.ad.currency} (Fee: ₦${order.fee})`,
+                    metadata: {
+                        orderId: order.id,
+                        type: isBuyFx ? 'SELL_FX' : 'BUY_FX',
+                        currency: order.ad.currency,
+                        fxAmount: order.amount,
+                        rate: order.price,
+                        grossAmount: order.totalNgn,
+                        fee: order.fee,
+                        netAmount: Number(order.receiveAmount),
+                        counterpartyId: payerId,
+                    },
                 },
             });
 
-            // Fee Credit
+            // Fee Credit (Revenue)
             await tx.transaction.create({
                 data: {
                     userId: revenueWallet.userId,
@@ -181,7 +214,12 @@ const processFundRelease = async (job: Job<OrderJobData>) => {
                     balanceAfter: 0,
                     status: 'COMPLETED',
                     reference: `P2P-FEE-${order.id}`,
-                    description: `Fee for Order ${order.id}`,
+                    description: `P2P Transaction Fee: Order #${order.id.slice(0, 8)}`,
+                    metadata: {
+                        orderId: order.id,
+                        currency: order.ad.currency,
+                        fxAmount: order.amount,
+                    },
                 },
             });
 

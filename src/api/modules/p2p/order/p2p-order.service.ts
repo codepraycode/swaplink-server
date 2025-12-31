@@ -141,7 +141,7 @@ export class P2POrderService {
 
         // 3. Schedule Expiration Job
         await getP2POrderQueue().add(
-            'checkOrderExpiration',
+            'order-timeout',
             { orderId: order.id },
             { delay: 15 * 60 * 1000 }
         );
