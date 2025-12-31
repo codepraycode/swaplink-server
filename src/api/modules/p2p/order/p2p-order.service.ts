@@ -162,7 +162,13 @@ export class P2POrderService {
             NotificationType.TRANSACTION
         );
 
-        return order;
+        // 6. Refetch with relations for response
+        const fullOrder = await prisma.p2POrder.findUnique({
+            where: { id: order.id },
+            include: { ad: true, maker: true, taker: true },
+        });
+
+        return fullOrder!;
     }
 
     static async markAsPaid(userId: string, orderId: string): Promise<P2POrder> {
