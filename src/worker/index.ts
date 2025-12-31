@@ -4,6 +4,7 @@ import { onboardingWorker } from './onboarding.worker';
 import { notificationWorker } from './notification.worker';
 import { p2pOrderWorker } from './p2p-order.worker';
 import { kycWorker } from './kyc.worker';
+import { p2pAdCleanupWorker } from './p2p-ad-cleanup.worker';
 import { startReconciliationJob } from './reconciliation.job';
 import { initializeQueues, closeQueues } from '../shared/lib/init/service-initializer';
 import logger from '../shared/lib/utils/logger';
@@ -41,6 +42,7 @@ process.on('SIGTERM', async () => {
         notificationWorker.close(),
         p2pOrderWorker.close(),
         kycWorker.close(),
+        p2pAdCleanupWorker.close(),
         closeQueues(),
     ]);
     process.exit(0);
@@ -55,6 +57,7 @@ process.on('SIGINT', async () => {
         notificationWorker.close(),
         p2pOrderWorker.close(),
         kycWorker.close(),
+        p2pAdCleanupWorker.close(),
         closeQueues(),
     ]);
     process.exit(0);

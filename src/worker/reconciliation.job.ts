@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { prisma, TransactionStatus } from '../shared/database';
 import logger from '../shared/lib/utils/logger';
 import { globusService } from '../shared/lib/services/banking/globus.service';
+import { getQueue as getP2PAdCleanupQueue } from '../shared/lib/queues/p2p-ad-cleanup.queue';
 
 /**
  * 1. Stuck Transaction Requery (Every 5 minutes)
@@ -128,7 +129,23 @@ const startDailyReconciliation = () => {
     });
 };
 
+/**
+ * 3. P2P Ad Cleanup (Every Hour)
+ * Closes 0 balance ads and notifies dust ads.
+ */
+const startP2PAdCleanupJob = () => {
+    cron.schedule('0 * * * *', async () => {
+        logger.info('Running P2P Ad Cleanup Job...');
+        try {
+            await getP2PAdCleanupQueue().add('cleanup-ads', {});
+        } catch (error) {
+            logger.error('Error triggering P2P Ad Cleanup Job', error);
+        }
+    });
+};
+
 export const startReconciliationJob = () => {
     startTransactionReconciliation();
     startDailyReconciliation();
+    startP2PAdCleanupJob();
 };

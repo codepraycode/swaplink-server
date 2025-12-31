@@ -185,7 +185,7 @@ export class P2POrderService {
      * - Only the NGN Payer can mark as paid
      * - Requires proof of payment
      */
-    static async markAsPaid(userId: string, orderId: string, proofUrl: string) {
+    static async markAsPaid(userId: string, orderId: string, proofUrl: string): Promise<P2POrder> {
         if (!proofUrl) throw new BadRequestError('Payment proof is required');
 
         const order = await prisma.p2POrder.findUnique({
@@ -194,7 +194,8 @@ export class P2POrderService {
         });
 
         if (!order) throw new NotFoundError('Order not found');
-        if (order.status !== OrderStatus.PENDING) throw new BadRequestError('Order is not pending');
+        if (order.status === OrderStatus.COMPLETED || order.status === OrderStatus.CANCELLED)
+            throw new BadRequestError('Order is completed');
 
         // Who pays NGN?
         // If BUY_FX: Maker buys FX with NGN → Maker pays NGN
@@ -203,7 +204,7 @@ export class P2POrderService {
             (order.ad.type === AdType.BUY_FX && userId === order.makerId) ||
             (order.ad.type === AdType.SELL_FX && userId === order.takerId);
 
-        if (!isNgnPayer) throw new ForbiddenError('Only the buyer can mark order as paid');
+        if (isNgnPayer) throw new ForbiddenError('Only the non NGN payer can mark order as paid');
 
         const updatedOrder = await prisma.p2POrder.update({
             where: { id: orderId },
@@ -213,15 +214,11 @@ export class P2POrderService {
             },
         });
 
-        // Notify Seller (NGN Receiver)
-        const sellerId = isNgnPayer
-            ? userId === order.makerId
-                ? order.takerId
-                : order.makerId
-            : ''; // Should be opposite of payer
+        // Notify the NGN Payer (The other party)
+        const otherPartyId = userId === order.makerId ? order.takerId : order.makerId;
 
         await NotificationService.sendToUser(
-            sellerId,
+            otherPartyId,
             'Order Paid',
             `Order #${order.id.slice(0, 8)} marked as paid. Please verify and release funds.`,
             { orderId: order.id },

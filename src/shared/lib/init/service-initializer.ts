@@ -24,6 +24,7 @@ let bankingQueue: Queue | null = null;
 let p2pOrderQueue: Queue | null = null;
 let notificationQueue: Queue | null = null;
 let kycQueue: Queue | null = null;
+let p2pAdCleanupQueue: Queue | null = null;
 
 /**
  * Initialize all BullMQ queues
@@ -129,6 +130,21 @@ export async function initializeQueues(): Promise<void> {
         });
         logger.info('  ✅ KYC Queue initialized');
 
+        // P2P Ad Cleanup Queue
+        logger.debug('  → Initializing P2P Ad Cleanup Queue...');
+        p2pAdCleanupQueue = new Queue('p2p-ad-cleanup-queue', {
+            connection: redisConnection,
+            defaultJobOptions: {
+                attempts: 3,
+                backoff: {
+                    type: 'exponential',
+                    delay: 5000,
+                },
+                removeOnComplete: true,
+            },
+        });
+        logger.info('  ✅ P2P Ad Cleanup Queue initialized');
+
         logger.info('✅ All queues initialized successfully');
     } catch (error) {
         logger.error('❌ Failed to initialize queues:', error);
@@ -223,6 +239,17 @@ export function getKycQueue(): Queue {
 }
 
 /**
+ * Get P2P Ad Cleanup Queue instance
+ * @throws Error if queue is not initialized
+ */
+export function getP2PAdCleanupQueue(): Queue {
+    if (!p2pAdCleanupQueue) {
+        throw new Error('P2P Ad Cleanup Queue not initialized. Call initializeQueues() first.');
+    }
+    return p2pAdCleanupQueue;
+}
+
+/**
  * Gracefully close all queues
  */
 export async function closeQueues(): Promise<void> {
@@ -247,6 +274,9 @@ export async function closeQueues(): Promise<void> {
     }
     if (kycQueue) {
         closePromises.push(kycQueue.close());
+    }
+    if (p2pAdCleanupQueue) {
+        closePromises.push(p2pAdCleanupQueue.close());
     }
 
     await Promise.all(closePromises);

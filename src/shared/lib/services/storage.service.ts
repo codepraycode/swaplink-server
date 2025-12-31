@@ -3,7 +3,7 @@ import { envConfig } from '../../config/env.config';
 import logger from '../utils/logger';
 import fs from 'fs';
 import path from 'path';
-import { slugify, slugifyFilename } from '../utils/functions';
+import { slugifyFilename } from '../utils/functions';
 
 export class StorageService {
     private s3Client: S3Client;

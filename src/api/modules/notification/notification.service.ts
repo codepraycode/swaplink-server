@@ -41,7 +41,7 @@ export class NotificationService {
         message: string,
         metadata: any = {},
         type: NotificationType = NotificationType.SYSTEM
-    ) {
+    ): Promise<Notification> {
         // 1. Create in DB
         const notification = await prisma.notification.create({
             data: {
