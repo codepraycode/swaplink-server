@@ -1,4 +1,4 @@
-import { prisma, Prisma, TransactionType, Transaction, UserFlagType } from '../../database';
+import { prisma, Prisma, TransactionType, Transaction, UserFlagType, Wallet } from '../../database';
 import { NotFoundError, BadRequestError, InternalError } from '../utils/api-error';
 import { UserId } from '../../types/query.types';
 import { redisConnection } from '../../config/redis.config';
@@ -61,7 +61,7 @@ export class WalletService {
 
     // --- Main Methods ---
 
-    async setUpWallet(userId: string, tx: Prisma.TransactionClient) {
+    async setUpWallet(userId: string, tx: Prisma.TransactionClient): Promise<Wallet> {
         try {
             return await tx.wallet.create({
                 data: {
@@ -109,7 +109,7 @@ export class WalletService {
         return result;
     }
 
-    async getWallet(userId: string) {
+    async getWallet(userId: string): Promise<any> {
         const wallet = await prisma.wallet.findUnique({
             where: { userId },
             include: { virtualAccount: true },
@@ -193,7 +193,7 @@ export class WalletService {
      * Process multiple ledger entries atomically.
      * This is the core engine for all money movement.
      */
-    async processLedgerEntry(entries: LedgerEntry[]) {
+    async processLedgerEntry(entries: LedgerEntry[]): Promise<Transaction[]> {
         return await prisma.$transaction(async tx => {
             const results = [];
 
@@ -368,7 +368,7 @@ export class WalletService {
      * Lock funds (P2P Escrow)
      * Moves funds from Available to Locked. Balance remains same.
      */
-    async lockFunds(userId: string, amount: number) {
+    async lockFunds(userId: string, amount: number): Promise<Wallet> {
         const result = await prisma.$transaction(async tx => {
             const wallet = await tx.wallet.findUnique({ where: { userId } });
             if (!wallet) throw new NotFoundError('Wallet not found');
@@ -397,7 +397,7 @@ export class WalletService {
      * Unlock funds (P2P Cancel/Release)
      * Moves funds from Locked back to Available.
      */
-    async unlockFunds(userId: string, amount: number) {
+    async unlockFunds(userId: string, amount: number): Promise<Wallet> {
         const result = await prisma.$transaction(async tx => {
             const wallet = await tx.wallet.findUnique({ where: { userId } });
             if (!wallet) throw new NotFoundError('Wallet not found');

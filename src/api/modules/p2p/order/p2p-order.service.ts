@@ -235,17 +235,19 @@ export class P2POrderService {
         });
         if (!order) throw new NotFoundError('Order not found');
 
-        // Who receives NGN payment?
-        // If SELL_FX: Maker sells FX and receives NGN → Maker confirms
-        // If BUY_FX: Taker sells FX and receives NGN → Taker confirms
-        // Only the NGN receiver can confirm they received the payment.
+        // Who confirms the order?
+        // The person who LOCKED the NGN (The NGN Payer / FX Buyer).
+        // They confirm that they received the FX in their external bank account.
+        // Once confirmed, the locked NGN is released to the FX Seller.
 
-        const isNgnReceiver =
-            (order.ad.type === AdType.SELL_FX && userId === order.makerId) ||
-            (order.ad.type === AdType.BUY_FX && userId === order.takerId);
+        const isNgnPayer =
+            (order.ad.type === AdType.BUY_FX && userId === order.makerId) ||
+            (order.ad.type === AdType.SELL_FX && userId === order.takerId);
 
-        if (!isNgnReceiver)
-            throw new ForbiddenError('Only the payment receiver can confirm the order');
+        if (!isNgnPayer)
+            throw new ForbiddenError(
+                'Only the buyer of FX (NGN payer) can confirm receipt and release funds'
+            );
         if (order.status !== OrderStatus.PAID)
             throw new BadRequestError('Order must be marked as paid first');
 

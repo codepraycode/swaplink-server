@@ -189,7 +189,7 @@ export class P2PAdService {
         if (type) where.type = type;
         if (minAmount) where.remainingAmount = { gte: Number(minAmount) };
 
-        return await prisma.p2PAd.findMany({
+        const ads = await prisma.p2PAd.findMany({
             where,
             orderBy: { price: type === AdType.SELL_FX ? 'asc' : 'desc' }, // Best rates first
             include: {
@@ -207,6 +207,9 @@ export class P2PAdService {
                 paymentMethod: true,
             },
         });
+
+        // Filter out ads where remaining amount is less than the minimum limit (Dust)
+        return ads.filter(ad => ad.remainingAmount >= ad.minLimit);
     }
 
     static async closeAd(userId: string, adId: string): Promise<P2PAd> {
