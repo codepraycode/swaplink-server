@@ -10,9 +10,14 @@ export class P2PChatController {
     static async uploadImage(req: Request, res: Response, next: NextFunction) {
         try {
             const user = JwtUtils.ensureAuthentication(req);
-            const userId = user.id;
+            const userId = user.userId;
             const orderId = req.query.orderId as string;
 
+            console.debug({ userId, orderId, user });
+
+            if (!userId) {
+                throw new BadRequestError('You must be authenticated');
+            }
             if (!orderId) {
                 throw new BadRequestError('Order ID is required');
             }

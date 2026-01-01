@@ -197,19 +197,21 @@ export class P2POrderService {
         if (order.status === OrderStatus.COMPLETED || order.status === OrderStatus.CANCELLED)
             throw new BadRequestError('Order is completed');
 
+        console.log({ type: order.ad.type, maker: order.makerId, taker: order.takerId, userId });
+
         // Check if user is part of the order
         if (userId !== order.makerId && userId !== order.takerId) {
             throw new ForbiddenError('Access denied');
         }
 
-        // Who pays NGN?
-        // If BUY_FX: Maker buys FX with NGN → Maker pays NGN
-        // If SELL_FX: Taker buys FX with NGN → Taker pays NGN
-        const isNgnPayer =
-            (order.ad.type === AdType.BUY_FX && userId === order.makerId) ||
-            (order.ad.type === AdType.SELL_FX && userId === order.takerId);
+        // Who sends FX and uploads proof?
+        // If BUY_FX: Maker wants FX, Taker sends FX → Taker uploads proof
+        // If SELL_FX: Maker sends FX, Taker wants FX → Maker uploads proof
+        const isFxSender =
+            (order.ad.type === AdType.BUY_FX && userId === order.takerId) ||
+            (order.ad.type === AdType.SELL_FX && userId === order.makerId);
 
-        if (isNgnPayer) throw new ForbiddenError('Only the non NGN payer can mark order as paid');
+        if (!isFxSender) throw new ForbiddenError('Only the FX sender can upload payment proof');
 
         const updatedOrder = await prisma.p2POrder.update({
             where: { id: orderId },
@@ -219,7 +221,7 @@ export class P2POrderService {
             },
         });
 
-        // Notify the NGN Payer (The other party)
+        // Notify the FX Receiver (NGN Payer) that proof has been uploaded
         const otherPartyId = userId === order.makerId ? order.takerId : order.makerId;
 
         await NotificationService.sendToUser(
