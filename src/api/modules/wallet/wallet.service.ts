@@ -1,4 +1,11 @@
-import { prisma, TransactionType, NotificationType } from '../../../shared/database';
+import {
+    prisma,
+    TransactionType,
+    NotificationType,
+    Wallet,
+    VirtualAccount,
+    Transaction,
+} from '../../../shared/database';
 import { nameEnquiryService } from './name-enquiry.service';
 import { beneficiaryService } from './beneficiary.service';
 import {
@@ -31,7 +38,9 @@ export class WalletService {
     private readonly SYSTEM_REVENUE_EMAIL = 'revenue@bcdees.com';
     private readonly TRANSFER_FEE = 53.5;
 
-    async getWallet(userId: string) {
+    async getWallet(
+        userId: string
+    ): Promise<Wallet & { virtualAccount: VirtualAccount | null; transactions: Transaction[] }> {
         const wallet = await prisma.wallet.findUnique({
             where: { userId },
             include: { virtualAccount: true, transactions: true },

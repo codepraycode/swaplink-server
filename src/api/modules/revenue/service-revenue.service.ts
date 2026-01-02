@@ -1,4 +1,4 @@
-import { prisma } from '../../../shared/database';
+import { prisma, Wallet } from '../../../shared/database';
 import { InternalError } from '../../../shared/lib/utils/api-error';
 
 export class ServiceRevenueService {
@@ -7,7 +7,7 @@ export class ServiceRevenueService {
     /**
      * Get the System Revenue Wallet for crediting fees.
      */
-    async getRevenueWallet() {
+    async getRevenueWallet(): Promise<Wallet> {
         const user = await prisma.user.findUnique({
             where: { email: this.SYSTEM_REVENUE_EMAIL },
             include: { wallet: true },

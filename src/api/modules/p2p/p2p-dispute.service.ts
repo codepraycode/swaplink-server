@@ -1,4 +1,4 @@
-import { prisma, OrderStatus } from '../../../shared/database';
+import { prisma, OrderStatus, P2POrder } from '../../../shared/database';
 import { BadRequestError, NotFoundError } from '../../../shared/lib/utils/api-error';
 import { P2PChatService } from './chat/p2p-chat.service';
 import { NotificationService } from '../notification/notification.service';
@@ -11,7 +11,7 @@ export class P2PDisputeService {
      * - Freezes the order (Status: DISPUTE).
      * - Notifies Admin.
      */
-    async raiseDispute(userId: string, orderId: string, reason: string) {
+    async raiseDispute(userId: string, orderId: string, reason: string): Promise<P2POrder> {
         const order = await prisma.p2POrder.findUnique({ where: { id: orderId } });
         if (!order) throw new NotFoundError('Order not found');
 
@@ -64,7 +64,7 @@ export class P2PDisputeService {
         orderId: string,
         resolution: 'RELEASE' | 'REFUND',
         notes?: string
-    ) {
+    ): Promise<{ message: string }> {
         const order = await prisma.p2POrder.findUnique({ where: { id: orderId } });
         if (!order) throw new NotFoundError('Order not found');
         if (order.status !== OrderStatus.DISPUTE) throw new BadRequestError('Order not in dispute');

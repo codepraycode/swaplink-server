@@ -9,10 +9,6 @@ interface EnvConfig {
     ENABLE_FILE_LOGGING: boolean;
     SERVER_URL: string;
 
-    DB_HOST: string;
-    DB_USER: string;
-    DB_PASSWORD: string;
-    DB_NAME: string;
     DATABASE_URL: string;
 
     REDIS_URL: string;
@@ -30,10 +26,6 @@ interface EnvConfig {
 
     CORS_URLS: string;
 
-    SMTP_HOST: string;
-    SMTP_PORT: number;
-    SMTP_USER: string;
-    SMTP_PASSWORD: string;
     EMAIL_TIMEOUT: number;
     FROM_EMAIL: string;
     FRONTEND_URL: string;
@@ -46,12 +38,6 @@ interface EnvConfig {
 
     // Mailtrap Email Service (for staging - API)
     MAILTRAP_API_TOKEN: string;
-
-    // Mailtrap SMTP (deprecated - kept for backward compatibility)
-    MAILTRAP_HOST: string;
-    MAILTRAP_PORT: number;
-    MAILTRAP_USER: string;
-    MAILTRAP_PASSWORD: string;
 
     // Twilio SMS Service
     TWILIO_ACCOUNT_SID: string;
@@ -118,10 +104,7 @@ export const envConfig: EnvConfig = {
     PORT: parseInt(getEnv('PORT', '8080'), 10),
     SERVER_URL: getEnv('SERVER_URL', 'http://localhost'),
     ENABLE_FILE_LOGGING: getEnv('ENABLE_FILE_LOGGING', 'true') === 'true',
-    DB_HOST: getEnv('DB_HOST', 'localhost'),
-    DB_USER: getEnv('DB_USER', 'root'),
-    DB_PASSWORD: getEnv('DB_PASSWORD', 'password'),
-    DB_NAME: getEnv('DB_NAME', 'verivo_bkend'),
+
     DATABASE_URL: getEnv('DATABASE_URL'),
     REDIS_URL: getEnv('REDIS_URL', 'redis://localhost:6379'),
     REDIS_PORT: parseInt(getEnv('REDIS_PORT', '6379'), 10),
@@ -134,10 +117,7 @@ export const envConfig: EnvConfig = {
     GLOBUS_BASE_URL: getEnv('GLOBUS_BASE_URL'),
     GLOBUS_CLIENT_ID: getEnv('GLOBUS_CLIENT_ID'),
     CORS_URLS: getEnv('CORS_URLS', 'http://localhost:3000'),
-    SMTP_HOST: getEnv('SMTP_HOST', 'smtp.example.com'),
-    SMTP_PORT: parseInt(getEnv('SMTP_PORT', '587'), 10),
-    SMTP_USER: getEnv('SMTP_USER', 'smtp@example.com'),
-    SMTP_PASSWORD: getEnv('SMTP_PASSWORD', 'smtp-password'),
+
     EMAIL_TIMEOUT: parseInt(getEnv('EMAIL_TIMEOUT', '10000'), 10),
     FROM_EMAIL: getEnv('FROM_EMAIL', 'onboarding@resend.dev'),
     FRONTEND_URL: getEnv('FRONTEND_URL', 'http://localhost:3000'),
@@ -147,11 +127,6 @@ export const envConfig: EnvConfig = {
     SENDGRID_API_KEY: getEnv('SENDGRID_API_KEY', ''),
 
     MAILTRAP_API_TOKEN: getEnv('MAILTRAP_API_TOKEN', ''),
-
-    MAILTRAP_HOST: getEnv('MAILTRAP_HOST', 'sandbox.smtp.mailtrap.io'),
-    MAILTRAP_PORT: parseInt(getEnv('MAILTRAP_PORT', '2525'), 10),
-    MAILTRAP_USER: getEnv('MAILTRAP_USER', ''),
-    MAILTRAP_PASSWORD: getEnv('MAILTRAP_PASSWORD', ''),
 
     TWILIO_ACCOUNT_SID: getEnv('TWILIO_ACCOUNT_SID', ''),
     TWILIO_AUTH_TOKEN: getEnv('TWILIO_AUTH_TOKEN', ''),
@@ -183,10 +158,7 @@ export const validateEnv = (): void => {
         'JWT_REFRESH_EXPIRATION',
 
         'CORS_URLS',
-        // 'SMTP_HOST',
-        // 'SMTP_PORT',
-        // 'SMTP_USER',
-        // 'SMTP_PASSWORD',
+
         'FROM_EMAIL',
         'SYSTEM_USER_ID',
     ];
