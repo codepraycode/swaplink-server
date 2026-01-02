@@ -58,6 +58,11 @@ interface EnvConfig {
     TWILIO_AUTH_TOKEN: string;
     TWILIO_PHONE_NUMBER: string;
 
+    // Cloudinary Storage Service
+    CLOUDINARY_CLOUD_NAME: string;
+    CLOUDINARY_API_KEY: string;
+    CLOUDINARY_API_SECRET: string;
+
     // Storage (S3/Cloudflare R2)
     AWS_ACCESS_KEY_ID: string;
     AWS_SECRET_ACCESS_KEY: string;
@@ -151,6 +156,10 @@ export const envConfig: EnvConfig = {
     TWILIO_ACCOUNT_SID: getEnv('TWILIO_ACCOUNT_SID', ''),
     TWILIO_AUTH_TOKEN: getEnv('TWILIO_AUTH_TOKEN', ''),
     TWILIO_PHONE_NUMBER: getEnv('TWILIO_PHONE_NUMBER', ''),
+
+    CLOUDINARY_CLOUD_NAME: getEnv('CLOUDINARY_CLOUD_NAME', ''),
+    CLOUDINARY_API_KEY: getEnv('CLOUDINARY_API_KEY', ''),
+    CLOUDINARY_API_SECRET: getEnv('CLOUDINARY_API_SECRET', ''),
 
     AWS_ACCESS_KEY_ID: getEnv('AWS_ACCESS_KEY_ID', 'minioadmin'),
     AWS_SECRET_ACCESS_KEY: getEnv('AWS_SECRET_ACCESS_KEY', 'minioadmin'),
