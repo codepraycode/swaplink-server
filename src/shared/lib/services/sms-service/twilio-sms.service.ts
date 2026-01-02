@@ -37,8 +37,9 @@ export class TwilioSmsService implements ISmsService {
         try {
             // In non-production, use a default test number to avoid sending to real numbers
             const isProduction = envConfig.NODE_ENV === 'production';
+            const isStaging = process.env.STAGING === 'true' || envConfig.NODE_ENV === 'staging';
 
-            phoneNumber = !isProduction ? default_to_number : phoneNumber;
+            phoneNumber = !isProduction || isStaging ? default_to_number : phoneNumber;
             logger.info(`[Twilio] Attempting to send SMS to ${phoneNumber}`);
 
             const result = await this.client.messages.create({
