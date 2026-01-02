@@ -41,7 +41,7 @@ export class MockSmsService implements ISmsService {
      * Send OTP via SMS (mock)
      */
     async sendOtp(phoneNumber: string, code: string): Promise<boolean> {
-        const message = `Your SwapLink verification code is: ${code}. Valid for 10 minutes. Do not share this code.`;
+        const message = `Your BCDees verification code is: ${code}. Valid for 10 minutes. Do not share this code.`;
 
         // Log OTP prominently in development/test for easy access
         if (envConfig.NODE_ENV === 'development' || envConfig.NODE_ENV === 'test') {

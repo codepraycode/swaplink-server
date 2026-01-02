@@ -12,7 +12,7 @@ export function setupAuthListeners() {
 
         await NotificationUtil.sendToUser(
             userId,
-            'Welcome to SwapLink!',
+            'Welcome to BCDees!',
             `Hi ${name}, we are glad to have you on board.`,
             data,
             NotificationType.SYSTEM

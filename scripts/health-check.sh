@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SwapLink Server Health Check Script
+# BCDees Server Health Check Script
 # This script verifies that the server is running correctly
 
 set -e
@@ -16,7 +16,7 @@ SERVER_URL="${1:-http://localhost:3001}"
 HEALTH_ENDPOINT="${SERVER_URL}/api/v1/health"
 
 echo "================================================"
-echo "SwapLink Server Health Check"
+echo "BCDees Server Health Check"
 echo "================================================"
 echo ""
 echo "Checking server at: ${SERVER_URL}"

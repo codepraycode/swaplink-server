@@ -4,7 +4,7 @@ import passwordController from './password.controller';
 import rateLimiters from '../../../middlewares/rate-limit.middleware';
 import {
     uploadKycUnified,
-    uploadAvatar,
+    // uploadAvatar,
     handleUploadError,
 } from '../../../middlewares/upload.middleware';
 import { validateDto } from '../../../middlewares/validation.middleware';
@@ -91,14 +91,6 @@ router.post(
     '/password/reset-request',
     // validateDto(RequestPasswordResetDto), // Removed
     passwordController.requestPasswordReset
-);
-
-router.post(
-    '/password/verify-otp',
-    rateLimiters.auth,
-    deviceIdMiddleware,
-    validateDto(VerifyOtpDto),
-    passwordController.verifyOtp
 );
 
 router.post(

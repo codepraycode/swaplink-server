@@ -14,21 +14,6 @@ class PasswordController {
         }
     };
 
-    verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            // We can enforce purpose here if needed, or rely on DTO validation
-            // For extra safety, we could override the purpose in the body or check it
-            if (req.body.purpose !== 'PASSWORD_RESET') {
-                req.body.purpose = 'PASSWORD_RESET';
-            }
-
-            const result = await authService.verifyOtp(req.body);
-            sendSuccess(res, result, 'OTP verified successfully');
-        } catch (error) {
-            next(error);
-        }
-    };
-
     resetPassword = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { resetToken, newPassword } = req.body;

@@ -47,28 +47,28 @@ export class SendGridEmailService extends BaseEmailService {
                     ? (error as { response?: { body?: { errors?: Array<{ message?: string }> } } })
                           ?.response?.body?.errors?.[0]?.message
                     : error instanceof Error
-                      ? error.message
-                      : 'Unknown error';
+                    ? error.message
+                    : 'Unknown error';
 
             throw new BadGatewayError(`SendGrid Error: ${errorMessage}`);
         }
     }
 
     async sendVerificationEmail(to: string, code: string): Promise<void> {
-        const subject = 'SwapLink - Verification Code';
+        const subject = 'BCDees - Verification Code';
         const html = `
             <h2>Email Verification</h2>
-            <p>Your SwapLink verification code is: <strong>${code}</strong></p>
+            <p>Your BCDees verification code is: <strong>${code}</strong></p>
             <p>This code is valid for 10 minutes.</p>
         `;
         return this.sendEmail({ to, subject, html });
     }
 
     async sendWelcomeEmail(to: string, name: string): Promise<void> {
-        const subject = 'Welcome to SwapLink!';
+        const subject = 'Welcome to BCDees!';
         const html = `
             <h2>Welcome, ${name}!</h2>
-            <p>Thank you for joining SwapLink.</p>
+            <p>Thank you for joining BCDees.</p>
         `;
         return this.sendEmail({ to, subject, html });
     }
@@ -88,7 +88,7 @@ export class SendGridEmailService extends BaseEmailService {
         const html = `
             <h2>Congratulations, ${name}!</h2>
             <p>Your account has been fully verified.</p>
-            <p>You can now enjoy the features of SwapLink.</p>
+            <p>You can now enjoy the features of BCDees.</p>
         `;
         return this.sendEmail({ to, subject, html });
     }

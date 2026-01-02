@@ -49,7 +49,7 @@ export class GlobusService {
 
                 return {
                     accountNumber: '11' + Math.floor(Math.random() * 100000000),
-                    accountName: `SwapLink - ${user.firstName} ${user.lastName}`,
+                    accountName: `BCDees - ${user.firstName} ${user.lastName}`,
                     bankName: 'Globus Bank (Sandbox)',
                     provider: 'GLOBUS',
                 };

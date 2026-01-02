@@ -164,6 +164,7 @@ export class PrismaErrorConverter {
         // SECURITY FIX 1: Sanitize Validation Errors
         // Never send error.message here. It contains raw query data.
         if (error instanceof PrismaClientValidationError) {
+            logger.error('[PrismaValidationError]', error.message);
             return new BadRequestError('Invalid data format provided. Please check your input.');
         }
 

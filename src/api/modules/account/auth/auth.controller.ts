@@ -149,20 +149,49 @@ class AuthController {
 
             const body = req.body;
 
+            // Helper to handle both nested objects (if parsed) and flat keys (standard multipart)
+            const getBodyField = (parent: string, child?: string) => {
+                if (child) {
+                    return body[parent]?.[child] || body[`${parent}[${child}]`];
+                }
+                return body[parent];
+            };
+
+            const firstName = getBodyField('firstName');
+            const lastName = getBodyField('lastName');
+            const dateOfBirth = getBodyField('dateOfBirth');
+
+            // Address
+            const street = getBodyField('address', 'street');
+            const city = getBodyField('address', 'city');
+            const state = getBodyField('address', 'state');
+            const country = getBodyField('address', 'country');
+            const postalCode = getBodyField('address', 'postalCode');
+
+            // ID
+            const idType = getBodyField('governmentId', 'type');
+            const idNumber = getBodyField('governmentId', 'number');
+
+            // Validate Date
+            const dob = new Date(dateOfBirth);
+            if (isNaN(dob.getTime())) {
+                throw new BadRequestError('Invalid date of birth format');
+            }
+
             const kycData = {
-                firstName: body.firstName,
-                lastName: body.lastName,
-                dateOfBirth: body.dateOfBirth,
+                firstName,
+                lastName,
+                dateOfBirth,
                 address: {
-                    street: body.address.street,
-                    city: body.address.city,
-                    state: body.address.state,
-                    country: body.address.country,
-                    postalCode: body.address.postalCode,
+                    street,
+                    city,
+                    state,
+                    country,
+                    postalCode,
                 },
                 governmentId: {
-                    type: body.governmentId.type,
-                    number: body.governmentId.number,
+                    type: idType,
+                    number: idNumber,
                 },
             };
 

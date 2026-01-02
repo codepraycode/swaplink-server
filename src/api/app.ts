@@ -55,7 +55,7 @@ app.use(morganMiddleware);
 const healthCheck = (req: Request, res: Response) => {
     sendSuccess(res, {
         status: 'OK',
-        service: 'SwapLink API',
+        service: 'BCDees API',
         uptime: process.uptime(),
         timestamp: new Date(),
     });
