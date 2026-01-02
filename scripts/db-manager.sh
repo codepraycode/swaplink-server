@@ -30,10 +30,11 @@ show_menu() {
     echo "1. Deploy Migrations (prisma migrate deploy)"
     echo "2. Open Prisma Studio (prisma studio)"
     echo "3. Reset Database (prisma migrate reset) - ⚠️  DANGER"
-    echo "4. View Migration Status (prisma migrate status)"
-    echo "5. Exit"
+    echo "4. Clear Data (Truncate Tables) - ⚠️  DANGER"
+    echo "5. View Migration Status (prisma migrate status)"
+    echo "6. Exit"
     echo "----------------------------------------"
-    read -p "Select an option [1-5]: " choice
+    read -p "Select an option [1-6]: " choice
 }
 
 # Main Logic
@@ -60,11 +61,22 @@ while true; do
                 echo -e "${GREEN}❌ Operation cancelled.${NC}"
             fi
             ;;
+
         4)
+            echo -e "\n${RED}⚠️  WARNING: This will delete ALL data in the production database! Schema will be preserved.${NC}"
+            read -p "Are you absolutely sure? (Type 'yes' to confirm): " confirm
+            if [ "$confirm" == "yes" ]; then
+                echo -e "${YELLOW}🗑️  Clearing data...${NC}"
+                npx ts-node scripts/truncate-db.ts
+            else
+                echo -e "${GREEN}❌ Operation cancelled.${NC}"
+            fi
+            ;;
+        5)
             echo -e "\n${YELLOW}🔍 Checking migration status...${NC}"
             npx prisma migrate status
             ;;
-        5)
+        6)
             echo -e "\n${GREEN}👋 Exiting...${NC}"
             exit 0
             ;;
