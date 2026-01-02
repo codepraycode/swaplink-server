@@ -1,4 +1,4 @@
-import { prisma, AdType, AdStatus, P2PAd } from '../../../../shared/database';
+import { prisma, AdType, AdStatus, P2PAd, OrderStatus } from '../../../../shared/database';
 import { walletService } from '../../../../shared/lib/services/wallet.service';
 import { BadRequestError, NotFoundError } from '../../../../shared/lib/utils/api-error';
 import logger from '../../../../shared/lib/utils/logger';
@@ -189,7 +189,7 @@ export class P2PAdService {
         });
     }
 
-    static async getAds(query: any): Promise<P2PAd[]> {
+    static async getAds(query: any, requesterId?: string): Promise<any[]> {
         const { currency, type, status, minAmount } = query;
 
         const where: any = { status: status || AdStatus.ACTIVE };
@@ -217,7 +217,54 @@ export class P2PAdService {
         });
 
         // Filter out ads where remaining amount is less than the minimum limit (Dust)
-        return ads.filter(ad => ad.remainingAmount >= ad.minLimit);
+        const validAds = ads.filter(ad => ad.remainingAmount >= ad.minLimit);
+
+        // Enrichment: If requesterId is provided, attach active orders to their ads
+        if (requesterId) {
+            const myAds = validAds.filter(ad => ad.userId === requesterId);
+            const myAdIds = myAds.map(ad => ad.id);
+
+            if (myAdIds.length > 0) {
+                const orders = await prisma.p2POrder.findMany({
+                    where: {
+                        adId: { in: myAdIds },
+                        status: {
+                            in: [
+                                OrderStatus.PENDING,
+                                OrderStatus.PAID,
+                                OrderStatus.PROCESSING,
+                                OrderStatus.COMPLETED,
+                                OrderStatus.CANCELLED,
+                            ],
+                        }, // Fetch all or just active? User asked for "highlights or summary of each order places and all". Let's fetch all but maybe limit?
+                        // Let's fetch all for now.
+                    },
+                    orderBy: { createdAt: 'desc' },
+                    include: {
+                        taker: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                            },
+                        },
+                    },
+                });
+
+                // Map orders to ads
+                return validAds.map(ad => {
+                    if (ad.userId === requesterId) {
+                        return {
+                            ...ad,
+                            orders: orders.filter(o => o.adId === ad.id),
+                        };
+                    }
+                    return ad;
+                });
+            }
+        }
+
+        return validAds;
     }
 
     static async closeAd(userId: string, adId: string): Promise<P2PAd> {
@@ -228,6 +275,22 @@ export class P2PAdService {
         if (!ad) throw new NotFoundError('Ad not found');
         if (ad.status === AdStatus.CLOSED || ad.status === AdStatus.COMPLETED) {
             throw new BadRequestError('Ad is already closed');
+        }
+
+        // Check for active orders
+        const activeOrders = await prisma.p2POrder.count({
+            where: {
+                adId,
+                status: {
+                    in: [OrderStatus.PENDING, OrderStatus.PAID, OrderStatus.PROCESSING],
+                },
+            },
+        });
+
+        if (activeOrders > 0) {
+            throw new BadRequestError(
+                'Cannot close ad with active orders. Please complete or cancel them first.'
+            );
         }
 
         // Refund Logic

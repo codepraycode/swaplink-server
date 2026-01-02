@@ -18,6 +18,7 @@ import { getQueue as getP2POrderQueue } from '../../../../shared/lib/queues/p2p-
 import { P2PChatService } from '../chat/p2p-chat.service';
 import { Decimal } from '@prisma/client/runtime/library';
 import { NotificationService } from '../../notification/notification.service';
+import { walletService } from '../../../../shared/lib/services/wallet.service';
 
 export class P2POrderService {
     static async createOrder(userId: string, data: any): Promise<P2POrder> {
@@ -351,16 +352,23 @@ export class P2POrderService {
                 });
             } else {
                 // Maker locked funds (in Ad).
-                // Return funds to Ad (increment remainingAmount).
-                // Note: Maker's wallet lockedBalance is NOT decremented because the funds stay in the Ad!
-                // Wait, if Order is cancelled, the funds allocated to this order go back to the Ad's "Available" pool.
-                // So we just increment `remainingAmount`.
-                // We do NOT touch wallet `lockedBalance` because it covers the *entire* Ad amount.
 
-                await tx.p2PAd.update({
-                    where: { id: order.adId },
-                    data: { remainingAmount: { increment: order.amount } },
-                });
+                // Check if Ad is CLOSED (Safety Net)
+                const ad = await tx.p2PAd.findUnique({ where: { id: order.adId } });
+
+                if (ad && (ad.status === AdStatus.CLOSED || ad.status === AdStatus.COMPLETED)) {
+                    // Ad is closed, so we cannot return funds to it.
+                    // We must unlock the funds directly to the Maker's wallet.
+                    // Amount to unlock = order.totalNgn (since Maker locked NGN for BUY_FX)
+                    await walletService.unlockFunds(order.makerId, order.totalNgn);
+                } else {
+                    // Return funds to Ad (increment remainingAmount)
+                    // Note: Maker's wallet lockedBalance is NOT decremented because the funds stay in the Ad!
+                    await tx.p2PAd.update({
+                        where: { id: order.adId },
+                        data: { remainingAmount: { increment: order.amount } },
+                    });
+                }
             }
 
             // 2. Update Order

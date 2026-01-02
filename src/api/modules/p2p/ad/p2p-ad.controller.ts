@@ -26,7 +26,13 @@ export class P2PAdController {
             delete req.headers['if-none-match'];
             delete req.headers['if-modified-since'];
 
-            const ads = await P2PAdService.getAds(req.query);
+            // Extract userId if authenticated (optional for public feed, but needed for enrichment)
+            let userId: string | undefined;
+            if (req.user) {
+                userId = req.user.id;
+            }
+
+            const ads = await P2PAdService.getAds(req.query, userId);
             return sendSuccess(res, ads, 'Ads retrieved successfully');
         } catch (error) {
             next(error);

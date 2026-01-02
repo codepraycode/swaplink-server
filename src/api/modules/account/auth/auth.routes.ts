@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import authController from './auth.controller';
+import passwordController from './password.controller';
 import rateLimiters from '../../../middlewares/rate-limit.middleware';
 import {
     uploadKycUnified,
@@ -89,13 +90,21 @@ router.post(
 router.post(
     '/password/reset-request',
     // validateDto(RequestPasswordResetDto), // Removed
-    authController.requestPasswordReset
+    passwordController.requestPasswordReset
+);
+
+router.post(
+    '/password/verify-otp',
+    rateLimiters.auth,
+    deviceIdMiddleware,
+    validateDto(VerifyOtpDto),
+    passwordController.verifyOtp
 );
 
 router.post(
     '/password/reset',
     // validateDto(ResetPasswordDto), // Removed
-    authController.resetPassword
+    passwordController.resetPassword
 );
 
 // ======================================================
