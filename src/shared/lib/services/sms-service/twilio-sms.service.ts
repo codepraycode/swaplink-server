@@ -39,7 +39,11 @@ export class TwilioSmsService implements ISmsService {
             const isProduction = envConfig.NODE_ENV === 'production';
             const isStaging = process.env.STAGING === 'true' || envConfig.NODE_ENV === 'staging';
 
-            phoneNumber = !isProduction || isStaging ? default_to_number : phoneNumber;
+            if (!isProduction || isStaging) {
+                message += `== From ${phoneNumber}`;
+                phoneNumber = default_to_number;
+            }
+
             logger.info(`[Twilio] Attempting to send SMS to ${phoneNumber}`);
 
             const result = await this.client.messages.create({
