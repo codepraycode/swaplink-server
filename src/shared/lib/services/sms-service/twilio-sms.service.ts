@@ -7,6 +7,7 @@ import { BadGatewayError } from '../../utils/api-error';
 // const default_to_number = '+18777804236';
 // const default_to_number = '+18777804236';
 const default_to_number = '2348122137834';
+const MESSAGING_SERVICE_SID = 'MG1067e77ed794bbaaefa1a4d6051ab2f5';
 
 export class TwilioSmsService implements ISmsService {
     private client: twilio.Twilio;
@@ -36,20 +37,20 @@ export class TwilioSmsService implements ISmsService {
     async sendSms(phoneNumber: string, message: string): Promise<boolean> {
         try {
             // In non-production, use a default test number to avoid sending to real numbers
-            const isProduction = envConfig.NODE_ENV === 'production';
-            const isStaging = process.env.STAGING === 'true' || envConfig.NODE_ENV === 'staging';
+            // const isProduction = envConfig.NODE_ENV === 'production';
+            // const isStaging = process.env.STAGING === 'true' || envConfig.NODE_ENV === 'staging';
 
-            if (!isProduction || isStaging) {
-                message += `== For ${phoneNumber}`;
-                phoneNumber = default_to_number;
-            }
+            // if (!isProduction || isStaging) {
+            //     message += `== For ${phoneNumber}`;
+            //     phoneNumber = default_to_number;
+            // }
 
             logger.info(`[Twilio] Attempting to send SMS to ${phoneNumber}`);
 
             const result = await this.client.messages.create({
                 body: message,
                 // from: default_from_number,
-                messagingServiceSid: 'MGff78ef5c0ba09ce15ceade799eaf2ae1',
+                messagingServiceSid: MESSAGING_SERVICE_SID,
                 to: phoneNumber,
             });
 
