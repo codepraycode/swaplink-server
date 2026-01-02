@@ -28,7 +28,7 @@ export interface TransferRequest {
 }
 
 export class WalletService {
-    private readonly SYSTEM_REVENUE_EMAIL = 'revenue@swaplink.com';
+    private readonly SYSTEM_REVENUE_EMAIL = 'revenue@bcdees.com';
     private readonly TRANSFER_FEE = 53.5;
 
     async getWallet(userId: string) {

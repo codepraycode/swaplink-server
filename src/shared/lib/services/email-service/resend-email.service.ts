@@ -56,6 +56,13 @@ export class ResendEmailService extends BaseEmailService {
                 throw new BadGatewayError(`Resend Error: ${error.message}`);
             }
             logger.info(`[Resend] ✅ Email sent successfully to ${to}. ID: ${data?.id}`);
+
+            logger.info('═══════════════════════════════════════');
+            logger.info(`📧 [Resend Email Service] Email to ${to}`);
+            logger.info(`📝 Subject: ${subject}`);
+            if (text) logger.info(`📄 Text Body: ${text}`);
+            if (html) logger.info(`🌐 HTML Body (truncated): ${html.substring(0, 100)}...`);
+            logger.info('═══════════════════════════════════════');
         } catch (error) {
             logger.error(`[Resend] Exception sending email to ${to}:`, error);
             throw error;

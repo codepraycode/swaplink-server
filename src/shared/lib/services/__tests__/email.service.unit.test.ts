@@ -129,7 +129,7 @@ describe('EmailService - Unit Tests', () => {
 
     describe('sendPasswordResetLink', () => {
         it('should send password reset email with reset link', async () => {
-            (envConfig as any).FRONTEND_URL = 'https://swaplink.app';
+            (envConfig as any).FRONTEND_URL = 'https://bcdees.app';
             const email = 'user@example.com';
             const resetToken = 'reset_token_xyz';
 
@@ -146,7 +146,7 @@ describe('EmailService - Unit Tests', () => {
         });
 
         it('should include frontend URL in reset link', async () => {
-            (envConfig as any).FRONTEND_URL = 'https://swaplink.app';
+            (envConfig as any).FRONTEND_URL = 'https://bcdees.app';
             const email = 'user@example.com';
             const resetToken = 'reset_token_xyz';
 
@@ -157,7 +157,7 @@ describe('EmailService - Unit Tests', () => {
             expect(sendEmailSpy).toHaveBeenCalledWith(
                 email,
                 expect.any(String),
-                expect.stringContaining('https://swaplink.app/reset-password?token=')
+                expect.stringContaining('https://bcdees.app/reset-password?token=')
             );
         });
 

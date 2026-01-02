@@ -2,7 +2,7 @@ import { eventBus, EventType } from '../event-bus';
 import NotificationUtil from '../../services/notification/notification-utils';
 import { NotificationType } from '../../../database';
 import { emailService } from '../../services/email-service/email.service';
-import { messagingProvider } from '../../services/messaging/messaging.provider';
+import { smsService } from '../../services/sms-service/sms.service';
 import logger from '../../utils/logger';
 
 export function setupAuthListeners() {
@@ -43,7 +43,7 @@ export function setupAuthListeners() {
             if (type === 'email') {
                 await emailService.sendVerificationEmail(identifier, code);
             } else if (type === 'phone') {
-                await messagingProvider.sendOtp(identifier, code);
+                await smsService.sendOtp(identifier, code);
             }
         } catch (error) {
             logger.error(`[AuthListener] Failed to send OTP to ${identifier}`, error);

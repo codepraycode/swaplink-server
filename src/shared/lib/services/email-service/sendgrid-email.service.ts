@@ -47,8 +47,8 @@ export class SendGridEmailService extends BaseEmailService {
                     ? (error as { response?: { body?: { errors?: Array<{ message?: string }> } } })
                           ?.response?.body?.errors?.[0]?.message
                     : error instanceof Error
-                    ? error.message
-                    : 'Unknown error';
+                      ? error.message
+                      : 'Unknown error';
 
             throw new BadGatewayError(`SendGrid Error: ${errorMessage}`);
         }

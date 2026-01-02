@@ -20,7 +20,10 @@ SwapLink Server is the powerhouse behind the SwapLink Fintech App. Built with **
     -   **BullMQ Workers**: Offloads heavy tasks (Transactions, KYC) to background queues.
     -   **Redis Caching**: Ensures sub-millisecond response times for critical data.
     -   **Socket.io**: Instant updates for order status and chat messages.
--   **📧 Production Email Service**: Integrated with Resend for reliable email delivery.
+-   **📧 Email & SMS Services**:
+    -   **SendGrid Integration**: Production-ready email delivery for notifications and OTPs.
+    -   **Twilio Integration**: Reliable SMS delivery for phone verification and alerts.
+    -   **Smart Fallbacks**: Automatic provider selection based on environment (dev/staging/prod).
 -   **☁️ Cloud-Ready**: Optimized for deployment on Railway with Docker support.
 
 ---
@@ -217,6 +220,49 @@ Railway offers the simplest setup with managed PostgreSQL and Redis, making it p
 
 -   **[Environment Variables Reference](./docs/deployment/ENV_VARIABLES.md)** - All environment variables explained
 -   **[Deployment Checklist](./docs/deployment/DEPLOYMENT_CHECKLIST.md)** - General deployment checklist
+
+---
+
+## 📧 Email & SMS Services
+
+SwapLink integrates with **SendGrid** for email and **Twilio** for SMS to provide reliable communication services.
+
+### Quick Setup
+
+1. **Get API Keys**
+
+    - SendGrid: [Get API Key](https://app.sendgrid.com/settings/api_keys)
+    - Twilio: [Get Credentials](https://console.twilio.com/)
+
+2. **Configure Environment**
+
+    ```bash
+    # SendGrid
+    SENDGRID_API_KEY=SG.your_key_here
+    FROM_EMAIL=noreply@yourdomain.com
+
+    # Twilio
+    TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    TWILIO_AUTH_TOKEN=your_token_here
+    TWILIO_PHONE_NUMBER=+1234567890
+    ```
+
+3. **Start Server**
+    ```bash
+    pnpm run dev
+    ```
+
+### Documentation
+
+-   **[Complete Setup Guide](./docs/EMAIL_SMS_SETUP.md)** - Detailed instructions for SendGrid and Twilio
+-   **[Quick Start Guide](./docs/EMAIL_SMS_QUICKSTART.md)** - Quick reference and code examples
+-   **[Integration Summary](./EMAIL_SMS_INTEGRATION_SUMMARY.md)** - Technical implementation details
+
+### Environment Modes
+
+-   **Development**: Mock services (logs to console, no API keys needed)
+-   **Staging**: SendGrid + Twilio (free tiers available)
+-   **Production**: SendGrid/Resend + Twilio (paid plans)
 
 ---
 

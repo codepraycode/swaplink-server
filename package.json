@@ -5,8 +5,11 @@
     "main": "dist/server.js",
     "scripts": {
         "dev": "cross-env NODE_ENV=development ts-node-dev src/api/server.ts",
+        "dev:staging": "cross-env STAGING=true ts-node-dev src/api/server.ts",
         "worker": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only src/worker/index.ts",
+        "worker:staging": "cross-env STAGING=true ts-node-dev --respawn --transpile-only src/worker/index.ts",
         "dev:all": "concurrently -n \"API,WORKER\" -c \"blue,magenta\" \"pnpm run dev\" \"pnpm run worker\"",
+        "dev:staging:all": "concurrently -n \"API,WORKER\" -c \"blue,magenta\" \"pnpm run dev:staging\" \"pnpm run worker:staging\"",
         "build": "cross-env NODE_ENV=production pnpm run db:generate && tsc",
         "build:check": "tsc --noEmit",
         "start": "cross-env NODE_ENV=production node dist/api/server.js",
@@ -60,6 +63,7 @@
         "prisma": "5.10.0",
         "resend": "^6.6.0",
         "socket.io": "4.8.1",
+        "twilio": "^5.11.1",
         "winston": "3.19.0",
         "winston-daily-rotate-file": "5.0.0",
         "zod": "4.1.12"
@@ -78,6 +82,7 @@
         "@types/node-cron": "3.0.11",
         "@types/nodemailer": "^7.0.4",
         "@types/supertest": "6.0.3",
+        "@types/twilio": "^3.19.3",
         "@typescript-eslint/eslint-plugin": "^8.49.0",
         "@typescript-eslint/parser": "^8.49.0",
         "concurrently": "^9.2.1",

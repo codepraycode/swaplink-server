@@ -53,6 +53,11 @@ interface EnvConfig {
     MAILTRAP_USER: string;
     MAILTRAP_PASSWORD: string;
 
+    // Twilio SMS Service
+    TWILIO_ACCOUNT_SID: string;
+    TWILIO_AUTH_TOKEN: string;
+    TWILIO_PHONE_NUMBER: string;
+
     // Storage (S3/Cloudflare R2)
     AWS_ACCESS_KEY_ID: string;
     AWS_SECRET_ACCESS_KEY: string;
@@ -143,10 +148,14 @@ export const envConfig: EnvConfig = {
     MAILTRAP_USER: getEnv('MAILTRAP_USER', ''),
     MAILTRAP_PASSWORD: getEnv('MAILTRAP_PASSWORD', ''),
 
+    TWILIO_ACCOUNT_SID: getEnv('TWILIO_ACCOUNT_SID', ''),
+    TWILIO_AUTH_TOKEN: getEnv('TWILIO_AUTH_TOKEN', ''),
+    TWILIO_PHONE_NUMBER: getEnv('TWILIO_PHONE_NUMBER', ''),
+
     AWS_ACCESS_KEY_ID: getEnv('AWS_ACCESS_KEY_ID', 'minioadmin'),
     AWS_SECRET_ACCESS_KEY: getEnv('AWS_SECRET_ACCESS_KEY', 'minioadmin'),
     AWS_REGION: getEnv('AWS_REGION', 'us-east-1'),
-    AWS_BUCKET_NAME: getEnv('AWS_BUCKET_NAME', 'swaplink'),
+    AWS_BUCKET_NAME: getEnv('AWS_BUCKET_NAME', 'bcdees'),
     AWS_ENDPOINT: getEnv('AWS_ENDPOINT', 'http://localhost:9000'),
 
     SYSTEM_USER_ID: getEnv('SYSTEM_USER_ID', 'system-wallet-user'),

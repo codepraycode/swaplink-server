@@ -58,7 +58,7 @@ export class WebhookService {
     }) {
         const { accountNumber, amount, reference } = data;
         const INBOUND_FEE = 53.5;
-        const SYSTEM_REVENUE_EMAIL = 'revenue@swaplink.com';
+        const SYSTEM_REVENUE_EMAIL = 'revenue@bcdees.com';
 
         // ====================================================
         // 1. IDEMPOTENCY CHECK (CRITICAL)

@@ -2,7 +2,7 @@ import { prisma } from '../../../shared/database';
 import { InternalError } from '../../../shared/lib/utils/api-error';
 
 export class ServiceRevenueService {
-    private readonly SYSTEM_REVENUE_EMAIL = 'revenue@swaplink.com';
+    private readonly SYSTEM_REVENUE_EMAIL = 'revenue@bcdees.com';
 
     /**
      * Get the System Revenue Wallet for crediting fees.

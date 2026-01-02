@@ -54,8 +54,8 @@ export class MailtrapEmailService extends BaseEmailService {
                 error && typeof error === 'object' && 'message' in error
                     ? (error as { message?: string }).message
                     : error instanceof Error
-                    ? error.message
-                    : 'Unknown error';
+                      ? error.message
+                      : 'Unknown error';
 
             throw new BadGatewayError(`Mailtrap Error: ${errorMessage}`);
         }

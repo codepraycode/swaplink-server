@@ -30,7 +30,7 @@ class AuthService {
 
     private generateTokens(user: Pick<User, 'email' | 'id'> & { role: UserRole }) {
         // Ensure email is present for token payload, or use a placeholder if still partial (shouldn't happen for login)
-        const email = user.email || `partial_${user.id}@swaplink.com`;
+        const email = user.email || `partial_${user.id}@bcdees.com`;
         const tokenPayload = { userId: user.id, email, role: user.role };
 
         const accessToken = JwtUtils.signAccessToken(tokenPayload);
