@@ -43,13 +43,13 @@ export const rateLimitConfig = {
     // OTP Target: Prevents spamming ONE number
     otpTarget: {
         windowMs: 60 * 60 * 1000, // 1 hour
-        max: 5,
+        max: 10,
         message: 'You have requested too many OTPs for this number.',
     },
     // OTP Source: Prevents ONE device spamming ANY number
     otpSource: {
         windowMs: 60 * 60 * 1000, // 1 hour
-        max: 10,
+        max: 15,
         message: 'We have detected unusual activity. Please try again later.',
     },
 };
