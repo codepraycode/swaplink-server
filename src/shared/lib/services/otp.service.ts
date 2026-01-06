@@ -5,7 +5,7 @@ import { redisConnection } from '../../config/redis.config';
 import { eventBus, EventType } from '../events/event-bus';
 
 export class OtpService {
-    private readonly OTP_TTL = 300; // 5 minutes in seconds
+    private readonly OTP_TTL = 600; // 10 minutes in seconds
 
     /**
      * Generate and Store OTP in Redis, then Emit Event
@@ -15,15 +15,22 @@ export class OtpService {
         type: OtpType,
         userId?: string
     ): Promise<{ code: string; expiresIn: number }> {
-        // 1. Generate secure 6 digit code
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-        // 2. Store in Redis with TTL
-        // Key format: otp:{type}:{identifier}
         const key = this.getRedisKey(type, identifier);
-        await redisConnection.setex(key, this.OTP_TTL, code);
 
-        // 3. Emit Event for Worker to handle sending
+        // 1. Check if OTP already exists
+        let code = await redisConnection.get(key);
+        let ttl = await redisConnection.ttl(key);
+
+        if (!code || ttl <= 0) {
+            // 2. Generate secure 6 digit code if none exists
+            code = Math.floor(100000 + Math.random() * 900000).toString();
+
+            // 3. Store in Redis with TTL
+            await redisConnection.setex(key, this.OTP_TTL, code);
+            ttl = this.OTP_TTL;
+        }
+
+        // 4. Emit Event for Worker to handle sending
         eventBus.publish(EventType.OTP_REQUESTED, {
             identifier,
             type: this.mapOtpTypeToChannel(type),
@@ -32,7 +39,7 @@ export class OtpService {
             userId,
         });
 
-        return { code, expiresIn: this.OTP_TTL };
+        return { code, expiresIn: ttl };
     }
 
     /**
