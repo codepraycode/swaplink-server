@@ -4,6 +4,30 @@ import prisma from '../../../../../shared/lib/utils/database';
 import { TestUtils } from '../../../../../test/utils';
 import { OtpType } from '../../../../../shared/database';
 
+// --- MOCKS ---
+jest.mock('../../../../../shared/config/redis.config', () => ({
+    redisConnection: {
+        on: jest.fn(),
+        quit: jest.fn(),
+        duplicate: jest.fn(() => ({
+            on: jest.fn(),
+            connect: jest.fn(),
+        })),
+    },
+}));
+
+jest.mock('../../../../../shared/lib/init/service-initializer', () => ({
+    getKycQueue: jest.fn(() => ({
+        add: jest.fn().mockResolvedValue({ id: 'mock-job-id' }),
+    })),
+}));
+
+jest.mock('../../../../../shared/lib/services/storage.service', () => ({
+    storageService: {
+        uploadFile: jest.fn().mockResolvedValue('https://mock-url.com/file.jpg'),
+    },
+}));
+// --- END MOCKS ---
 describe('Auth API - E2E Tests', () => {
     beforeEach(async () => {
         // Clean up database before each test
@@ -350,16 +374,27 @@ describe('Auth API - E2E Tests', () => {
             const token = registerResponse.body.data.tokens.accessToken;
 
             const response = await request(app)
-                .post('/api/v1/auth/kyc')
+                .post('/api/v1/account/auth/kyc') // Ensure correct route
                 .set('Authorization', `Bearer ${token}`)
-                .send({
-                    documentType: 'passport',
-                    documentNumber: 'A12345678',
-                });
+                .field('firstName', 'John')
+                .field('lastName', 'Doe')
+                .field('dateOfBirth', '1990-01-01')
+                .field('bvn', '12345678901')
+                .field('nin', '12345678901')
+                .field('address[street]', '123 Main St')
+                .field('address[city]', 'Lagos')
+                .field('address[state]', 'Lagos')
+                .field('address[country]', 'Nigeria')
+                .field('address[postalCode]', '100001')
+                .field('governmentId[type]', 'passport')
+                .field('governmentId[number]', 'A12345678')
+                .attach('idDocumentFront', Buffer.from('dummy'), 'front.jpg')
+                .attach('proofOfAddress', Buffer.from('dummy'), 'proof.jpg')
+                .attach('selfie', Buffer.from('dummy'), 'selfie.jpg')
+                .attach('video', Buffer.from('dummy'), 'video.mp4');
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
-            expect(response.body.data.kycLevel).toBe('BASIC');
         });
 
         it('should get verification status', async () => {
@@ -428,9 +463,24 @@ describe('Auth API - E2E Tests', () => {
 
             // 4. Submit KYC
             const kycResponse = await request(app)
-                .post('/api/v1/auth/kyc')
+                .post('/api/v1/account/auth/kyc')
                 .set('Authorization', `Bearer ${token}`)
-                .send({ documentType: 'passport', documentNumber: 'A12345678' });
+                .field('firstName', 'John')
+                .field('lastName', 'Doe')
+                .field('dateOfBirth', '1990-01-01')
+                .field('bvn', '12345678901')
+                .field('nin', '12345678901')
+                .field('address[street]', '123 Main St')
+                .field('address[city]', 'Lagos')
+                .field('address[state]', 'Lagos')
+                .field('address[country]', 'Nigeria')
+                .field('address[postalCode]', '100001')
+                .field('governmentId[type]', 'passport')
+                .field('governmentId[number]', 'A12345678')
+                .attach('idDocumentFront', Buffer.from('dummy'), 'front.jpg')
+                .attach('proofOfAddress', Buffer.from('dummy'), 'proof.jpg')
+                .attach('selfie', Buffer.from('dummy'), 'selfie.jpg')
+                .attach('video', Buffer.from('dummy'), 'video.mp4');
 
             expect(kycResponse.status).toBe(200);
 

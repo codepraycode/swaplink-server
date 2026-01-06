@@ -17,24 +17,32 @@ class KycService {
             idDocumentBack?: Express.Multer.File;
             proofOfAddress: Express.Multer.File;
             selfie: Express.Multer.File;
+            video: Express.Multer.File;
         }
     ) {
         // 1. Upload Files in Parallel
-        const uploadPromises = [
+        // 1. Upload Images (Critical for initial DB record)
+        const imageUploadPromises = [
             storageService.uploadFile(files.idDocumentFront, 'kyc/documents'),
             storageService.uploadFile(files.proofOfAddress, 'kyc/documents'),
             storageService.uploadFile(files.selfie, 'kyc/biometrics'),
         ];
 
         if (files.idDocumentBack) {
-            uploadPromises.push(storageService.uploadFile(files.idDocumentBack, 'kyc/documents'));
+            imageUploadPromises.push(
+                storageService.uploadFile(files.idDocumentBack, 'kyc/documents')
+            );
         }
 
-        const results = await Promise.all(uploadPromises);
-        const frontUrl = results[0];
-        const proofUrl = results[1];
-        const selfieUrl = results[2];
-        const backUrl = files.idDocumentBack ? results[3] : null;
+        const imageResults = await Promise.all(imageUploadPromises);
+        const frontUrl = imageResults[0];
+        const proofUrl = imageResults[1];
+        const selfieUrl = imageResults[2];
+        const backUrl = files.idDocumentBack ? imageResults[3] : null;
+
+        // 2. Background Video Upload (To prevent client timeout)
+        const videoUploadPromise = storageService.uploadFile(files.video, 'kyc/biometrics');
+        const placeholderVideoUrl = 'PENDING_UPLOAD';
 
         // 2. Database Transaction
         const { idDocFront } = await prisma.$transaction(async tx => {
@@ -43,6 +51,7 @@ class KycService {
                 where: { id: userId },
                 data: {
                     kycStatus: 'PENDING', // Set status to PENDING on submission
+                    avatarUrl: selfieUrl, // Update avatar with selfie
                 },
             });
 
@@ -58,7 +67,10 @@ class KycService {
                     country: data.address.country,
                     postalCode: data.address.postalCode,
                     selfieUrl,
+                    videoUrl: placeholderVideoUrl,
                     governmentId: data.governmentId.number,
+                    bvn: data.bvn,
+                    nin: data.nin,
                 },
                 update: {
                     dob: new Date(data.dateOfBirth),
@@ -68,7 +80,10 @@ class KycService {
                     country: data.address.country,
                     postalCode: data.address.postalCode,
                     selfieUrl,
+                    videoUrl: placeholderVideoUrl,
                     governmentId: data.governmentId.number,
+                    bvn: data.bvn,
+                    nin: data.nin,
                 },
             });
 
@@ -109,20 +124,37 @@ class KycService {
         });
 
         // 5. Trigger Verification
-        try {
-            await getKycQueue().add('verify-unified', {
-                userId,
-                kycDocumentId: idDocFront.id,
-                documentType: data.governmentId.type,
-                frontUrl,
-                backUrl,
-                selfieUrl,
-                data,
+        // 5. Handle Background Video Upload & Verification
+        videoUploadPromise
+            .then(async videoUrl => {
+                try {
+                    // Update DB with real video URL
+                    await prisma.kycInfo.update({
+                        where: { userId },
+                        data: { videoUrl },
+                    });
+
+                    // Trigger Verification
+                    await getKycQueue().add('verify-unified', {
+                        userId,
+                        kycDocumentId: idDocFront.id,
+                        documentType: data.governmentId.type,
+                        frontUrl,
+                        backUrl,
+                        selfieUrl,
+                        videoUrl,
+                        data,
+                    });
+                    logger.info(
+                        `[KYC] Background video upload and verification queueing complete for user ${userId}`
+                    );
+                } catch (error) {
+                    logger.error(`[KYC] Background processing failed for user ${userId}`, error);
+                }
+            })
+            .catch(error => {
+                logger.error(`[KYC] Video upload failed for user ${userId}`, error);
             });
-            logger.info(`[KYC] Queued unified verification job for user ${userId}`);
-        } catch (error) {
-            logger.error(`[KYC] Failed to queue verification job:`, error);
-        }
 
         // 6. Emit Event
         eventBus.publish(EventType.KYC_SUBMITTED, {

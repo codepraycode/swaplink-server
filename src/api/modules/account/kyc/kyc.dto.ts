@@ -62,4 +62,12 @@ export class SubmitKycUnifiedDto {
     @ValidateNested()
     @Type(() => GovernmentIdDto)
     governmentId!: GovernmentIdDto;
+
+    @IsString()
+    @IsNotEmpty()
+    bvn!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    nin!: string;
 }

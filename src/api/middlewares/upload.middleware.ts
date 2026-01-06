@@ -27,7 +27,7 @@ const createFilter = (allowedMimeTypes: string[]) => {
             // Reject file
             cb(
                 new BadRequestError(
-                    `Invalid file type. Allowed: ${allowedMimeTypes
+                    `Invalid file type: ${file.mimetype}. Allowed: ${allowedMimeTypes
                         .map(t => t.split('/')[1])
                         .join(', ')}`
                 ) as any
@@ -75,11 +75,13 @@ export const uploadProof = multer({
 export const uploadKycUnified: any = multer({
     storage: storage,
     limits: {
-        fileSize: uploadConfig.kyc.maxSize, // Using KYC max size for all
+        fileSize: uploadConfig.video.maxSize, // Using Video max size (largest) for all, validate individual sizes in controller if needed
     },
     fileFilter: (req, file, cb) => {
         if (['idDocumentFront', 'idDocumentBack', 'proofOfAddress'].includes(file.fieldname)) {
             createFilter(uploadConfig.kyc.allowedMimeTypes)(req, file, cb);
+        } else if (file.fieldname === 'video') {
+            createFilter(uploadConfig.video.allowedMimeTypes)(req, file, cb);
         } else if (file.fieldname === 'selfie') {
             createFilter(uploadConfig.avatar.allowedMimeTypes)(req, file, cb);
         } else {
@@ -91,6 +93,7 @@ export const uploadKycUnified: any = multer({
     { name: 'idDocumentBack', maxCount: 1 },
     { name: 'proofOfAddress', maxCount: 1 },
     { name: 'selfie', maxCount: 1 },
+    { name: 'video', maxCount: 1 },
 ]);
 
 // ======================================================

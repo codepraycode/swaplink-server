@@ -17,4 +17,16 @@ export const uploadConfig = {
         allowedMimeTypes: ['image/jpeg', 'image/png', 'image/jpg'],
         fieldName: 'proof',
     },
+    // 50MB for Video (Liveness check)
+    video: {
+        maxSize: 50 * 1024 * 1024,
+        allowedMimeTypes: [
+            'video/mp4',
+            'video/webm',
+            'video/quicktime',
+            'video/3gpp',
+            'image/mp4', // Handle potential client-side mime type confusion
+        ],
+        fieldName: 'video',
+    },
 };

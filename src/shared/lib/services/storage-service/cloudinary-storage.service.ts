@@ -42,13 +42,17 @@ export class CloudinaryStorageService implements IStorageService {
 
             logger.info(`[Cloudinary] Uploading file: ${publicId}`);
 
+            // Determine resource type
+            const isVideo = file.mimetype.startsWith('video/') || file.mimetype === 'image/mp4';
+            const resourceType = isVideo ? 'video' : 'image';
+
             // Upload to Cloudinary
             const result: UploadApiResponse = await new Promise((resolve, reject) => {
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
                         folder: folder,
                         public_id: publicId,
-                        resource_type: 'auto', // Automatically detect file type
+                        resource_type: resourceType,
                         use_filename: true,
                         unique_filename: false,
                     },

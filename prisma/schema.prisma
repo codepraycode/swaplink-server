@@ -241,6 +241,8 @@ model KycInfo {
   // IDs
 
   governmentId String?
+  bvn          String?
+  nin          String?
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

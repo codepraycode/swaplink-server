@@ -134,10 +134,11 @@ class AuthController {
             const idDocumentBack = files?.idDocumentBack?.[0];
             const proofOfAddress = files?.proofOfAddress?.[0];
             const selfie = files?.selfie?.[0];
+            const video = files?.video?.[0];
 
-            if (!idDocumentFront || !proofOfAddress || !selfie) {
+            if (!idDocumentFront || !proofOfAddress || !selfie || !video) {
                 throw new BadRequestError(
-                    'Missing required files (idDocumentFront, proofOfAddress, selfie)'
+                    'Missing required files (idDocumentFront, proofOfAddress, selfie, video)'
                 );
             }
 
@@ -160,6 +161,8 @@ class AuthController {
             const firstName = getBodyField('firstName');
             const lastName = getBodyField('lastName');
             const dateOfBirth = getBodyField('dateOfBirth');
+            const bvn = getBodyField('bvn');
+            const nin = getBodyField('nin');
 
             // Address
             const street = getBodyField('address', 'street');
@@ -182,6 +185,8 @@ class AuthController {
                 firstName,
                 lastName,
                 dateOfBirth,
+                bvn,
+                nin,
                 address: {
                     street,
                     city,
@@ -208,6 +213,9 @@ class AuthController {
             if (!kycData.firstName || !kycData.lastName || !kycData.dateOfBirth) {
                 throw new BadRequestError('Missing personal details');
             }
+            if (!kycData.bvn || !kycData.nin) {
+                throw new BadRequestError('Missing BVN or NIN');
+            }
             if (!kycData.address.street || !kycData.address.city || !kycData.address.country) {
                 throw new BadRequestError('Missing address details');
             }
@@ -220,6 +228,7 @@ class AuthController {
                 idDocumentBack,
                 proofOfAddress,
                 selfie,
+                video,
             });
 
             sendSuccess(res, result, 'KYC submitted successfully');

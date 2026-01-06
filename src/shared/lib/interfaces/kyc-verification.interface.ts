@@ -11,5 +11,13 @@ export interface KYCVerificationInterface {
         documentType: string,
         documentUrl: string
     ): Promise<KYCVerificationResult>;
-    verifyIdentity(userId: string, data: any): Promise<KYCVerificationResult>;
+    verifyIdentity(
+        userId: string,
+        data: {
+            bvn?: string;
+            nin?: string;
+            videoUrl?: string;
+            [key: string]: any;
+        }
+    ): Promise<KYCVerificationResult>;
 }
