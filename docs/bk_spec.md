@@ -4,7 +4,7 @@ This document outlines the backend implementation requirements to support the KY
 
 ## Overview
 
-The KYC process collects personal information, address details, government ID documents, proof of address, and liveness checks (selfie/video). The backend must handle `multipart/form-data` requests to process both text data and file uploads securely.
+The KYC process collects personal information, address details, government ID documents, and liveness checks (selfie/video). The backend must handle `multipart/form-data` requests to process both text data and file uploads securely.
 
 ## 1. API Endpoints
 
@@ -32,7 +32,6 @@ We recommend a unified endpoint or a step-by-step approach. Given the frontend s
 | `governmentId[number]` | String | Yes         | ID Document Number                                            |
 | `idDocumentFront`      | File   | Yes         | Image file (JPG/PNG/HEIC)                                     |
 | `idDocumentBack`       | File   | Conditional | Image file. Required if type is NOT `international_passport`  |
-| `proofOfAddress`       | File   | Yes         | Image file (Utility bill, bank statement)                     |
 | `selfie`               | File   | Yes         | Image file                                                    |
 | `livenessVideo`        | File   | Optional    | Video file (if liveness check requires it)                    |
 
@@ -72,8 +71,8 @@ If the backend prefers processing files separately from data:
 
 **FormData:**
 
--   `type`: `id_front` | `id_back` | `proof_of_address` | `selfie`
--   `file`: (Binary File)
+- `type`: `id_front` | `id_back` | `selfie`
+- `file`: (Binary File)
 
 **Response:**
 
@@ -104,7 +103,7 @@ If the backend prefers processing files separately from data:
     "frontImageId": "uuid...",
     "backImageId": "uuid..."
   },
-  "proofOfAddressId": "uuid...",
+
   "selfieId": "uuid..."
 }
 ```
@@ -115,64 +114,60 @@ Ensure the `User` or a separate `KYCProfile` table has the following fields:
 
 **Table: `KYCProfiles` (or columns in `Users`)**
 
-| Column              | Type      | Description                                                          |
-| :------------------ | :-------- | :------------------------------------------------------------------- |
-| `userId`            | UUID      | Foreign Key to Users table                                           |
-| `firstName`         | VARCHAR   |                                                                      |
-| `lastName`          | VARCHAR   |                                                                      |
-| `dateOfBirth`       | DATE      |                                                                      |
-| `addressStreet`     | VARCHAR   |                                                                      |
-| `addressCity`       | VARCHAR   |                                                                      |
-| `addressState`      | VARCHAR   |                                                                      |
-| `addressCountry`    | VARCHAR   |                                                                      |
-| `addressPostalCode` | VARCHAR   |                                                                      |
-| `idType`            | ENUM      | `PASSPORT`, `RESIDENCE_PERMIT`, `FOREIGN_ID`                         |
-| `idNumber`          | VARCHAR   | Encrypted                                                            |
-| `idFrontUrl`        | VARCHAR   | Secure URL / S3 Key                                                  |
-| `idBackUrl`         | VARCHAR   | Secure URL / S3 Key                                                  |
-| `proofOfAddressUrl` | VARCHAR   | Secure URL / S3 Key                                                  |
-| `selfieUrl`         | VARCHAR   | Secure URL / S3 Key                                                  |
-| `status`            | ENUM      | `NOT_STARTED`, `PENDING`, `APPROVED`, `REJECTED`, `MORE_INFO_NEEDED` |
-| `rejectionReason`   | TEXT      | Nullable                                                             |
-| `submittedAt`       | TIMESTAMP |                                                                      |
-| `reviewedAt`        | TIMESTAMP |                                                                      |
+| Column              | Type    | Description                                  |
+| :------------------ | :------ | :------------------------------------------- |
+| `userId`            | UUID    | Foreign Key to Users table                   |
+| `firstName`         | VARCHAR |                                              |
+| `lastName`          | VARCHAR |                                              |
+| `dateOfBirth`       | DATE    |                                              |
+| `addressStreet`     | VARCHAR |                                              |
+| `addressCity`       | VARCHAR |                                              |
+| `addressState`      | VARCHAR |                                              |
+| `addressCountry`    | VARCHAR |                                              |
+| `addressPostalCode` | VARCHAR |                                              |
+| `idType`            | ENUM    | `PASSPORT`, `RESIDENCE_PERMIT`, `FOREIGN_ID` |
+| `idNumber`          | VARCHAR | Encrypted                                    |
+| `idFrontUrl`        | VARCHAR | Secure URL / S3 Key                          |
+| `idBackUrl`         | VARCHAR | Secure URL / S3 Key                          |
+
+| `selfieUrl` | VARCHAR | Secure URL / S3 Key |
+| `status` | ENUM | `NOT_STARTED`, `PENDING`, `APPROVED`, `REJECTED`, `MORE_INFO_NEEDED` |
+| `rejectionReason` | TEXT | Nullable |
+| `submittedAt` | TIMESTAMP | |
+| `reviewedAt` | TIMESTAMP | |
 
 ## 3. Business Logic & Validation
 
 1.  **Country Restriction:**
-
-    -   **Strictly Validate:** `address.country` must NOT be "Nigeria" (case-insensitive).
-    -   Reject request immediately if country is Nigeria.
+    - **Strictly Validate:** `address.country` must NOT be "Nigeria" (case-insensitive).
+    - Reject request immediately if country is Nigeria.
 
 2.  **File Validation:**
-
-    -   **Max Size:** Limit file size (e.g., 5MB for images, 15MB for video).
-    -   **Formats:** Allow `image/jpeg`, `image/png`, `image/heic`, `application/pdf` (for POA).
-    -   **Security:** Scan files for malware if possible.
+    - **Max Size:** Limit file size (e.g., 5MB for images, 15MB for video).
+    - **Formats:** Allow `image/jpeg`, `image/png`, `image/heic`, `application/pdf` (for POA).
+    - **Security:** Scan files for malware if possible.
 
 3.  **Data Consistency:**
-
-    -   Verify `firstName` and `lastName` match the authenticated user's account details.
+    - Verify `firstName` and `lastName` match the authenticated user's account details.
 
 4.  **Status Updates:**
-    -   Upon successful submission, set user's `kycStatus` to `PENDING`.
-    -   Send a notification (email/push) to the user confirming receipt.
+    - Upon successful submission, set user's `kycStatus` to `PENDING`.
+    - Send a notification (email/push) to the user confirming receipt.
 
 ## 4. Third-Party Integration (Future Proofing)
 
 If using a provider like **Sumsub**, **SmileID**, or **Veriff**:
 
 1.  **Backend Proxy:**
-
-    -   The backend should act as a proxy to generate an SDK Token or Access Token from the provider.
-    -   **Endpoint:** `POST /account/auth/kyc/token`
-    -   **Response:** `{ "token": "..." }`
+    - The backend should act as a proxy to generate an SDK Token or Access Token from the provider.
+    - **Endpoint:** `POST /account/auth/kyc/token`
+    - **Response:** `{ "token": "..." }`
 
 2.  **Webhooks:**
-    -   Implement a webhook endpoint `POST /webhooks/kyc` to receive status updates from the provider (Approved/Rejected) and update the local database accordingly.
+    - Implement a webhook endpoint `POST /webhooks/kyc` to receive status updates from the provider (Approved/Rejected) and update the local database accordingly.
 
 ## 5. Security Considerations
 
--   **Encryption:** Encrypt sensitive fields (ID Number) at rest.
--   **Storage:** Use private S3 buckets (or equivalent) with signed URLs for temporary access. Never make KYC documents public.
--   **Access Control:** Only Admins with specific roles should be able to view KYC documents.
+- **Encryption:** Encrypt sensitive fields (ID Number) at rest.
+- **Storage:** Use private S3 buckets (or equivalent) with signed URLs for temporary access. Never make KYC documents public.
+- **Access Control:** Only Admins with specific roles should be able to view KYC documents.

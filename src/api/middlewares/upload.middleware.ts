@@ -70,7 +70,7 @@ export const uploadProof = multer({
 
 /**
  * Unified KYC Uploader
- * - Handles ID Documents (Front/Back), Proof of Address, and Selfie
+ * - Handles ID Documents (Front/Back) and Selfie
  */
 export const uploadKycUnified: any = multer({
     storage: storage,
@@ -78,7 +78,7 @@ export const uploadKycUnified: any = multer({
         fileSize: uploadConfig.video.maxSize, // Using Video max size (largest) for all, validate individual sizes in controller if needed
     },
     fileFilter: (req, file, cb) => {
-        if (['idDocumentFront', 'idDocumentBack', 'proofOfAddress'].includes(file.fieldname)) {
+        if (['idDocumentFront', 'idDocumentBack'].includes(file.fieldname)) {
             createFilter(uploadConfig.kyc.allowedMimeTypes)(req, file, cb);
         } else if (file.fieldname === 'video') {
             createFilter(uploadConfig.video.allowedMimeTypes)(req, file, cb);
@@ -91,7 +91,6 @@ export const uploadKycUnified: any = multer({
 }).fields([
     { name: 'idDocumentFront', maxCount: 1 },
     { name: 'idDocumentBack', maxCount: 1 },
-    { name: 'proofOfAddress', maxCount: 1 },
     { name: 'selfie', maxCount: 1 },
     { name: 'video', maxCount: 1 },
 ]);

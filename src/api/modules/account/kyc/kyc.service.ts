@@ -15,7 +15,6 @@ class KycService {
         files: {
             idDocumentFront: Express.Multer.File;
             idDocumentBack?: Express.Multer.File;
-            proofOfAddress: Express.Multer.File;
             selfie: Express.Multer.File;
             video: Express.Multer.File;
         }
@@ -24,7 +23,6 @@ class KycService {
         // 1. Upload Images (Critical for initial DB record)
         const imageUploadPromises = [
             storageService.uploadFile(files.idDocumentFront, 'kyc/documents'),
-            storageService.uploadFile(files.proofOfAddress, 'kyc/documents'),
             storageService.uploadFile(files.selfie, 'kyc/biometrics'),
         ];
 
@@ -36,9 +34,8 @@ class KycService {
 
         const imageResults = await Promise.all(imageUploadPromises);
         const frontUrl = imageResults[0];
-        const proofUrl = imageResults[1];
-        const selfieUrl = imageResults[2];
-        const backUrl = files.idDocumentBack ? imageResults[3] : null;
+        const selfieUrl = imageResults[1];
+        const backUrl = files.idDocumentBack ? imageResults[2] : null;
 
         // 2. Background Video Upload (To prevent client timeout)
         const videoUploadPromise = storageService.uploadFile(files.video, 'kyc/biometrics');
@@ -109,16 +106,6 @@ class KycService {
                     },
                 });
             }
-
-            // Proof of Address
-            await tx.kycDocument.create({
-                data: {
-                    kycInfoId: kycInfo.id,
-                    documentType: 'PROOF_OF_ADDRESS',
-                    documentUrl: proofUrl,
-                    status: KycDocumentStatus.PENDING,
-                },
-            });
 
             return { kycInfo, idDocFront };
         });

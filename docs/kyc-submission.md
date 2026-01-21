@@ -24,5 +24,4 @@
 | ----------------- | ------------ | ----------------------------------------------------------- |
 | `idDocumentFront` | File (Image) | Front image of the identity document                        |
 | `idDocumentBack`  | File (Image) | Back image of the identity document (Optional for Passport) |
-| `proofOfAddress`  | File (Image) | Image of utility bill or bank statement                     |
 | `selfie`          | File (Image) | Liveness check selfie image                                 |

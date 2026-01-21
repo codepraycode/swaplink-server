@@ -389,7 +389,6 @@ describe('Auth API - E2E Tests', () => {
                 .field('governmentId[type]', 'passport')
                 .field('governmentId[number]', 'A12345678')
                 .attach('idDocumentFront', Buffer.from('dummy'), 'front.jpg')
-                .attach('proofOfAddress', Buffer.from('dummy'), 'proof.jpg')
                 .attach('selfie', Buffer.from('dummy'), 'selfie.jpg')
                 .attach('video', Buffer.from('dummy'), 'video.mp4');
 
@@ -478,7 +477,6 @@ describe('Auth API - E2E Tests', () => {
                 .field('governmentId[type]', 'passport')
                 .field('governmentId[number]', 'A12345678')
                 .attach('idDocumentFront', Buffer.from('dummy'), 'front.jpg')
-                .attach('proofOfAddress', Buffer.from('dummy'), 'proof.jpg')
                 .attach('selfie', Buffer.from('dummy'), 'selfie.jpg')
                 .attach('video', Buffer.from('dummy'), 'video.mp4');
 

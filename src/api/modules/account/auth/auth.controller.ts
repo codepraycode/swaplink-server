@@ -132,13 +132,12 @@ class AuthController {
             // 1. Extract Files
             const idDocumentFront = files?.idDocumentFront?.[0];
             const idDocumentBack = files?.idDocumentBack?.[0];
-            const proofOfAddress = files?.proofOfAddress?.[0];
             const selfie = files?.selfie?.[0];
             const video = files?.video?.[0];
 
-            if (!idDocumentFront || !proofOfAddress || !selfie || !video) {
+            if (!idDocumentFront || !selfie || !video) {
                 throw new BadRequestError(
-                    'Missing required files (idDocumentFront, proofOfAddress, selfie, video)'
+                    'Missing required files (idDocumentFront, selfie, video)'
                 );
             }
 
@@ -226,7 +225,6 @@ class AuthController {
             const result = await kycService.submitKycUnified(userId, kycData, {
                 idDocumentFront,
                 idDocumentBack,
-                proofOfAddress,
                 selfie,
                 video,
             });

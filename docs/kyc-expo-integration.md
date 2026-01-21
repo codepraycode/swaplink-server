@@ -6,10 +6,10 @@ This guide explains how to integrate the updated KYC system with your Expo mobil
 
 The KYC system now uses a unified submission approach with the following status flow:
 
--   **STALE**: User has not submitted KYC or can resubmit after rejection
--   **PENDING**: KYC is being processed
--   **APPROVED**: KYC has been verified
--   **REJECTED**: KYC was rejected and can be resubmitted
+- **STALE**: User has not submitted KYC or can resubmit after rejection
+- **PENDING**: KYC is being processed
+- **APPROVED**: KYC has been verified
+- **REJECTED**: KYC was rejected and can be resubmitted
 
 ## 1. Update Type Definitions
 
@@ -128,11 +128,6 @@ export interface KycFiles {
         name: string;
         type: string;
     };
-    proofOfAddress: {
-        uri: string;
-        name: string;
-        type: string;
-    };
     selfie: {
         uri: string;
         name: string;
@@ -176,12 +171,6 @@ export const kycService = {
                 type: files.idDocumentBack.type,
             } as any);
         }
-
-        formData.append('proofOfAddress', {
-            uri: files.proofOfAddress.uri,
-            name: files.proofOfAddress.name,
-            type: files.proofOfAddress.type,
-        } as any);
 
         formData.append('selfie', {
             uri: files.selfie.uri,
@@ -463,33 +452,33 @@ After implementing the changes, test the following scenarios:
 
 ### Initial State (STALE)
 
--   [ ] New user shows "Not Submitted" status
--   [ ] "Submit Documents" button is visible and enabled
--   [ ] User can access KYC submission form
+- [ ] New user shows "Not Submitted" status
+- [ ] "Submit Documents" button is visible and enabled
+- [ ] User can access KYC submission form
 
 ### After Submission (PENDING)
 
--   [ ] Status changes to "Under Review" immediately after submission
--   [ ] Submit button is disabled/hidden
--   [ ] User sees waiting message
--   [ ] User cannot resubmit while pending
+- [ ] Status changes to "Under Review" immediately after submission
+- [ ] Submit button is disabled/hidden
+- [ ] User sees waiting message
+- [ ] User cannot resubmit while pending
 
 ### On Approval (APPROVED)
 
--   [ ] Socket event triggers status update
--   [ ] Success notification is shown
--   [ ] Status badge shows "Verified"
--   [ ] User sees success message
--   [ ] Submit button is hidden
+- [ ] Socket event triggers status update
+- [ ] Success notification is shown
+- [ ] Status badge shows "Verified"
+- [ ] User sees success message
+- [ ] Submit button is hidden
 
 ### On Rejection (REJECTED)
 
--   [ ] Socket event triggers status update
--   [ ] Rejection notification is shown with reason
--   [ ] Status badge shows "Rejected"
--   [ ] User sees rejection notice
--   [ ] "Resubmit Documents" button is visible
--   [ ] User can submit again
+- [ ] Socket event triggers status update
+- [ ] Rejection notification is shown with reason
+- [ ] Status badge shows "Rejected"
+- [ ] User sees rejection notice
+- [ ] "Resubmit Documents" button is visible
+- [ ] User can submit again
 
 ## 8. Common Issues and Solutions
 
@@ -539,7 +528,7 @@ Body (FormData):
 - governmentId[number]: string
 - idDocumentFront: File
 - idDocumentBack: File (optional)
-- proofOfAddress: File
+
 - selfie: File
 
 Response:
