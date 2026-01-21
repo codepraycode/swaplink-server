@@ -23,7 +23,7 @@ export async function initializeSystemResources(): Promise<void> {
 }
 
 async function initializeSystemUser() {
-    const systemEmail = 'revenue@swaplink.com';
+    const systemEmail = 'revenue@bcdees.com';
     const systemPhone = '+2340000000000';
 
     // 1. Check if System User exists

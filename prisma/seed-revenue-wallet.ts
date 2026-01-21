@@ -4,7 +4,7 @@ import { hash } from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-    const systemEmail = 'revenue@swaplink.com';
+    const systemEmail = 'revenue@bcdees.com';
     const systemPhone = '+2340000000000';
 
     console.log('🌱 Seeding System Revenue Wallet...');
