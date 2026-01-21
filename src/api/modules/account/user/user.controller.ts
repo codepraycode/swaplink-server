@@ -61,7 +61,7 @@ export class UserController {
         try {
             const userId = req.user!.userId;
 
-            if (!req.file) throw new Error('Avatar image is required');
+            if (!req.file) throw new BadRequestError('Avatar image is required');
 
             const avatarUrl = await storageService.uploadFile(req.file, 'avatars');
 

@@ -5,6 +5,7 @@ import { walletService } from '../../../shared/lib/services/wallet.service';
 import logger from '../../../shared/lib/utils/logger';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../../../shared/database';
+import { InternalError } from '../../../shared/lib/utils/api-error';
 
 export class WebhookService {
     /**
@@ -92,7 +93,7 @@ export class WebhookService {
             const revenueUser = await prisma.user.findUnique({
                 where: { email: SYSTEM_REVENUE_EMAIL },
             });
-            if (!revenueUser) throw new Error('System Revenue User not found');
+            if (!revenueUser) throw new InternalError('System Revenue User not found');
 
             const entries = [];
 
