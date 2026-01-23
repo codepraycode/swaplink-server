@@ -55,7 +55,10 @@ export class WebhookService {
         accountNumber: string;
         amount: number;
         reference: string;
-        sessionId?: string; // Often provided by banks
+        sessionId?: string;
+        originatorName?: string;
+        originatorAccount?: string;
+        originatorBank?: string;
     }) {
         const { accountNumber, amount, reference } = data;
         const INBOUND_FEE = 53.5;
@@ -90,10 +93,18 @@ export class WebhookService {
         // 3. Prepare Ledger Entries
         // ====================================================
         try {
-            const revenueUser = await prisma.user.findUnique({
-                where: { email: SYSTEM_REVENUE_EMAIL },
-            });
-            if (!revenueUser) throw new InternalError('System Revenue User not found');
+            const { getUserPartyDetails, buildExternalPartyDetails } =
+                await import('../../../shared/lib/utils/transaction-helpers');
+
+            // Get receiver (user) details
+            const receiverDetails = await getUserPartyDetails(virtualAccount.wallet.userId);
+
+            // Build sender details from webhook data
+            const senderDetails = buildExternalPartyDetails(
+                data.originatorName,
+                data.originatorAccount,
+                data.originatorBank
+            );
 
             const entries = [];
 
@@ -105,10 +116,29 @@ export class WebhookService {
                 reference: reference, // Bank Ref
                 description: 'Deposit via Globus Bank',
                 metadata: data,
+
+                // Sender Details
+                senderName: senderDetails.name,
+                senderAccount: senderDetails.account,
+                senderBankName: senderDetails.bankName,
+                senderBankCode: senderDetails.bankCode,
+
+                // Receiver Details
+                receiverName: receiverDetails.name,
+                receiverAccount: receiverDetails.account,
+                receiverBankName: receiverDetails.bankName,
+                receiverAvatarUrl: receiverDetails.avatarUrl,
             });
 
             // 2. Deduct Fee (if amount covers it)
             if (amount > INBOUND_FEE) {
+                const revenueUser = await prisma.user.findUnique({
+                    where: { email: SYSTEM_REVENUE_EMAIL },
+                });
+                if (!revenueUser) throw new InternalError('System Revenue User not found');
+
+                const revenueDetails = await getUserPartyDetails(revenueUser.id);
+
                 // Debit User
                 entries.push({
                     userId: virtualAccount.wallet.userId,
@@ -116,6 +146,18 @@ export class WebhookService {
                     type: TransactionType.FEE,
                     reference: `FEE-${reference}`,
                     description: 'Inbound Deposit Fee',
+
+                    // Sender (User paying fee)
+                    senderName: receiverDetails.name,
+                    senderAccount: receiverDetails.account,
+                    senderBankName: receiverDetails.bankName,
+                    senderAvatarUrl: receiverDetails.avatarUrl,
+
+                    // Receiver (Revenue account)
+                    receiverName: revenueDetails.name,
+                    receiverAccount: revenueDetails.account,
+                    receiverBankName: revenueDetails.bankName,
+                    receiverAvatarUrl: revenueDetails.avatarUrl,
                 });
 
                 // Credit Revenue
@@ -124,8 +166,20 @@ export class WebhookService {
                     amount: INBOUND_FEE,
                     type: TransactionType.FEE,
                     reference: `REV-${reference}`,
-                    description: `Fee from ${virtualAccount.wallet.userId}`,
+                    description: `Fee from ${receiverDetails.name}`,
                     metadata: { originalTx: reference },
+
+                    // Sender (User who paid)
+                    senderName: receiverDetails.name,
+                    senderAccount: receiverDetails.account,
+                    senderBankName: receiverDetails.bankName,
+                    senderAvatarUrl: receiverDetails.avatarUrl,
+
+                    // Receiver (Revenue account)
+                    receiverName: revenueDetails.name,
+                    receiverAccount: revenueDetails.account,
+                    receiverBankName: revenueDetails.bankName,
+                    receiverAvatarUrl: revenueDetails.avatarUrl,
                 });
             }
 

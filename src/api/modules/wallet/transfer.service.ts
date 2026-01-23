@@ -1,11 +1,4 @@
-import {
-    prisma,
-    TransactionType,
-    NotificationType,
-    Wallet,
-    VirtualAccount,
-    Transaction,
-} from '../../../shared/database';
+import { prisma, TransactionType, NotificationType } from '../../../shared/database';
 import { nameEnquiryService } from './name-enquiry.service';
 import { beneficiaryService } from './beneficiary.service';
 import {
@@ -34,21 +27,9 @@ export interface TransferRequest {
     idempotencyKey: string;
 }
 
-export class WalletService {
+export class TransferService {
     private readonly SYSTEM_REVENUE_EMAIL = 'revenue@bcdees.com';
     private readonly TRANSFER_FEE = 53.5;
-
-    async getWallet(
-        userId: string
-    ): Promise<Wallet & { virtualAccount: VirtualAccount | null; transactions: Transaction[] }> {
-        const wallet = await prisma.wallet.findUnique({
-            where: { userId },
-            include: { virtualAccount: true, transactions: true },
-        });
-
-        if (!wallet) throw new NotFoundError('Wallet not found');
-        return wallet;
-    }
 
     /**
      * Process a transfer request (Hybrid: Internal or External)
@@ -167,6 +148,15 @@ export class WalletService {
         const revenueUser = await this.getSystemRevenueUser();
         if (!revenueUser) throw new InternalError('System Revenue User not found');
 
+        // Import helper functions
+        const { getUserPartyDetails } =
+            await import('../../../shared/lib/utils/transaction-helpers');
+
+        // Get party details
+        const senderDetails = await getUserPartyDetails(senderWallet.userId);
+        const receiverDetails = await getUserPartyDetails(receiverWallet.userId);
+        const revenueDetails = await getUserPartyDetails(revenueUser.id);
+
         // Prepare Ledger Entries
         // 1. Debit Sender Principal
         // 2. Debit Sender Fee
@@ -181,8 +171,19 @@ export class WalletService {
                 type: TransactionType.TRANSFER,
                 reference: `TRF-${randomUUID()}`,
                 description: narration || `Transfer to ${destination.accountName}`,
-                counterpartyId: receiverWallet.userId,
                 idempotencyKey, // Only on the main tx
+
+                // Sender
+                senderName: senderDetails.name,
+                senderAccount: senderDetails.account,
+                senderBankName: senderDetails.bankName,
+                senderAvatarUrl: senderDetails.avatarUrl,
+
+                // Receiver
+                receiverName: receiverDetails.name,
+                receiverAccount: receiverDetails.account,
+                receiverBankName: receiverDetails.bankName,
+                receiverAvatarUrl: receiverDetails.avatarUrl,
             },
             // 2. Debit Sender Fee
             {
@@ -191,6 +192,18 @@ export class WalletService {
                 type: TransactionType.FEE,
                 reference: `FEE-${randomUUID()}`,
                 description: 'Transfer Fee',
+
+                // Sender (User paying fee)
+                senderName: senderDetails.name,
+                senderAccount: senderDetails.account,
+                senderBankName: senderDetails.bankName,
+                senderAvatarUrl: senderDetails.avatarUrl,
+
+                // Receiver (Revenue)
+                receiverName: revenueDetails.name,
+                receiverAccount: revenueDetails.account,
+                receiverBankName: revenueDetails.bankName,
+                receiverAvatarUrl: revenueDetails.avatarUrl,
             },
             // 3. Credit Receiver Principal
             {
@@ -198,9 +211,20 @@ export class WalletService {
                 amount: amount,
                 type: TransactionType.DEPOSIT,
                 reference: `DEP-${randomUUID()}`,
-                description: narration || `Received from ${senderWallet.userId}`, // Ideally user name
-                counterpartyId: senderWallet.userId,
+                description: narration || `Received from ${senderDetails.name}`,
                 metadata: { senderId: senderWallet.userId },
+
+                // Sender
+                senderName: senderDetails.name,
+                senderAccount: senderDetails.account,
+                senderBankName: senderDetails.bankName,
+                senderAvatarUrl: senderDetails.avatarUrl,
+
+                // Receiver
+                receiverName: receiverDetails.name,
+                receiverAccount: receiverDetails.account,
+                receiverBankName: receiverDetails.bankName,
+                receiverAvatarUrl: receiverDetails.avatarUrl,
             },
             // 4. Credit Revenue Fee
             {
@@ -208,8 +232,20 @@ export class WalletService {
                 amount: fee,
                 type: TransactionType.FEE,
                 reference: `REV-${randomUUID()}`,
-                description: `Fee from ${senderWallet.userId}`,
+                description: `Fee from ${senderDetails.name}`,
                 metadata: { originalTx: `TRF-...` }, // Placeholder, will update below
+
+                // Sender (User who paid)
+                senderName: senderDetails.name,
+                senderAccount: senderDetails.account,
+                senderBankName: senderDetails.bankName,
+                senderAvatarUrl: senderDetails.avatarUrl,
+
+                // Receiver (Revenue)
+                receiverName: revenueDetails.name,
+                receiverAccount: revenueDetails.account,
+                receiverBankName: revenueDetails.bankName,
+                receiverAvatarUrl: revenueDetails.avatarUrl,
             },
         ];
 
@@ -295,6 +331,20 @@ export class WalletService {
         const revenueUser = await this.getSystemRevenueUser();
         if (!revenueUser) throw new InternalError('System Revenue User not found');
 
+        // Import helper functions
+        const { getUserPartyDetails, buildExternalPartyDetails } =
+            await import('../../../shared/lib/utils/transaction-helpers');
+
+        // Get party details
+        const senderDetails = await getUserPartyDetails(senderWallet.userId);
+        const revenueDetails = await getUserPartyDetails(revenueUser.id);
+        const receiverDetails = buildExternalPartyDetails(
+            destination.accountName,
+            accountNumber,
+            destination.bankName,
+            bankCode
+        );
+
         // Prepare Ledger Entries
         // 1. Debit Sender Principal
         // 2. Debit Sender Fee
@@ -309,10 +359,19 @@ export class WalletService {
                 type: TransactionType.TRANSFER,
                 reference: `NIP-${randomUUID()}`,
                 description: narration || `Transfer to ${destination.accountName}`,
-                destinationAccount: accountNumber,
-                destinationBankCode: bankCode,
-                destinationName: destination.accountName,
                 idempotencyKey,
+
+                // Sender
+                senderName: senderDetails.name,
+                senderAccount: senderDetails.account,
+                senderBankName: senderDetails.bankName,
+                senderAvatarUrl: senderDetails.avatarUrl,
+
+                // Receiver (External)
+                receiverName: receiverDetails.name,
+                receiverAccount: receiverDetails.account,
+                receiverBankName: receiverDetails.bankName,
+                receiverBankCode: receiverDetails.bankCode,
             },
             // 2. Debit Sender Fee
             {
@@ -321,6 +380,18 @@ export class WalletService {
                 type: TransactionType.FEE,
                 reference: `FEE-${randomUUID()}`,
                 description: 'Transfer Fee',
+
+                // Sender (User paying fee)
+                senderName: senderDetails.name,
+                senderAccount: senderDetails.account,
+                senderBankName: senderDetails.bankName,
+                senderAvatarUrl: senderDetails.avatarUrl,
+
+                // Receiver (Revenue)
+                receiverName: revenueDetails.name,
+                receiverAccount: revenueDetails.account,
+                receiverBankName: revenueDetails.bankName,
+                receiverAvatarUrl: revenueDetails.avatarUrl,
             },
             // 3. Credit Revenue Fee
             {
@@ -328,8 +399,20 @@ export class WalletService {
                 amount: fee,
                 type: TransactionType.FEE,
                 reference: `REV-${randomUUID()}`,
-                description: `Fee from ${senderWallet.userId}`,
+                description: `Fee from ${senderDetails.name}`,
                 metadata: { originalTx: `NIP-...` }, // Will update with real ref
+
+                // Sender (User who paid)
+                senderName: senderDetails.name,
+                senderAccount: senderDetails.account,
+                senderBankName: senderDetails.bankName,
+                senderAvatarUrl: senderDetails.avatarUrl,
+
+                // Receiver (Revenue)
+                receiverName: revenueDetails.name,
+                receiverAccount: revenueDetails.account,
+                receiverBankName: revenueDetails.bankName,
+                receiverAvatarUrl: revenueDetails.avatarUrl,
             },
         ];
 
@@ -393,4 +476,4 @@ export class WalletService {
     }
 }
 
-export const walletService = new WalletService();
+export const transferService = new TransferService();

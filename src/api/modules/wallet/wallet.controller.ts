@@ -1,20 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import { pinService } from './pin.service';
 import { nameEnquiryService } from './name-enquiry.service';
-import { walletService } from './wallet.service';
+import { transferService } from './transfer.service';
 import { beneficiaryService } from './beneficiary.service';
 import { JwtUtils } from '../../../shared/lib/utils/jwt-utils';
 import { sendCreated, sendSuccess } from '../../../shared/lib/utils/api-response';
 import { BadRequestError } from '../../../shared/lib/utils/api-error';
 import sharedWalletService from '../../../shared/lib/services/wallet.service';
 import { TransactionType } from '../../../shared/database';
-import { logDebug } from '../../../shared/lib/utils/logger';
 
 export class WalletController {
     static async getWalletInfo(req: Request, res: Response, next: NextFunction) {
         try {
             const userId = JwtUtils.ensureAuthentication(req).userId;
-            const wallet = await walletService.getWallet(userId);
+            const wallet = await sharedWalletService.getWallet(userId);
             sendSuccess(res, wallet);
         } catch (error) {
             next(error);
@@ -105,7 +104,7 @@ export class WalletController {
 
             // TODO: Validate payload (Joi/Zod)
 
-            const result = await walletService.processTransfer(payload);
+            const result = await transferService.processTransfer(payload);
             sendSuccess(res, result);
         } catch (error) {
             next(error);

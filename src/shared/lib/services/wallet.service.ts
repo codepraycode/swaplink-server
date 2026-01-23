@@ -35,10 +35,21 @@ interface LedgerEntry {
     reference: string;
     description: string;
     metadata?: any;
-    counterpartyId?: string;
-    fee?: Decimal | number; // Fee associated with this specific entry (deducted from amount if debit, or separate record?)
-    // Actually, fee is usually a separate ledger entry.
-    // But for simplicity, let's assume this entry is the PRINCIPAL.
+    fee?: Decimal | number;
+
+    // Sender Details (Required)
+    senderName: string;
+    senderAccount: string;
+    senderBankName: string;
+    senderBankCode?: string;
+    senderAvatarUrl?: string;
+
+    // Receiver Details (Required)
+    receiverName: string;
+    receiverAccount: string;
+    receiverBankName: string;
+    receiverBankCode?: string;
+    receiverAvatarUrl?: string;
 }
 
 export class WalletService {
@@ -150,22 +161,53 @@ export class WalletService {
                     metadata: true,
                     description: true,
                     fee: true,
-                    counterparty: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            email: true,
-                            avatarUrl: true,
-                        },
-                    },
+
+                    // Sender Details
+                    senderName: true,
+                    senderAccount: true,
+                    senderBankName: true,
+                    senderBankCode: true,
+                    senderAvatarUrl: true,
+
+                    // Receiver Details
+                    receiverName: true,
+                    receiverAccount: true,
+                    receiverBankName: true,
+                    receiverBankCode: true,
+                    receiverAvatarUrl: true,
                 },
             }),
             prisma.transaction.count({ where }),
         ]);
 
+        // Simple mapping - no complex logic needed
+        const enrichedTransactions = transactions.map(tx => ({
+            ...tx,
+            amount: Number(tx.amount),
+            balanceBefore: Number(tx.balanceBefore),
+            balanceAfter: Number(tx.balanceAfter),
+            fee: Number(tx.fee),
+            narration: tx.description || 'No narration',
+            sender: {
+                name: tx.senderName,
+                accountNumber: tx.senderAccount,
+                bankName: tx.senderBankName,
+                bankCode: tx.senderBankCode || '',
+                avatarUrl: tx.senderAvatarUrl || '',
+                type: tx.senderBankName === 'SwapLink Wallet' ? 'INTERNAL' : 'EXTERNAL',
+            },
+            receiver: {
+                name: tx.receiverName,
+                accountNumber: tx.receiverAccount,
+                bankName: tx.receiverBankName,
+                bankCode: tx.receiverBankCode || '',
+                avatarUrl: tx.receiverAvatarUrl || '',
+                type: tx.receiverBankName === 'SwapLink Wallet' ? 'INTERNAL' : 'EXTERNAL',
+            },
+        }));
+
         return {
-            transactions,
+            transactions: enrichedTransactions,
             pagination: {
                 total,
                 page,
@@ -198,8 +240,7 @@ export class WalletService {
             const results = [];
 
             for (const entry of entries) {
-                const { userId, amount, type, reference, description, metadata, counterpartyId } =
-                    entry;
+                const { userId, amount, type, reference, description, metadata } = entry;
                 const decimalAmount = new Decimal(amount);
 
                 // 1. Get Wallet
@@ -223,7 +264,7 @@ export class WalletService {
                     data: { balance: { increment: decimalAmount } },
                 });
 
-                // 4. Create Transaction Record
+                // 4. Create Transaction Record (Fully Decoupled)
                 const transaction = await tx.transaction.create({
                     data: {
                         userId,
@@ -236,8 +277,21 @@ export class WalletService {
                         reference,
                         description,
                         metadata,
-                        counterpartyId,
                         fee: entry.fee ? new Decimal(entry.fee) : 0,
+
+                        // Sender Details (Required)
+                        senderName: entry.senderName,
+                        senderAccount: entry.senderAccount,
+                        senderBankName: entry.senderBankName,
+                        senderBankCode: entry.senderBankCode,
+                        senderAvatarUrl: entry.senderAvatarUrl,
+
+                        // Receiver Details (Required)
+                        receiverName: entry.receiverName,
+                        receiverAccount: entry.receiverAccount,
+                        receiverBankName: entry.receiverBankName,
+                        receiverBankCode: entry.receiverBankCode,
+                        receiverAvatarUrl: entry.receiverAvatarUrl,
                     },
                 });
 
@@ -294,6 +348,16 @@ export class WalletService {
             reference ||
             `TX-CR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
 
+        // Import helper
+        const { getUserPartyDetails, buildSystemPartyDetails } =
+            await import('../utils/transaction-helpers');
+
+        // Get receiver (user) details
+        const receiverDetails = await getUserPartyDetails(userId);
+
+        // For credits without explicit sender, use system as sender
+        const senderDetails = buildSystemPartyDetails();
+
         // Use processLedgerEntry for consistency
         const [transaction] = await this.processLedgerEntry([
             {
@@ -303,7 +367,17 @@ export class WalletService {
                 reference: txReference,
                 description,
                 metadata,
-                counterpartyId: options.counterpartyId,
+
+                // Sender (System or External)
+                senderName: senderDetails.name,
+                senderAccount: senderDetails.account,
+                senderBankName: senderDetails.bankName,
+
+                // Receiver (User)
+                receiverName: receiverDetails.name,
+                receiverAccount: receiverDetails.account,
+                receiverBankName: receiverDetails.bankName,
+                receiverAvatarUrl: receiverDetails.avatarUrl,
             },
         ]);
 
@@ -337,6 +411,16 @@ export class WalletService {
             reference ||
             `TX-DR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
 
+        // Import helper
+        const { getUserPartyDetails, buildSystemPartyDetails } =
+            await import('../utils/transaction-helpers');
+
+        // Get sender (user) details
+        const senderDetails = await getUserPartyDetails(userId);
+
+        // For debits without explicit receiver, use system as receiver
+        const receiverDetails = buildSystemPartyDetails();
+
         // Use processLedgerEntry
         const [transaction] = await this.processLedgerEntry([
             {
@@ -346,7 +430,17 @@ export class WalletService {
                 reference: txReference,
                 description,
                 metadata,
-                counterpartyId: options.counterpartyId,
+
+                // Sender (User)
+                senderName: senderDetails.name,
+                senderAccount: senderDetails.account,
+                senderBankName: senderDetails.bankName,
+                senderAvatarUrl: senderDetails.avatarUrl,
+
+                // Receiver (System or External)
+                receiverName: receiverDetails.name,
+                receiverAccount: receiverDetails.account,
+                receiverBankName: receiverDetails.bankName,
             },
         ]);
 
