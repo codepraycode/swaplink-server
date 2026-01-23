@@ -76,6 +76,15 @@ const fixStuckOrder = async (orderId: string) => {
             });
 
             // 6. Create Transaction Records
+
+            // Import helper functions
+            const { getUserPartyDetails } = await import('../shared/lib/utils/transaction-helpers');
+
+            // Get party details
+            const payerDetails = await getUserPartyDetails(payerId);
+            const receiverDetails = await getUserPartyDetails(receiverId);
+            const revenueDetails = await getUserPartyDetails(revenueWallet.userId);
+
             // Fetch wallets with current balances
             const payerWallet = await tx.wallet.findUniqueOrThrow({
                 where: { userId: payerId },
@@ -115,6 +124,18 @@ const fixStuckOrder = async (orderId: string) => {
                         fee: order.fee,
                         counterpartyId: receiverId,
                     },
+
+                    // Sender (Payer)
+                    senderName: payerDetails.name,
+                    senderAccount: payerDetails.account,
+                    senderBankName: payerDetails.bankName,
+                    senderAvatarUrl: payerDetails.avatarUrl,
+
+                    // Receiver
+                    receiverName: receiverDetails.name,
+                    receiverAccount: receiverDetails.account,
+                    receiverBankName: receiverDetails.bankName,
+                    receiverAvatarUrl: receiverDetails.avatarUrl,
                 },
             });
 
@@ -143,6 +164,18 @@ const fixStuckOrder = async (orderId: string) => {
                         netAmount: Number(order.receiveAmount),
                         counterpartyId: payerId,
                     },
+
+                    // Sender (Payer)
+                    senderName: payerDetails.name,
+                    senderAccount: payerDetails.account,
+                    senderBankName: payerDetails.bankName,
+                    senderAvatarUrl: payerDetails.avatarUrl,
+
+                    // Receiver
+                    receiverName: receiverDetails.name,
+                    receiverAccount: receiverDetails.account,
+                    receiverBankName: receiverDetails.bankName,
+                    receiverAvatarUrl: receiverDetails.avatarUrl,
                 },
             });
 
@@ -163,6 +196,18 @@ const fixStuckOrder = async (orderId: string) => {
                         currency: order.ad.currency,
                         fxAmount: order.amount,
                     },
+
+                    // Sender (Payer paying fee)
+                    senderName: payerDetails.name,
+                    senderAccount: payerDetails.account,
+                    senderBankName: payerDetails.bankName,
+                    senderAvatarUrl: payerDetails.avatarUrl,
+
+                    // Receiver (Revenue)
+                    receiverName: revenueDetails.name,
+                    receiverAccount: revenueDetails.account,
+                    receiverBankName: revenueDetails.bankName,
+                    receiverAvatarUrl: revenueDetails.avatarUrl,
                 },
             });
 

@@ -19,7 +19,6 @@ const startTransactionReconciliation = () => {
                     status: TransactionStatus.PENDING,
                     createdAt: { lt: tenMinutesAgo },
                 },
-                include: { wallet: true },
             });
 
             if (pendingTransactions.length === 0) return;
@@ -58,10 +57,13 @@ const startTransactionReconciliation = () => {
                                 },
                             });
 
-                            await prismaTx.wallet.update({
-                                where: { id: tx.walletId },
-                                data: { balance: { increment: Math.abs(Number(tx.amount)) } },
-                            });
+                            // Only refund if walletId exists
+                            if (tx.walletId) {
+                                await prismaTx.wallet.update({
+                                    where: { id: tx.walletId },
+                                    data: { balance: { increment: Math.abs(Number(tx.amount)) } },
+                                });
+                            }
                         });
                         logger.info(`Transaction ${tx.id} reconciled: FAILED (Refunded)`);
                     } else {

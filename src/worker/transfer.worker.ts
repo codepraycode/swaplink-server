@@ -25,7 +25,6 @@ const processTransfer = async (job: Job<TransferJobData>) => {
         // 1. Fetch Transaction
         const transaction = await prisma.transaction.findUnique({
             where: { id: transactionId },
-            include: { wallet: true },
         });
 
         if (!transaction) {
@@ -45,9 +44,9 @@ const processTransfer = async (job: Job<TransferJobData>) => {
         try {
             transferResponse = await globusService.transferFunds({
                 amount: Math.abs(Number(transaction.amount)), // Ensure positive number
-                destinationAccount: transaction.destinationAccount!,
-                destinationBankCode: transaction.destinationBankCode!,
-                destinationName: transaction.destinationName!,
+                destinationAccount: transaction.receiverAccount,
+                destinationBankCode: transaction.receiverBankCode || '',
+                destinationName: transaction.receiverName,
                 narration: transaction.description || 'Transfer',
                 reference: transaction.reference,
             });
@@ -71,6 +70,12 @@ const processTransfer = async (job: Job<TransferJobData>) => {
             },
         });
         logger.info(`Transfer ${transactionId} completed successfully`);
+
+        // Ensure userId is not null
+        if (!transaction.userId) {
+            logger.error(`Transaction ${transactionId} has no userId`);
+            return;
+        }
 
         // Emit Socket Event
         const newBalance = await walletService.getWalletBalance(transaction.userId);
@@ -121,6 +126,20 @@ const handleFailedJob = async (job: Job<TransferJobData> | undefined, err: Error
                 return;
             }
 
+            // Ensure userId and walletId are not null
+            if (!transaction.userId || !transaction.walletId) {
+                logger.error(`Transaction ${transactionId} has no userId or walletId`);
+                return;
+            }
+
+            // Import helper functions
+            const { getUserPartyDetails, buildSystemPartyDetails } =
+                await import('../shared/lib/utils/transaction-helpers');
+
+            // Get party details for reversals
+            const userDetails = await getUserPartyDetails(transaction.userId);
+            const systemDetails = buildSystemPartyDetails();
+
             // Execute Reversal Logic
             await prisma.$transaction(async tx => {
                 // 1. Mark Principal as FAILED
@@ -148,11 +167,22 @@ const handleFailedJob = async (job: Job<TransferJobData> | undefined, err: Error
                         reference: `REV-${transactionId}`,
                         description: `Reversal for ${transaction.reference}`,
                         metadata: { originalTransactionId: transactionId },
+
+                        // Sender (System reversing)
+                        senderName: systemDetails.name,
+                        senderAccount: systemDetails.account,
+                        senderBankName: systemDetails.bankName,
+
+                        // Receiver (User getting refund)
+                        receiverName: userDetails.name,
+                        receiverAccount: userDetails.account,
+                        receiverBankName: userDetails.bankName,
+                        receiverAvatarUrl: userDetails.avatarUrl,
                     },
                 });
 
                 await tx.wallet.update({
-                    where: { id: transaction.walletId },
+                    where: { id: transaction.walletId! },
                     data: { balance: { increment: Math.abs(Number(transaction.amount)) } },
                 });
 
@@ -162,7 +192,7 @@ const handleFailedJob = async (job: Job<TransferJobData> | undefined, err: Error
                     const feeTx = await tx.transaction.findUnique({
                         where: { id: metadata.feeTransactionId },
                     });
-                    if (feeTx) {
+                    if (feeTx && feeTx.walletId) {
                         // Mark Fee as FAILED (or REVERSED?)
                         // Usually we create a REVERSAL for the fee too.
                         await tx.transaction.create({
@@ -177,11 +207,22 @@ const handleFailedJob = async (job: Job<TransferJobData> | undefined, err: Error
                                 reference: `REV-${feeTx.reference}`,
                                 description: `Fee Reversal for ${transaction.reference}`,
                                 metadata: { originalTransactionId: feeTx.id },
+
+                                // Sender (System reversing)
+                                senderName: systemDetails.name,
+                                senderAccount: systemDetails.account,
+                                senderBankName: systemDetails.bankName,
+
+                                // Receiver (User getting fee refund)
+                                receiverName: userDetails.name,
+                                receiverAccount: userDetails.account,
+                                receiverBankName: userDetails.bankName,
+                                receiverAvatarUrl: userDetails.avatarUrl,
                             },
                         });
 
                         await tx.wallet.update({
-                            where: { id: transaction.walletId },
+                            where: { id: feeTx.walletId },
                             data: { balance: { increment: Math.abs(Number(feeTx.amount)) } },
                         });
                     }
@@ -192,7 +233,9 @@ const handleFailedJob = async (job: Job<TransferJobData> | undefined, err: Error
                     const revenueTx = await tx.transaction.findUnique({
                         where: { id: metadata.revenueTransactionId },
                     });
-                    if (revenueTx) {
+                    if (revenueTx && revenueTx.userId && revenueTx.walletId) {
+                        const revenueUserDetails = await getUserPartyDetails(revenueTx.userId);
+
                         // Create Debit for Revenue
                         await tx.transaction.create({
                             data: {
@@ -206,6 +249,17 @@ const handleFailedJob = async (job: Job<TransferJobData> | undefined, err: Error
                                 reference: `REV-${revenueTx.reference}`,
                                 description: `Revenue Reversal for ${transaction.reference}`,
                                 metadata: { originalTransactionId: revenueTx.id },
+
+                                // Sender (Revenue account being debited)
+                                senderName: revenueUserDetails.name,
+                                senderAccount: revenueUserDetails.account,
+                                senderBankName: revenueUserDetails.bankName,
+                                senderAvatarUrl: revenueUserDetails.avatarUrl,
+
+                                // Receiver (System)
+                                receiverName: systemDetails.name,
+                                receiverAccount: systemDetails.account,
+                                receiverBankName: systemDetails.bankName,
                             },
                         });
 
