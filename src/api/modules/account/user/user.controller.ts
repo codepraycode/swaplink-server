@@ -57,6 +57,39 @@ export class UserController {
         }
     }
 
+    static async updateAddress(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = JwtUtils.ensureAuthentication(req).userId;
+            const { address, city, state, country, postalCode } = req.body;
+
+            // Validate that proof of address document is uploaded
+            if (!req.file) {
+                throw new BadRequestError(
+                    'Proof of address document is required (utility bill or bank statement showing name and new address)'
+                );
+            }
+
+            // Upload the proof of address document
+            const proofOfAddressUrl = await storageService.uploadFile(req.file, 'proof-of-address');
+
+            // Update address with proof
+            const result = await UserService.updateAddress(
+                userId,
+                { address, city, state, country, postalCode },
+                proofOfAddressUrl
+            );
+
+            return sendSuccess(
+                res,
+                result,
+                'Address updated successfully. Your proof of address is pending review.'
+            );
+        } catch (error) {
+            console.error('Error updating address:', error);
+            next(error);
+        }
+    }
+
     static async updateAvatar(req: Request, res: Response, next: NextFunction) {
         try {
             const userId = req.user!.userId;

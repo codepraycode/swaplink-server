@@ -69,6 +69,20 @@ export const uploadProof = multer({
 });
 
 /**
+ * Proof of Address Document Uploader
+ * - Allows JPG, PNG, PDF (utility bills, bank statements)
+ * - Max 5MB
+ */
+export const uploadProofOfAddress = multer({
+    storage: storage,
+    limits: {
+        fileSize: uploadConfig.kyc.maxSize, // 5MB
+        files: 1,
+    },
+    fileFilter: createFilter(uploadConfig.kyc.allowedMimeTypes), // Allows images and PDF
+});
+
+/**
  * Unified KYC Uploader
  * - Handles ID Documents (Front/Back) and Selfie
  */

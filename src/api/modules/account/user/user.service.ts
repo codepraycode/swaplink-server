@@ -58,6 +58,107 @@ export class UserService {
         return updatedUser;
     }
 
+    /**
+     * Update user address with proof of address document
+     * @param userId User ID
+     * @param addressData Address information
+     * @param proofOfAddressUrl URL of uploaded proof of address document
+     */
+    static async updateAddress(
+        userId: string,
+        addressData: {
+            address?: string;
+            city?: string;
+            state?: string;
+            country?: string;
+            postalCode?: string;
+        },
+        proofOfAddressUrl: string
+    ): Promise<{
+        user: User;
+        kycInfo: {
+            id: string;
+            userId: string;
+            address?: string | null;
+            city?: string | null;
+            state?: string | null;
+            country?: string | null;
+            postalCode?: string | null;
+        };
+    }> {
+        // Validate that at least one address field is being updated
+        const hasAddressUpdate = Object.values(addressData).some(value => value !== undefined);
+        if (!hasAddressUpdate) {
+            throw new BadRequestError('At least one address field must be provided');
+        }
+
+        // Validate proof of address is provided
+        if (!proofOfAddressUrl) {
+            throw new BadRequestError(
+                'Proof of address document (utility bill or bank statement) is required when updating address'
+            );
+        }
+
+        // Check if user exists
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { kycInfo: true },
+        });
+
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+
+        // Update or create KYC info with new address and proof
+        const kycInfo = await prisma.kycInfo.upsert({
+            where: { userId },
+            create: {
+                userId,
+                ...addressData,
+            },
+            update: {
+                ...addressData,
+            },
+        });
+
+        // Create a KYC document record for the proof of address
+        await prisma.kycDocument.create({
+            data: {
+                kycInfoId: kycInfo.id,
+                documentType: 'PROOF_OF_ADDRESS',
+                documentUrl: proofOfAddressUrl,
+                status: 'PENDING', // Will need admin review
+            },
+        });
+
+        // Get updated user with KYC info
+        const updatedUser = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { kycInfo: true },
+        });
+
+        AuditService.log({
+            userId: userId,
+            action: 'ADDRESS_UPDATED',
+            resource: 'User',
+            resourceId: userId,
+            details: {
+                addressData,
+                proofOfAddressUrl,
+            },
+            status: 'SUCCESS',
+        });
+
+        return {
+            user: updatedUser!,
+            kycInfo,
+        };
+    }
+
+    /**
+     * @deprecated Use updateAddress instead. Name changes are no longer allowed.
+     * This method is kept for backward compatibility but will throw an error.
+     */
     static async updateProfile(
         userId: string,
         data: Partial<
@@ -83,6 +184,14 @@ export class UserService {
             >
         >
     ): Promise<User> {
+        // Block name changes
+        if (data.firstName || data.lastName) {
+            throw new BadRequestError(
+                'Name changes are not allowed. Please contact support if you need to update your name.'
+            );
+        }
+
+        // Only allow non-sensitive field updates (avatarUrl, etc.)
         const updatedUser = await prisma.user.update({
             where: { id: userId },
             data,

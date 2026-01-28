@@ -29,6 +29,7 @@
         "test:coverage": "cross-env NODE_ENV=test dotenv -e .env.test -- jest --coverage",
         "test:integration": "cross-env NODE_ENV=test dotenv -e .env.test -- jest --runInBand",
         "test:unit": "cross-env NODE_ENV=test IS_UNIT_TEST=true dotenv -e .env.test -- jest",
+        "test:emails": "cross-env NODE_ENV=development ts-node scripts/test-emails.ts",
         "lint": "eslint . --ext .ts",
         "lint:fix": "eslint . --ext .ts --fix"
     },
@@ -53,6 +54,7 @@
         "expo-server-sdk": "^4.0.0",
         "express": "5.1.0",
         "express-rate-limit": "8.2.1",
+        "handlebars": "^4.7.8",
         "helmet": "8.1.0",
         "ioredis": "5.8.2",
         "jsonwebtoken": "9.0.2",

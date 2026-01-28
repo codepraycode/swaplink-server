@@ -1,0 +1,18 @@
+{{#if isSubmitted}}
+    <p>We have received your KYC documents. Our compliance team is currently reviewing them.</p>
+    <p>This process usually takes 24-48 hours. We will notify you once the review is complete.</p>
+{{/if}}
+
+{{#if isSuccess}}
+    <p style='color: #27ae60; font-weight: bold; font-size: 18px;'>Congratulations! 🎉</p>
+    <p>Your identity has been verified successfully. Your account limits have been upgraded.</p>
+    <a href='{{dashboard_url}}' class='btn' style='color: #fff;'>Go to Dashboard</a>
+{{/if}}
+
+{{#if isFailed}}
+    <p style='color: #c0392b; font-weight: bold; font-size: 18px;'>Action Required ⚠️</p>
+    <p>Unfortunately, we could not verify your identity based on the documents provided.</p>
+    <p><strong>Reason:</strong> {{reason}}</p>
+    <p>Please log in and re-upload a clear copy of your document.</p>
+    <a href='{{kyc_url}}' class='btn' style='color: #fff;'>Retry KYC</a>
+{{/if}}

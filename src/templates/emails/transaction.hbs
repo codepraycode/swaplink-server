@@ -1,0 +1,47 @@
+{{#if isTransaction}}
+    <p>Please find below the details of your recent transaction:</p>
+
+    <table
+        width='100%'
+        cellpadding='10'
+        cellspacing='0'
+        style='background-color: #f9f9f9; border-radius: 5px; margin-top: 15px; border: 1px solid #eeeeee;'
+    >
+        <tr>
+            <td style='color: #666;'>Transaction Type</td>
+            <td style='font-weight: bold; text-align: right; color: {{color}};'>{{type}}</td>
+        </tr>
+        <tr>
+            <td style='color: #666;'>Amount</td>
+            <td style='font-weight: bold; text-align: right; font-size: 18px;'>{{currency}}
+                {{amount}}</td>
+        </tr>
+        <tr>
+            <td style='color: #666;'>Date</td>
+            <td style='text-align: right;'>{{date}}</td>
+        </tr>
+        <tr>
+            <td style='color: #666;'>Description</td>
+            <td style='text-align: right;'>{{description}}</td>
+        </tr>
+        <tr>
+            <td style='color: #666;'>Reference</td>
+            <td style='text-align: right; font-family: monospace;'>{{reference}}</td>
+        </tr>
+    </table>
+{{/if}}
+
+{{#if isPinChange}}
+    <p>Your transaction PIN was successfully <strong>{{action}}</strong> (Set/Reset).</p>
+    <p>If you did not perform this action, please contact support immediately to lock your account.</p>
+{{/if}}
+
+{{#if isWalletCreated}}
+    <p>Your wallet has been successfully created. You can now fund your account.</p>
+    <p><strong>Bank Name:</strong>
+        Globus Bank<br />
+        <strong>Account Number:</strong>
+        {{account_number}}<br />
+        <strong>Account Name:</strong>
+        {{account_name}}</p>
+{{/if}}
