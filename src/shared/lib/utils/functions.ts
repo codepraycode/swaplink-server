@@ -6,9 +6,39 @@ export function isEmpty(data: any) {
 
 export function formatUserInfo(user: any) {
     const { password: _, wallet, kycInfo, ...userWithoutPassword } = user;
+
+    // Format KYC information with all details including document URLs
+    const kycDetails = kycInfo
+        ? {
+              dob: kycInfo.dob,
+              address: kycInfo.address,
+              city: kycInfo.city,
+              state: kycInfo.state,
+              country: kycInfo.country,
+              postalCode: kycInfo.postalCode,
+              bvn: kycInfo.bvn,
+              nin: kycInfo.nin,
+              governmentId: kycInfo.governmentId,
+              selfieUrl: kycInfo.selfieUrl,
+              videoUrl: kycInfo.videoUrl,
+              // Map documents array to include all document details
+              documents: kycInfo.documents
+                  ? kycInfo.documents.map((doc: any) => ({
+                        id: doc.id,
+                        documentType: doc.documentType,
+                        documentUrl: doc.documentUrl,
+                        status: doc.status,
+                        rejectionReason: doc.rejectionReason,
+                        verifiedAt: doc.verifiedAt,
+                        createdAt: doc.createdAt,
+                    }))
+                  : [],
+          }
+        : null;
+
     return {
         ...userWithoutPassword,
-        kycAddress: kycInfo?.address || null,
+        kyc: kycDetails,
         wallet: wallet
             ? {
                   id: wallet.id,
