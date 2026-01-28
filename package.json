@@ -10,7 +10,7 @@
         "worker:staging": "cross-env STAGING=true ts-node-dev --respawn --transpile-only src/worker/index.ts",
         "dev:all": "concurrently -n \"API,WORKER\" -c \"blue,magenta\" \"pnpm run dev\" \"pnpm run worker\"",
         "dev:staging:all": "concurrently -n \"API,WORKER\" -c \"blue,magenta\" \"pnpm run dev:staging\" \"pnpm run worker:staging\"",
-        "build": "cross-env NODE_ENV=production pnpm run db:generate && tsc",
+        "build": "cross-env NODE_ENV=production pnpm run db:generate && tsc && cp -r src/templates dist/",
         "build:check": "tsc --noEmit",
         "start": "cross-env NODE_ENV=production node dist/api/server.js",
         "start:worker": "cross-env NODE_ENV=production node dist/worker/index.js",
