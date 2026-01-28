@@ -1,0 +1,4 @@
+-- AlterEnum
+ALTER TYPE "KycStatus" ADD VALUE IF NOT EXISTS 'STALE';
+
+

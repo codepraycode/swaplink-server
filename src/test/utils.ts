@@ -2,7 +2,7 @@
 import { faker } from '@faker-js/faker';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import prisma from '../lib/utils/database';
+import prisma from '../shared/lib/utils/database';
 
 export class TestUtils {
     static generateUserData(overrides = {}) {

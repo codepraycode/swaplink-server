@@ -1,0 +1,74 @@
+# Railway Environment Variables
+# Generated on: Wed Dec 17 04:35:08 PM WAT 2025
+# Copy these to your Railway service settings
+
+# ============================================
+# GENERATED SECRETS
+# ============================================
+JWT_SECRET=dZW4oVkUTg8c0uognWOjaLOWinsFzItclMNoHiR8Zc8=
+JWT_REFRESH_SECRET=ikxp/n3N2n9kXKVc4pQkg42IBMbiuaMLE73tsxGc2sk=
+
+# ============================================
+# APPLICATION CONFIGURATION
+# ============================================
+NODE_ENV=production
+STAGING=true
+PORT=3000
+SERVER_URL=https://your-app-name.railway.app
+ENABLE_FILE_LOGGING=false
+
+# ============================================
+# DATABASE (Auto-provided by Railway)
+# ============================================
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+
+# ============================================
+# REDIS (Auto-provided by Railway)
+# ============================================
+REDIS_URL=${{Redis.REDIS_URL}}
+REDIS_PORT=6379
+
+# ============================================
+# JWT CONFIGURATION
+# ============================================
+JWT_ACCESS_EXPIRATION=15m
+JWT_REFRESH_EXPIRATION=7d
+
+# ============================================
+# EMAIL CONFIGURATION (RESEND)
+# ============================================
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=587
+SMTP_USER=resend
+SMTP_PASSWORD=REPLACE_WITH_RESEND_API_KEY
+EMAIL_TIMEOUT=10000
+FROM_EMAIL=onboarding@swaplink.com
+RESEND_API_KEY=REPLACE_WITH_RESEND_API_KEY
+
+# ============================================
+# FRONTEND CONFIGURATION
+# ============================================
+FRONTEND_URL=https://swaplink.app
+CORS_URLS=https://swaplink.app,https://app.swaplink.com
+
+# ============================================
+# STORAGE CONFIGURATION
+# ============================================
+AWS_ACCESS_KEY_ID=REPLACE_WITH_YOUR_ACCESS_KEY
+AWS_SECRET_ACCESS_KEY=REPLACE_WITH_YOUR_SECRET_KEY
+AWS_REGION=us-east-1
+AWS_BUCKET_NAME=swaplink-staging
+AWS_ENDPOINT=REPLACE_WITH_S3_ENDPOINT
+
+# ============================================
+# SYSTEM CONFIGURATION
+# ============================================
+SYSTEM_USER_ID=system-wallet-user
+
+# ============================================
+# GLOBUS BANK (OPTIONAL)
+# ============================================
+GLOBUS_SECRET_KEY=
+GLOBUS_WEBHOOK_SECRET=
+GLOBUS_BASE_URL=
+GLOBUS_CLIENT_ID=

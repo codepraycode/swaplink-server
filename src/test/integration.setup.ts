@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import logger from '../lib/utils/logger';
+import logger from '../shared/lib/utils/logger';
 
 // Global setup for integration tests
 export default async function globalSetup() {

@@ -1,0 +1,73 @@
+2025-12-19T09:50:39.000000000Z [inf]  Starting Container
+2025-12-19T09:50:40.277217969Z [inf]  [2025-12-19 09:50:39] [32minfo[39m: [32m✅ Using Mailtrap Email Service (Staging - API)[39m
+2025-12-19T09:50:40.277227549Z [inf]  [2025-12-19 09:50:39] [32minfo[39m: [32m📧 FROM_EMAIL configured as: onboarding@resend.dev[39m
+2025-12-19T09:50:40.277314269Z [inf]  [2025-12-19 09:50:39] [32minfo[39m: [32m🧪 Staging mode: Initializing Mailtrap Email Service (API)[39m
+2025-12-19T09:50:40.490338625Z [err]  (node:1) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+2025-12-19T09:50:40.490344754Z [err]  no longer support Node.js v18.20.8 in January 2026.
+2025-12-19T09:50:40.490350814Z [err]  
+2025-12-19T09:50:40.490355249Z [err]  To continue receiving updates to AWS services, bug fixes, and security
+2025-12-19T09:50:40.490359575Z [err]  updates please upgrade to a supported Node.js LTS version.
+2025-12-19T09:50:40.490378962Z [err]  
+2025-12-19T09:50:40.490383868Z [err]  More information can be found at: https://a.co/c895JFp
+2025-12-19T09:50:40.490388238Z [err]  (Use `node --trace-warnings ...` to show where the warning was created)
+2025-12-19T09:50:40.611265185Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32mRedis connected successfully[39m
+2025-12-19T09:50:40.622542945Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32mRedis client is ready[39m
+2025-12-19T09:50:40.857442062Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m  ✅ P2P Order Queue initialized[39m
+2025-12-19T09:50:40.857452402Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m  ✅ Notification Queue initialized[39m
+2025-12-19T09:50:40.857460060Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m✅ All queues initialized successfully[39m
+2025-12-19T09:50:40.857462163Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m✅ Database connected successfully[39m
+2025-12-19T09:50:40.857467510Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m🔄 Initializing services...[39m
+2025-12-19T09:50:40.857470434Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m🔄 Starting HTTP server...[39m
+2025-12-19T09:50:40.857472683Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m🔄 Initializing BullMQ queues...[39m
+2025-12-19T09:50:40.857477676Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m  ✅ Onboarding Queue initialized[39m
+2025-12-19T09:50:40.857478504Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m🚀 Server running in production mode on port 3000[39m
+2025-12-19T09:50:40.857482156Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m  ✅ Transfer Queue initialized[39m
+2025-12-19T09:50:40.857487011Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m✅ Socket.io initialized[39m
+2025-12-19T09:50:40.857487491Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m  ✅ Banking Queue initialized[39m
+2025-12-19T09:50:40.857493341Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m✅ P2P Chat Gateway initialized[39m
+2025-12-19T09:50:40.857498835Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m✅ All services initialized successfully[39m
+2025-12-19T09:50:40.868187411Z [inf]  [2025-12-19 09:50:40] [32minfo[39m: [32m✅ Subscribed to socket-events Redis channel[39m
+2025-12-19T09:51:40.933596923Z [inf]      at async AuthService.sendOtp (/app/dist/api/modules/auth/auth.service.js:126:9)
+2025-12-19T09:51:40.933606201Z [inf]      at async AuthController.sendEmailOtp (/app/dist/api/modules/auth/auth.controller.js:92:32)
+2025-12-19T09:51:40.933614034Z [inf]  [2025-12-19 09:51:35] [33mwarn[39m: [33m[BadGatewayError] Mailtrap Error: Unauthorized[39m
+2025-12-19T09:51:40.933620206Z [inf]  { statusCode: [33m502[39m, data: [90mundefined[39m }
+2025-12-19T09:51:40.933633749Z [inf]  [2025-12-19 09:51:33] [33mwarn[39m: [33m[UnauthorizedError] Invalid or expired access token[39m
+2025-12-19T09:51:40.933639938Z [inf]  { statusCode: [33m401[39m, data: [90mundefined[39m }
+2025-12-19T09:51:40.933646005Z [inf]  [2025-12-19 09:51:34] [32minfo[39m: [32m[Mailtrap] Attempting to send email to preciousbusiness10@gmail.com from onboarding@resend.dev[39m
+2025-12-19T09:51:40.933652157Z [inf]  [2025-12-19 09:51:35] [31merror[39m: [31m[Mailtrap] Exception sending email to preciousbusiness10@gmail.com: Unauthorized[39m
+2025-12-19T09:51:40.933659720Z [inf]  Error: Unauthorized
+2025-12-19T09:51:40.933665948Z [inf]      at handleSendingError (/app/node_modules/.pnpm/mailtrap@4.4.0_@types+nodemailer@7.0.4_nodemailer@7.0.11/node_modules/mailtrap/dist/lib/axios-logger.js:165:15)
+2025-12-19T09:51:40.933671869Z [inf]      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-19T09:51:40.933677409Z [inf]      at async Axios.request (/app/node_modules/.pnpm/axios@1.13.2/node_modules/axios/dist/node/axios.cjs:4726:14)
+2025-12-19T09:51:40.933682975Z [inf]      at async MailtrapEmailService.sendEmail (/app/dist/shared/lib/services/email-service/mailtrap-email.service.js:29:30)
+2025-12-19T09:51:40.933690340Z [inf]      at async OtpService.sendOtp (/app/dist/shared/lib/services/otp.service.js:67:17)
+2025-12-19T09:51:40.933696048Z [inf]      at async OtpService.generateOtp (/app/dist/shared/lib/services/otp.service.js:43:13)
+2025-12-19T09:51:40.934159952Z [inf]  [2025-12-19 09:51:35] [31merror[39m: [31m[OTP] Failed to send OTP to preciousbusiness10@gmail.com: Mailtrap Error: Unauthorized[39m
+2025-12-19T09:51:40.934169444Z [inf]  Error: Mailtrap Error: Unauthorized
+2025-12-19T09:51:40.934176161Z [inf]      at MailtrapEmailService.sendEmail (/app/dist/shared/lib/services/email-service/mailtrap-email.service.js:48:19)
+2025-12-19T09:51:40.934182549Z [inf]      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-19T09:51:40.934191171Z [inf]      at async OtpService.sendOtp (/app/dist/shared/lib/services/otp.service.js:67:17)
+2025-12-19T09:51:40.934198082Z [inf]      at async OtpService.generateOtp (/app/dist/shared/lib/services/otp.service.js:43:13)
+2025-12-19T09:51:40.934204101Z [inf]      at async AuthService.sendOtp (/app/dist/api/modules/auth/auth.service.js:126:9)
+2025-12-19T09:51:40.934210142Z [inf]      at async AuthController.sendEmailOtp (/app/dist/api/modules/auth/auth.controller.js:92:32)
+2025-12-19T09:53:21.235104692Z [inf]  [2025-12-19 09:53:16] [32minfo[39m: [32m[Mailtrap] Attempting to send email to preciousbusiness10@gmail.com from onboarding@resend.dev[39m
+2025-12-19T09:53:21.235111192Z [inf]  [2025-12-19 09:53:16] [31merror[39m: [31m[Mailtrap] Exception sending email to preciousbusiness10@gmail.com: Unauthorized[39m
+2025-12-19T09:53:21.235116653Z [inf]  Error: Unauthorized
+2025-12-19T09:53:21.235121991Z [inf]      at handleSendingError (/app/node_modules/.pnpm/mailtrap@4.4.0_@types+nodemailer@7.0.4_nodemailer@7.0.11/node_modules/mailtrap/dist/lib/axios-logger.js:165:15)
+2025-12-19T09:53:21.235127669Z [inf]      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-19T09:53:21.235134117Z [inf]      at async Axios.request (/app/node_modules/.pnpm/axios@1.13.2/node_modules/axios/dist/node/axios.cjs:4726:14)
+2025-12-19T09:53:21.235139444Z [inf]      at async MailtrapEmailService.sendEmail (/app/dist/shared/lib/services/email-service/mailtrap-email.service.js:29:30)
+2025-12-19T09:53:21.235145096Z [inf]      at async OtpService.sendOtp (/app/dist/shared/lib/services/otp.service.js:67:17)
+2025-12-19T09:53:21.235150375Z [inf]      at async OtpService.generateOtp (/app/dist/shared/lib/services/otp.service.js:43:13)
+2025-12-19T09:53:21.235156015Z [inf]      at async AuthService.sendOtp (/app/dist/api/modules/auth/auth.service.js:126:9)
+2025-12-19T09:53:21.235161267Z [inf]      at async AuthController.sendEmailOtp (/app/dist/api/modules/auth/auth.controller.js:92:32)
+2025-12-19T09:53:21.235166343Z [inf]  [2025-12-19 09:53:16] [33mwarn[39m: [33m[BadGatewayError] Mailtrap Error: Unauthorized[39m
+2025-12-19T09:53:21.235171859Z [inf]  { statusCode: [33m502[39m, data: [90mundefined[39m }
+2025-12-19T09:53:21.235179620Z [inf]  [2025-12-19 09:53:16] [31merror[39m: [31m[OTP] Failed to send OTP to preciousbusiness10@gmail.com: Mailtrap Error: Unauthorized[39m
+2025-12-19T09:53:21.235185169Z [inf]  Error: Mailtrap Error: Unauthorized
+2025-12-19T09:53:21.235315146Z [inf]      at MailtrapEmailService.sendEmail (/app/dist/shared/lib/services/email-service/mailtrap-email.service.js:48:19)
+2025-12-19T09:53:21.235320817Z [inf]      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-19T09:53:21.235326459Z [inf]      at async OtpService.sendOtp (/app/dist/shared/lib/services/otp.service.js:67:17)
+2025-12-19T09:53:21.235331770Z [inf]      at async OtpService.generateOtp (/app/dist/shared/lib/services/otp.service.js:43:13)
+2025-12-19T09:53:21.235337343Z [inf]      at async AuthService.sendOtp (/app/dist/api/modules/auth/auth.service.js:126:9)
+2025-12-19T09:53:21.235342711Z [inf]      at async AuthController.sendEmailOtp (/app/dist/api/modules/auth/auth.controller.js:92:32)
