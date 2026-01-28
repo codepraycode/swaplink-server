@@ -32,6 +32,7 @@ export interface KycEmailStatus {
     // Wallet details (only for success)
     account_number?: string;
     account_name?: string;
+    bank_name?: string;
 }
 
 export interface TransactionEmailData {
@@ -45,6 +46,7 @@ export interface TransactionEmailData {
     date?: string;
     description?: string;
     reference?: string;
+    status?: string; // SUCCESS, FAILED, PENDING
     color?: string; // For transaction type color
     // Pin change details
     action?: string; // Set, Reset

@@ -6,6 +6,19 @@
 {{#if isSuccess}}
     <p style='color: #27ae60; font-weight: bold; font-size: 18px;'>Congratulations! 🎉</p>
     <p>Your identity has been verified successfully. Your account limits have been upgraded.</p>
+
+    {{#if account_number}}
+        <div
+            style='background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #eeeeee;'
+        >
+            <p style='margin-top: 0; margin-bottom: 10px; font-weight: bold; color: #4b0082;'>Your
+                Wallet Details:</p>
+            <p style='margin: 5px 0;'><strong>Bank Name:</strong> {{bank_name}}</p>
+            <p style='margin: 5px 0;'><strong>Account Number:</strong> {{account_number}}</p>
+            <p style='margin: 5px 0;'><strong>Account Name:</strong> {{account_name}}</p>
+        </div>
+    {{/if}}
+
     <a href='{{dashboard_url}}' class='btn' style='color: #fff;'>Go to Dashboard</a>
 {{/if}}
 

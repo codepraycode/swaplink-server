@@ -75,8 +75,10 @@ async function testKycSubmittedEmail() {
     console.log(`${colors.blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}`);
 
     try {
-        // This will be implemented after we create the new email methods
-        console.log(`${colors.yellow}⚠️  KYC Submitted Email - To be implemented${colors.reset}`);
+        await emailService.sendKycStatusEmail(TEST_EMAIL, TEST_NAME, {
+            isSubmitted: true,
+        });
+        console.log(`${colors.green}✅ KYC Submitted Email sent successfully${colors.reset}`);
     } catch (error) {
         console.error(`${colors.red}❌ KYC Submitted Email failed:${colors.reset}`, error);
     }
@@ -88,12 +90,14 @@ async function testKycSuccessEmail() {
     console.log(`${colors.blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}`);
 
     try {
-        // This will be implemented after we create the new email methods
-        console.log(`${colors.yellow}⚠️  KYC Success Email - To be implemented${colors.reset}`);
-        console.log(`${colors.yellow}    Will include wallet details:${colors.reset}`);
-        console.log(`${colors.yellow}    - Account Number: 1234567890${colors.reset}`);
-        console.log(`${colors.yellow}    - Account Name: ${TEST_NAME}${colors.reset}`);
-        console.log(`${colors.yellow}    - Bank Name: Globus Bank${colors.reset}`);
+        await emailService.sendKycStatusEmail(TEST_EMAIL, TEST_NAME, {
+            isSuccess: true,
+            account_number: '1234567890',
+            account_name: TEST_NAME,
+            bank_name: 'Globus Bank',
+            dashboard_url: `${FRONTEND_URL}/dashboard`,
+        });
+        console.log(`${colors.green}✅ KYC Success Email sent successfully${colors.reset}`);
     } catch (error) {
         console.error(`${colors.red}❌ KYC Success Email failed:${colors.reset}`, error);
     }
@@ -105,9 +109,12 @@ async function testKycFailedEmail() {
     console.log(`${colors.blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}`);
 
     try {
-        // This will be implemented after we create the new email methods
-        console.log(`${colors.yellow}⚠️  KYC Failed Email - To be implemented${colors.reset}`);
-        console.log(`${colors.yellow}    Reason: Document not clear enough${colors.reset}`);
+        await emailService.sendKycStatusEmail(TEST_EMAIL, TEST_NAME, {
+            isFailed: true,
+            reason: 'Document not clear enough',
+            dashboard_url: `${FRONTEND_URL}/dashboard`,
+        });
+        console.log(`${colors.green}✅ KYC Failed Email sent successfully${colors.reset}`);
     } catch (error) {
         console.error(`${colors.red}❌ KYC Failed Email failed:${colors.reset}`, error);
     }
@@ -119,11 +126,17 @@ async function testTransactionEmail() {
     console.log(`${colors.blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}`);
 
     try {
-        // This will be implemented after we create the new email methods
-        console.log(`${colors.yellow}⚠️  Transaction Email - To be implemented${colors.reset}`);
-        console.log(`${colors.yellow}    Type: CREDIT${colors.reset}`);
-        console.log(`${colors.yellow}    Amount: NGN 50,000.00${colors.reset}`);
-        console.log(`${colors.yellow}    Reference: TXN-123456789${colors.reset}`);
+        await emailService.sendTransactionEmail(TEST_EMAIL, TEST_NAME, {
+            isTransaction: true,
+            type: 'CREDIT',
+            amount: '50,000.00',
+            currency: 'NGN',
+            reference: 'TXN-123456789',
+            date: new Date().toLocaleString(),
+            status: 'SUCCESS',
+            description: 'Transfer from John Doe',
+        });
+        console.log(`${colors.green}✅ Transaction Email sent successfully${colors.reset}`);
     } catch (error) {
         console.error(`${colors.red}❌ Transaction Email failed:${colors.reset}`, error);
     }
