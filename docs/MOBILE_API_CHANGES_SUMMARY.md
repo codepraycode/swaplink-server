@@ -8,7 +8,64 @@
 
 ## 🚨 Breaking Changes
 
-### 1. Payment Methods (P2P)
+### 1. User Object Update
+
+#### What Changed
+
+- **kycAddress** field added to the user object returned by `me` and `login` endpoints.
+- This field is populated from the user's KYC information if available.
+
+#### Mobile Action Required
+
+- Update user interface to display `kycAddress` where appropriate.
+
+#### New User Object Structure
+
+```typescript
+interface UserResponse {
+    id: string;
+    email: string | null;
+    phone: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl: string | null;
+    kycLevel: 'NONE' | 'BASIC' | 'INTERMEDIATE' | 'FULL';
+    kycStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'STALE';
+    isVerified: boolean;
+    emailVerified: boolean;
+    phoneVerified: boolean;
+    isActive: boolean;
+    twoFactorEnabled: boolean;
+    pushToken: string | null;
+    flagType: 'NONE' | 'KYC_LIMIT' | 'SUSPICIOUS' | 'FRAUD' | 'MANUAL';
+    flagReason: string | null;
+    flaggedAt: string | null; // ISO Date String
+    lastLogin: string | null; // ISO Date String
+    createdAt: string; // ISO Date String
+    updatedAt: string; // ISO Date String
+    transactionPin: string | null;
+    pinAttempts: number;
+    pinLockedUntil: string | null; // ISO Date String
+    deviceId: string | null;
+    cumulativeInflow: string; // Decimal string
+    role: 'USER' | 'SUPPORT' | 'ADMIN' | 'SUPER_ADMIN';
+
+    // ✅ New Field
+    kycAddress: string | null;
+
+    // Wallet object (if included)
+    wallet: {
+        id: string;
+        balance: number;
+        lockedBalance: number;
+        accountNumber?: string;
+        bankName?: string;
+        accountName?: string;
+    } | null;
+}
+```
+
+### 2. Payment Methods (P2P)
 
 #### What Changed
 

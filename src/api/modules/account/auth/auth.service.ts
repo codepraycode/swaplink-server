@@ -238,6 +238,7 @@ class AuthService {
                 wallet: {
                     include: { virtualAccount: true },
                 },
+                kycInfo: true,
             },
         });
 
@@ -365,6 +366,7 @@ class AuthService {
                 wallet: {
                     include: { virtualAccount: true },
                 },
+                kycInfo: true,
             },
         });
 

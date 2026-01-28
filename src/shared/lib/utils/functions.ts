@@ -5,9 +5,10 @@ export function isEmpty(data: any) {
 }
 
 export function formatUserInfo(user: any) {
-    const { password: _, wallet, ...userWithoutPassword } = user;
+    const { password: _, wallet, kycInfo, ...userWithoutPassword } = user;
     return {
         ...userWithoutPassword,
+        kycAddress: kycInfo?.address || null,
         wallet: wallet
             ? {
                   id: wallet.id,
