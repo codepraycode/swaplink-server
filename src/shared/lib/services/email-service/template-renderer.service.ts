@@ -63,10 +63,18 @@ export class TemplateRendererService {
                 year: new Date().getFullYear(),
             });
 
-            // Cache the compiled template if caching is enabled
+            // Cache the compiled template if caching is enabled.
+            // Store a rendering function that renders the content template
+            // into the layout so subsequent renders still include `body`.
             if (this.cacheEnabled) {
-                const compiledTemplate = Handlebars.compile(layoutContent);
-                this.templateCache.set(cacheKey, compiledTemplate);
+                const cachedRenderer = (d: any) => {
+                    const content = contentTemplate(d);
+                    return layoutTemplate({ ...d, body: content, year: new Date().getFullYear() });
+                };
+                this.templateCache.set(
+                    cacheKey,
+                    cachedRenderer as unknown as HandlebarsTemplateDelegate
+                );
             }
 
             return finalHtml;

@@ -60,7 +60,7 @@ const processEmail = async (job: Job<SendEmailJob>) => {
                     await (emailProvider as any).sendWalletCreatedEmail(to, data.name, data);
                 } else {
                     logger.warn(
-                        `[Email Worker] sendWalletCreatedEmail not implemented in ${emailProvider.constructor.name}`
+                        `[Email Worker] sendWalletCreatedEmail not implemented in ${(emailProvider as any).constructor.name}`
                     );
                 }
                 break;
