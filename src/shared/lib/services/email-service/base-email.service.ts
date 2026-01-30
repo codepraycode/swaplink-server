@@ -1,4 +1,9 @@
-import { TemplatedEmailOptions, KycEmailStatus, TransactionEmailData } from './email.types';
+import {
+    TemplatedEmailOptions,
+    KycEmailStatus,
+    TransactionEmailData,
+    WalletEmailData,
+} from './email.types';
 
 export interface EmailOptions {
     to: string;
@@ -31,4 +36,5 @@ export abstract class BaseEmailService {
         resetUrl: string,
         duration: number
     ): Promise<void>;
+    abstract sendWalletCreatedEmail(to: string, name: string, data: WalletEmailData): Promise<void>;
 }

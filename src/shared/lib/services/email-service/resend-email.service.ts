@@ -4,7 +4,12 @@ import logger from '../../utils/logger';
 import { envConfig } from '../../../config/env.config';
 import { BadGatewayError } from '../../utils/api-error';
 import { templateRenderer } from './template-renderer.service';
-import { TemplatedEmailOptions, KycEmailStatus, TransactionEmailData } from './email.types';
+import {
+    TemplatedEmailOptions,
+    KycEmailStatus,
+    TransactionEmailData,
+    WalletEmailData,
+} from './email.types';
 
 export class ResendEmailService extends BaseEmailService {
     private resend: Resend;
@@ -102,7 +107,7 @@ export class ResendEmailService extends BaseEmailService {
                 subject: 'Verify Your Email - BCDees Global',
                 html,
             });
-        } catch (error) {
+        } catch {
             logger.warn('Template rendering failed, using fallback HTML');
             // Fallback to hardcoded HTML
             const fallbackHtml = `
@@ -130,9 +135,9 @@ export class ResendEmailService extends BaseEmailService {
                 subject: 'Your KYC Status - BCDees Global',
                 html,
             });
-        } catch (error) {
+        } catch (_error) {
             logger.warn('Template rendering failed for KYC status email');
-            throw error;
+            throw _error;
         }
     }
 
@@ -152,9 +157,9 @@ export class ResendEmailService extends BaseEmailService {
                 subject: 'Transaction Alert - BCDees Global',
                 html,
             });
-        } catch (error) {
+        } catch (_error) {
             logger.warn('Template rendering failed for transaction email');
-            throw error;
+            throw _error;
         }
     }
 
@@ -170,25 +175,44 @@ export class ResendEmailService extends BaseEmailService {
                 name,
                 reset_url: resetUrl,
                 duration,
+                otp: 'CODE', // Placeholder if template expects it, but we updated template to use {{otp}}
             });
             return this.sendEmail({
                 to,
                 subject: 'Password Reset Request - BCDees Global',
                 html,
             });
-        } catch (error) {
+        } catch {
             logger.warn('Template rendering failed, using fallback HTML');
             // Fallback to hardcoded HTML
             const fallbackHtml = `
                 <h2>Password Reset</h2>
-                <p>Click here to reset your password: <a href="${resetUrl}">${resetUrl}</a></p>
-                <p>This link expires in ${duration} minutes.</p>
+                <p>Use this code to reset your password: <strong>CODE</strong></p>
+                <p>This code expires in ${duration} minutes.</p>
             `;
             return this.sendEmail({
                 to,
                 subject: 'Password Reset Request - BCDees Global',
                 html: fallbackHtml,
             });
+        }
+    }
+
+    async sendWalletCreatedEmail(to: string, name: string, data: WalletEmailData): Promise<void> {
+        try {
+            const html = await templateRenderer.renderTemplate('wallet-created', {
+                title: 'Wallet Created - BCDees Global',
+                name,
+                ...data,
+            });
+            return this.sendEmail({
+                to,
+                subject: 'Wallet Created - BCDees Global',
+                html,
+            });
+        } catch (_error) {
+            logger.warn('Template rendering failed for wallet created email');
+            throw _error;
         }
     }
 
@@ -206,14 +230,14 @@ export class ResendEmailService extends BaseEmailService {
             const html = await templateRenderer.renderTemplate('welcome', {
                 title: 'Welcome to BCDees Global!',
                 name,
-                login_url: `${envConfig.FRONTEND_URL}/login`,
+                login_url: `#`,
             });
             return this.sendEmail({
                 to,
                 subject: 'Welcome to BCDees Global!',
                 html,
             });
-        } catch (error) {
+        } catch {
             logger.warn('Template rendering failed, using fallback HTML');
             const fallbackHtml = `
                 <h2>Welcome, ${name}!</h2>
@@ -227,8 +251,8 @@ export class ResendEmailService extends BaseEmailService {
         }
     }
 
-    async sendPasswordResetLink(email: string, resetToken: string): Promise<void> {
-        const resetUrl = `${envConfig.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    async sendPasswordResetLink(email: string, _resetToken: string): Promise<void> {
+        const resetUrl = `#`;
         return this.sendPasswordResetEmail(email, 'User', resetUrl, 30);
     }
 
@@ -236,7 +260,7 @@ export class ResendEmailService extends BaseEmailService {
         // This can be merged with KYC success email
         return this.sendKycStatusEmail(to, name, {
             isSuccess: true,
-            dashboard_url: `${envConfig.FRONTEND_URL}/dashboard`,
+            dashboard_url: `#`,
         });
     }
 }

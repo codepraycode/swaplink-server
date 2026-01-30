@@ -13,6 +13,7 @@
 
 import { emailService } from '../src/shared/lib/services/email-service/email.service';
 import logger from '../src/shared/lib/utils/logger';
+import { initializeQueues, closeQueues } from '../src/shared/lib/init/service-initializer';
 
 // Test data
 const TEST_EMAIL = process.env.TEST_EMAIL || 'test@bcdees.com';
@@ -156,6 +157,9 @@ async function runAllTests() {
     console.log(`${colors.yellow}Test Name:${colors.reset} ${TEST_NAME}`);
     console.log(`${colors.yellow}Email Service:${colors.reset} ${emailService.constructor.name}`);
 
+    // Initialize Queues
+    await initializeQueues();
+
     // Run all tests
     await testOtpEmail();
     await testWelcomeEmail();
@@ -180,8 +184,9 @@ async function runAllTests() {
 
 // Run tests
 runAllTests()
-    .then(() => {
+    .then(async () => {
         console.log(`${colors.green}Exiting...${colors.reset}`);
+        await closeQueues();
         process.exit(0);
     })
     .catch(error => {

@@ -66,6 +66,11 @@ export interface WalletEmailData {
     account_name: string;
 }
 
+export interface GenericEmailData {
+    subject: string;
+    html: string;
+}
+
 // Email job types for queue
 export type EmailJobType =
     | 'otp'
@@ -73,7 +78,8 @@ export type EmailJobType =
     | 'kyc-status'
     | 'transaction'
     | 'password-reset'
-    | 'wallet-created';
+    | 'wallet-created'
+    | 'generic';
 
 export interface SendEmailJob {
     type: EmailJobType;

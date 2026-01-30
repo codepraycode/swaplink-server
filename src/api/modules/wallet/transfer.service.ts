@@ -1,4 +1,5 @@
-import { prisma, TransactionType, NotificationType } from '../../../shared/database';
+import { prisma, TransactionType } from '../../../shared/database';
+import { eventBus, EventType } from '../../../shared/lib/events/event-bus';
 import { nameEnquiryService } from './name-enquiry.service';
 import { beneficiaryService } from './beneficiary.service';
 import {
@@ -12,7 +13,6 @@ import { randomUUID } from 'crypto';
 import logger from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
 import { walletService as sharedWalletService } from '../../../shared/lib/services/wallet.service';
-import { NotificationService } from '../notification/notification.service';
 import { getTransferQueue } from '../../../shared/lib/init/service-initializer';
 import { redisConnection } from '../../../shared/config/redis.config';
 
@@ -283,31 +283,29 @@ export class TransferService {
         });
         socketService.emitToUser(receiverWallet.userId, 'TRANSACTION_CREATED', results[2]);
 
-        // Send Push Notification to Receiver
-        await NotificationService.sendToUser(
-            receiverWallet.userId,
-            'Credit Alert',
-            `You received ₦${amount.toLocaleString()} from ${senderName}`,
-            {
-                transactionId: senderTx.id,
-                type: 'DEPOSIT',
-                sender: { name: senderName, id: senderWallet.userId },
-            },
-            NotificationType.TRANSACTION
-        );
+        // Emit Event for Receiver (Credit Alert)
+        eventBus.publish(EventType.TRANSACTION_COMPLETED, {
+            userId: receiverWallet.userId,
+            amount,
+            type: 'DEPOSIT',
+            counterpartyName: senderName,
+            reference: results[2].reference, // Credit Tx Reference
+            description: results[2].description,
+            status: 'SUCCESS',
+            date: new Date(),
+        });
 
-        // Send Push Notification to Sender
-        await NotificationService.sendToUser(
-            senderWallet.userId,
-            'Debit Alert',
-            `You sent ₦${amount.toLocaleString()} to ${destination.accountName}`,
-            {
-                transactionId: senderTx.id,
-                type: 'DEBIT',
-                sender: { name: senderName, id: senderWallet.userId },
-            },
-            NotificationType.TRANSACTION
-        );
+        // Emit Event for Sender (Debit Alert)
+        eventBus.publish(EventType.TRANSACTION_COMPLETED, {
+            userId: senderWallet.userId,
+            amount,
+            type: 'TRANSFER', // Treated as DEBIT by listener
+            counterpartyName: destination.accountName,
+            reference: senderTx.reference,
+            description: senderTx.description,
+            status: 'SUCCESS',
+            date: new Date(),
+        });
 
         return {
             message: 'Transfer successful',

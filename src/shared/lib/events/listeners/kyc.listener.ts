@@ -1,7 +1,9 @@
 import { eventBus, EventType } from '../event-bus';
 import NotificationUtil from '../../services/notification/notification-utils';
-import { NotificationType, NotificationChannel } from '../../../database';
+import { NotificationType, NotificationChannel, prisma } from '../../../database';
 import logger from '../../utils/logger';
+import { emailService } from '../../services/email-service/email.service';
+import { envConfig } from '../../../config/env.config';
 
 export function setupKycListeners() {
     // KYC Submitted
@@ -16,6 +18,19 @@ export function setupKycListeners() {
             NotificationType.KYC,
             NotificationChannel.INAPP
         );
+
+        // Send Email
+        try {
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (user && user.email) {
+                await emailService.sendKycStatusEmail(user.email, user.firstName, {
+                    isSubmitted: true,
+                    dashboard_url: `${envConfig.FRONTEND_URL}/dashboard`,
+                });
+            }
+        } catch (error) {
+            logger.error(`[KYC Listener] Failed to send email for user ${userId}`, error);
+        }
 
         // TODO: Notify Admin (e.g., via Slack or Admin Dashboard Notification)
         logger.info(`[KYC Listener] Admin Alert: User ${userId} submitted KYC.`);
@@ -33,6 +48,26 @@ export function setupKycListeners() {
             NotificationType.KYC,
             NotificationChannel.PUSH
         );
+
+        // Send Email
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { wallet: { include: { virtualAccount: true } } },
+            });
+            if (user && user.email) {
+                const virtualAccount = user.wallet?.virtualAccount;
+                await emailService.sendKycStatusEmail(user.email, user.firstName, {
+                    isSuccess: true,
+                    dashboard_url: `${envConfig.FRONTEND_URL}/dashboard`,
+                    account_number: virtualAccount?.accountNumber,
+                    account_name: virtualAccount?.accountName,
+                    bank_name: virtualAccount?.bankName,
+                });
+            }
+        } catch (error) {
+            logger.error(`[KYC Listener] Failed to send email for user ${userId}`, error);
+        }
     });
 
     // KYC Rejected
@@ -47,5 +82,19 @@ export function setupKycListeners() {
             NotificationType.KYC,
             NotificationChannel.PUSH
         );
+
+        // Send Email
+        try {
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (user && user.email) {
+                await emailService.sendKycStatusEmail(user.email, user.firstName, {
+                    isFailed: true,
+                    reason,
+                    dashboard_url: `${envConfig.FRONTEND_URL}/dashboard`,
+                });
+            }
+        } catch (error) {
+            logger.error(`[KYC Listener] Failed to send email for user ${userId}`, error);
+        }
     });
 }

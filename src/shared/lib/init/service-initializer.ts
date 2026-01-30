@@ -25,6 +25,7 @@ let p2pOrderQueue: Queue | null = null;
 let notificationQueue: Queue | null = null;
 let kycQueue: Queue | null = null;
 let p2pAdCleanupQueue: Queue | null = null;
+let emailQueue: Queue | null = null;
 
 /**
  * Initialize all BullMQ queues
@@ -145,6 +146,21 @@ export async function initializeQueues(): Promise<void> {
         });
         logger.info('  ✅ P2P Ad Cleanup Queue initialized');
 
+        // Email Queue
+        logger.debug('  → Initializing Email Queue...');
+        emailQueue = new Queue('email-queue', {
+            connection: redisConnection,
+            defaultJobOptions: {
+                attempts: 5,
+                backoff: {
+                    type: 'exponential',
+                    delay: 2000,
+                },
+                removeOnComplete: true,
+            },
+        });
+        logger.info('  ✅ Email Queue initialized');
+
         logger.info('✅ All queues initialized successfully');
     } catch (error) {
         logger.error('❌ Failed to initialize queues:', error);
@@ -250,6 +266,17 @@ export function getP2PAdCleanupQueue(): Queue {
 }
 
 /**
+ * Get Email Queue instance
+ * @throws Error if queue is not initialized
+ */
+export function getEmailQueue(): Queue {
+    if (!emailQueue) {
+        throw new Error('Email Queue not initialized. Call initializeQueues() first.');
+    }
+    return emailQueue;
+}
+
+/**
  * Gracefully close all queues
  */
 export async function closeQueues(): Promise<void> {
@@ -277,6 +304,9 @@ export async function closeQueues(): Promise<void> {
     }
     if (p2pAdCleanupQueue) {
         closePromises.push(p2pAdCleanupQueue.close());
+    }
+    if (emailQueue) {
+        closePromises.push(emailQueue.close());
     }
 
     await Promise.all(closePromises);

@@ -1,11 +1,11 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../shared/config/redis.config';
 import { globusService } from '../shared/lib/services/banking/globus.service';
-import { prisma, TransactionStatus, TransactionType, NotificationType } from '../shared/database';
+import { prisma, TransactionStatus, TransactionType } from '../shared/database';
 import logger from '../shared/lib/utils/logger';
 import { socketService } from '../shared/lib/services/socket.service';
 import { walletService } from '../shared/lib/services/wallet.service';
-import { NotificationService } from '../api/modules/notification/notification.service';
+import { eventBus, EventType } from '../shared/lib/events/event-bus';
 
 interface TransferJobData {
     transactionId: string;
@@ -85,20 +85,17 @@ const processTransfer = async (job: Job<TransferJobData>) => {
             sender: { name: 'System', id: 'SYSTEM' },
         });
 
-        // Send Push Notification
-        await NotificationService.sendToUser(
-            transaction.userId,
-            'Transfer Successful',
-            `Your transfer of ₦${Math.abs(
-                Number(transaction.amount)
-            ).toLocaleString()} was successful.`,
-            {
-                transactionId: transaction.id,
-                type: 'TRANSFER_SUCCESS',
-                sender: { name: 'System', id: 'SYSTEM' },
-            },
-            NotificationType.TRANSACTION
-        );
+        // Emit Event for Success
+        eventBus.publish(EventType.TRANSACTION_COMPLETED, {
+            userId: transaction.userId,
+            amount: Math.abs(Number(transaction.amount)),
+            type: 'TRANSFER', // External transfer is a debit
+            counterpartyName: transaction.receiverName || 'External Account',
+            reference: transaction.reference,
+            description: transaction.description || 'Transfer Successful',
+            status: 'SUCCESS',
+            date: new Date(),
+        });
     } catch (error) {
         logger.error(`Error processing transfer ${transactionId}`, error);
         throw error;
@@ -271,19 +268,15 @@ const handleFailedJob = async (job: Job<TransferJobData> | undefined, err: Error
                 }
             });
 
-            // Notify User
-            await NotificationService.sendToUser(
-                transaction.userId,
-                'Transfer Failed',
-                `Your transfer of ₦${Math.abs(
-                    Number(transaction.amount)
-                ).toLocaleString()} failed and has been reversed.`,
-                {
-                    transactionId: transaction.id,
-                    type: 'TRANSFER_FAILED',
-                },
-                NotificationType.TRANSACTION
-            );
+            // Emit Event for Failure
+            eventBus.publish(EventType.TRANSACTION_FAILED, {
+                userId: transaction.userId,
+                amount: Math.abs(Number(transaction.amount)),
+                reason: err.message || 'Transfer failed',
+                reference: transaction.reference,
+                description: `Transfer Failed: ${err.message}`,
+                date: new Date(),
+            });
 
             // Emit Socket Event
             const newBalance = await walletService.getWalletBalance(transaction.userId);
