@@ -180,7 +180,10 @@ export class WalletService {
             prisma.transaction.count({ where }),
         ]);
 
-        // Simple mapping - no complex logic needed
+        // Import scrambling utility
+        const { scrambleAccountNumber } = await import('../utils/email-formatter');
+
+        // Map transactions and scramble account numbers for security
         const enrichedTransactions = transactions.map(tx => ({
             ...tx,
             amount: Number(tx.amount),
@@ -190,7 +193,10 @@ export class WalletService {
             narration: tx.description || 'No narration',
             sender: {
                 name: tx.senderName,
-                accountNumber: tx.senderAccount,
+                // Scramble account number for security
+                accountNumber: scrambleAccountNumber(tx.senderAccount),
+                // Keep original for internal wallets (optional - you can scramble these too)
+                accountNumberFull: tx.senderAccount,
                 bankName: tx.senderBankName,
                 bankCode: tx.senderBankCode || '',
                 avatarUrl: tx.senderAvatarUrl || '',
@@ -198,7 +204,10 @@ export class WalletService {
             },
             receiver: {
                 name: tx.receiverName,
-                accountNumber: tx.receiverAccount,
+                // Scramble account number for security
+                accountNumber: scrambleAccountNumber(tx.receiverAccount),
+                // Keep original for internal wallets (optional - you can scramble these too)
+                accountNumberFull: tx.receiverAccount,
                 bankName: tx.receiverBankName,
                 bankCode: tx.receiverBankCode || '',
                 avatarUrl: tx.receiverAvatarUrl || '',
@@ -391,8 +400,15 @@ export class WalletService {
             message: `Credit Alert: +₦${amount.toLocaleString()}`,
         });
 
-        // Emit Transaction Created Event
-        socketService.emitToUser(userId, 'TRANSACTION_CREATED', transaction);
+        // Import formatter utility
+        const { formatTransactionForClient } = await import('../utils/email-formatter');
+
+        // Emit Transaction Created Event with scrambled account numbers
+        socketService.emitToUser(
+            userId,
+            'TRANSACTION_CREATED',
+            formatTransactionForClient(transaction)
+        );
 
         return transaction;
     }
@@ -453,8 +469,15 @@ export class WalletService {
             message: `Debit Alert: -₦${amount.toLocaleString()}`,
         });
 
-        // Emit Transaction Created Event
-        socketService.emitToUser(userId, 'TRANSACTION_CREATED', transaction);
+        // Import formatter utility
+        const { formatTransactionForClient } = await import('../utils/email-formatter');
+
+        // Emit Transaction Created Event with scrambled account numbers
+        socketService.emitToUser(
+            userId,
+            'TRANSACTION_CREATED',
+            formatTransactionForClient(transaction)
+        );
 
         return transaction;
     }

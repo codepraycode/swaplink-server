@@ -45,9 +45,17 @@ export interface TransactionEmailData {
     currency?: string;
     date?: string;
     description?: string;
-    reference?: string;
+    reference?: string; // Transaction reference/ID
+    transactionId?: string; // Alternative field for transaction ID
     status?: string; // SUCCESS, FAILED, PENDING
     color?: string; // For transaction type color
+    // Account information (will be scrambled)
+    accountNumber?: string; // User's account number (will be scrambled)
+    recipientAccount?: string; // For debits - recipient's account (will be scrambled)
+    senderAccount?: string; // For credits - sender's account (will be scrambled)
+    recipientName?: string; // For debits
+    senderName?: string; // For credits
+    bankName?: string; // Bank name
     // Pin change details
     action?: string; // Set, Reset
     // Wallet created details

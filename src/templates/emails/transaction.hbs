@@ -16,6 +16,36 @@
             <td style='font-weight: bold; text-align: right; font-size: 18px;'>{{currency}}
                 {{amount}}</td>
         </tr>
+        {{#if accountNumber}}
+            <tr>
+                <td style='color: #666;'>Your Account</td>
+                <td style='text-align: right; font-family: monospace;'>{{accountNumber}}</td>
+            </tr>
+        {{/if}}
+        {{#if recipientAccount}}
+            <tr>
+                <td style='color: #666;'>Recipient Account</td>
+                <td style='text-align: right; font-family: monospace;'>{{recipientAccount}}</td>
+            </tr>
+        {{/if}}
+        {{#if recipientName}}
+            <tr>
+                <td style='color: #666;'>Recipient Name</td>
+                <td style='text-align: right;'>{{recipientName}}</td>
+            </tr>
+        {{/if}}
+        {{#if senderAccount}}
+            <tr>
+                <td style='color: #666;'>Sender Account</td>
+                <td style='text-align: right; font-family: monospace;'>{{senderAccount}}</td>
+            </tr>
+        {{/if}}
+        {{#if senderName}}
+            <tr>
+                <td style='color: #666;'>Sender Name</td>
+                <td style='text-align: right;'>{{senderName}}</td>
+            </tr>
+        {{/if}}
         <tr>
             <td style='color: #666;'>Date</td>
             <td style='text-align: right;'>{{date}}</td>
@@ -25,10 +55,26 @@
             <td style='text-align: right;'>{{description}}</td>
         </tr>
         <tr>
-            <td style='color: #666;'>Reference</td>
-            <td style='text-align: right; font-family: monospace;'>{{reference}}</td>
+            <td style='color: #666;'>Transaction Reference</td>
+            <td
+                style='text-align: right; font-family: monospace; font-size: 12px;'
+            >{{reference}}</td>
         </tr>
+        {{#if status}}
+            <tr>
+                <td style='color: #666;'>Status</td>
+                <td style='text-align: right; font-weight: bold;'>{{status}}</td>
+            </tr>
+        {{/if}}
     </table>
+
+    <p
+        style='margin-top: 20px; padding: 10px; background-color: #fff3cd; border-left: 4px solid #ffc107; font-size: 14px;'
+    >
+        <strong>Security Note:</strong>
+        For your security, account numbers are partially masked. If you did not authorize this
+        transaction, please contact support immediately.
+    </p>
 {{/if}}
 
 {{#if isPinChange}}
