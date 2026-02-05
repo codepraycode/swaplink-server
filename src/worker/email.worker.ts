@@ -10,10 +10,14 @@ const emailProvider = EmailProviderFactory.create();
 const processEmail = async (job: Job<SendEmailJob>) => {
     const { type, to, data } = job.data;
     logger.info(`[Email Worker] Processing ${type} email for ${to}`);
+    logger.info(`[Email Worker] Job data:`, JSON.stringify(job.data, null, 2));
 
     try {
         switch (type) {
             case 'otp':
+                logger.info(
+                    `[Email Worker] OTP email data - name: ${data.name}, otp: ${data.otp}, duration: ${data.duration}`
+                );
                 await emailProvider.sendOtpEmail(to, data.name, data.otp, data.duration);
                 break;
             case 'welcome':

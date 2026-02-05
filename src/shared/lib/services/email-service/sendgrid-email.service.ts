@@ -175,6 +175,24 @@ export class SendGridEmailService extends BaseEmailService {
         }
     }
 
+    async sendWalletCreatedEmail(to: string, name: string, data: any): Promise<void> {
+        try {
+            const html = await templateRenderer.renderTemplate('wallet-created', {
+                title: 'Wallet Created - BCDees Global',
+                name,
+                ...data,
+            });
+            return this.sendEmail({
+                to,
+                subject: 'Wallet Created - BCDees Global',
+                html,
+            });
+        } catch (error) {
+            logger.warn('Template rendering failed for wallet created email');
+            throw error;
+        }
+    }
+
     // ============================================
     // Legacy Methods (Backward Compatibility)
     // ============================================

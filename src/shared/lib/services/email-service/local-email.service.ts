@@ -177,6 +177,35 @@ export class LocalEmailService extends BaseEmailService {
         }
     }
 
+    async sendWalletCreatedEmail(to: string, name: string, data: any): Promise<void> {
+        try {
+            const html = await templateRenderer.renderTemplate('wallet-created', {
+                title: 'Wallet Created - BCDees Global',
+                name,
+                ...data,
+            });
+            return this.sendEmail({
+                to,
+                subject: 'Wallet Created - BCDees Global',
+                html,
+            });
+        } catch (error) {
+            logger.warn('Template rendering failed for wallet created email', error);
+            const html = `
+                <h2>Wallet Created - BCDees Global</h2>
+                <p>Hello ${name},</p>
+                <p>Your wallet has been created successfully!</p>
+                <p>Account Number: ${data.account_number || 'N/A'}</p>
+                <p>Bank: ${data.bank_name || 'N/A'}</p>
+            `;
+            return this.sendEmail({
+                to,
+                subject: 'Wallet Created - BCDees Global',
+                html,
+            });
+        }
+    }
+
     // ============================================
     // Legacy Methods (Backward Compatibility)
     // ============================================

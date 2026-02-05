@@ -32,16 +32,28 @@ export class TemplateRendererService {
      */
     async renderTemplate(templateName: string, data: any): Promise<string> {
         try {
+            logger.info(`[TemplateRenderer] Rendering template: ${templateName}`);
+            logger.info(`[TemplateRenderer] Input data:`, JSON.stringify(data, null, 2));
+
             // Check cache first
             const cacheKey = templateName;
             if (this.cacheEnabled && this.templateCache.has(cacheKey)) {
+                logger.info(`[TemplateRenderer] Using cached template for: ${templateName}`);
                 const template = this.templateCache.get(cacheKey)!;
-                return template(data);
+                const result = template(data);
+                logger.info(
+                    `[TemplateRenderer] Cached render complete. Output length: ${result.length}`
+                );
+                return result;
             }
 
             // Load and compile template
             const templatePath = path.join(this.templatesDir, `${templateName}.hbs`);
+            logger.info(`[TemplateRenderer] Loading template from: ${templatePath}`);
             const templateContent = await fs.readFile(templatePath, 'utf-8');
+            logger.info(
+                `[TemplateRenderer] Template content loaded. Length: ${templateContent.length}`
+            );
 
             // Load base layout
             const layoutPath = path.join(this.layoutsDir, 'base.hbs');
@@ -54,14 +66,28 @@ export class TemplateRendererService {
             const contentTemplate = Handlebars.compile(templateContent);
 
             // Render content
+            logger.info(
+                `[TemplateRenderer] Rendering content with data:`,
+                JSON.stringify(data, null, 2)
+            );
             const renderedContent = contentTemplate(data);
+            logger.info(`[TemplateRenderer] Content rendered. Length: ${renderedContent.length}`);
+            logger.info(
+                `[TemplateRenderer] Content preview (first 300 chars): ${renderedContent.substring(0, 300)}`
+            );
 
             // Render with layout
-            const finalHtml = layoutTemplate({
+            const finalData = {
                 ...data,
                 body: renderedContent,
                 year: new Date().getFullYear(),
-            });
+            };
+            logger.info(
+                `[TemplateRenderer] Rendering layout with final data:`,
+                JSON.stringify(finalData, null, 2)
+            );
+            const finalHtml = layoutTemplate(finalData);
+            logger.info(`[TemplateRenderer] Final HTML rendered. Length: ${finalHtml.length}`);
 
             // Cache the compiled template if caching is enabled.
             // Store a rendering function that renders the content template
@@ -75,11 +101,12 @@ export class TemplateRendererService {
                     cacheKey,
                     cachedRenderer as unknown as HandlebarsTemplateDelegate
                 );
+                logger.info(`[TemplateRenderer] Template cached for: ${templateName}`);
             }
 
             return finalHtml;
         } catch (error) {
-            logger.error(`Failed to render template: ${templateName}`, error);
+            logger.error(`[TemplateRenderer] Failed to render template: ${templateName}`, error);
             throw new Error(`Template rendering failed: ${templateName}`);
         }
     }

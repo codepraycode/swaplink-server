@@ -96,19 +96,33 @@ export class ResendEmailService extends BaseEmailService {
 
     async sendOtpEmail(to: string, name: string, otp: string, duration: number): Promise<void> {
         try {
-            const html = await templateRenderer.renderTemplate('verify-otp', {
+            logger.info(`[sendOtpEmail] Preparing OTP email for ${to}`);
+            logger.info(`[sendOtpEmail] Data - name: ${name}, otp: ${otp}, duration: ${duration}`);
+
+            const templateData = {
                 title: 'Verify Your Email - BCDees Global',
                 name,
                 otp,
                 duration,
-            });
+            };
+
+            logger.info(`[sendOtpEmail] Template data:`, JSON.stringify(templateData, null, 2));
+
+            const html = await templateRenderer.renderTemplate('verify-otp', templateData);
+
+            logger.info(
+                `[sendOtpEmail] Template rendered successfully. HTML length: ${html.length}`
+            );
+            logger.info(`[sendOtpEmail] HTML preview (first 500 chars): ${html.substring(0, 500)}`);
+
             return this.sendEmail({
                 to,
                 subject: 'Verify Your Email - BCDees Global',
                 html,
             });
-        } catch {
-            logger.warn('Template rendering failed, using fallback HTML');
+        } catch (error) {
+            logger.error('[sendOtpEmail] Template rendering failed:', error);
+            logger.warn('[sendOtpEmail] Using fallback HTML');
             // Fallback to hardcoded HTML
             const fallbackHtml = `
                 <h2>Email Verification</h2>
