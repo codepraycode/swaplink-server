@@ -15,6 +15,7 @@ export interface PartyDetails {
 
 /**
  * Get user's account details for transaction logging
+ * Returns INTERNAL type for users within the system
  */
 export async function getUserPartyDetails(userId: string): Promise<PartyDetails> {
     const user = await prisma.user.findUnique({
@@ -43,13 +44,14 @@ export async function getUserPartyDetails(userId: string): Promise<PartyDetails>
     return {
         name: `${user.firstName} ${user.lastName}`,
         account: user.wallet?.virtualAccount?.accountNumber || '0000000000',
-        bankName: user.wallet?.virtualAccount?.bankName || 'SwapLink Wallet',
+        bankName: user.wallet?.virtualAccount?.bankName || 'BCDees Wallet',
         avatarUrl: user.avatarUrl || undefined,
     };
 }
 
 /**
  * Build external party details from provided data
+ * Returns EXTERNAL type for parties outside the system
  */
 export function buildExternalPartyDetails(
     name?: string,
@@ -70,8 +72,8 @@ export function buildExternalPartyDetails(
  */
 export function buildSystemPartyDetails(): PartyDetails {
     return {
-        name: 'SwapLink System',
+        name: 'BCDees System',
         account: '0000000000',
-        bankName: 'SwapLink Wallet',
+        bankName: 'BCDees Wallet',
     };
 }

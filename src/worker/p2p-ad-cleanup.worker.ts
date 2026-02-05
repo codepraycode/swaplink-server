@@ -62,7 +62,7 @@ export const p2pAdCleanupWorker = new Worker(
                                         <li>Reduce your minimum limit to match the remaining amount.</li>
                                         <li>Cancel/Close the ad.</li>
                                     </ul>
-                                    <p>Thank you,<br/>SwapLink Team</p>
+                                    <p>Thank you,<br/>BCDees Team</p>
                                 `,
                             });
                             logger.info(
