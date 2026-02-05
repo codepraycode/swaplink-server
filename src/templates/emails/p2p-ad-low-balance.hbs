@@ -1,0 +1,64 @@
+<p>Your P2P Ad has a low remaining balance that requires your attention.</p>
+
+<table
+    width='100%'
+    cellpadding='10'
+    cellspacing='0'
+    style='background-color: #f9f9f9; border-radius: 5px; margin-top: 15px; border: 1px solid #eeeeee;'
+>
+    <tr>
+        <td style='color: #666;'>Ad Type</td>
+        <td style='font-weight: bold; text-align: right;'>{{adType}}</td>
+    </tr>
+    <tr>
+        <td style='color: #666;'>Currency</td>
+        <td style='font-weight: bold; text-align: right;'>{{currency}}</td>
+    </tr>
+    <tr>
+        <td style='color: #666;'>Exchange Rate</td>
+        <td
+            style='font-weight: bold; text-align: right; font-size: 18px;'
+        >₦{{price}}/{{currency}}</td>
+    </tr>
+    <tr>
+        <td style='color: #666;'>Remaining Amount</td>
+        <td style='text-align: right; font-weight: bold; color: #ff9800;'>{{currency}}
+            {{remainingAmount}}</td>
+    </tr>
+    <tr>
+        <td style='color: #666;'>Minimum Limit</td>
+        <td style='text-align: right;'>{{currency}} {{minLimit}}</td>
+    </tr>
+    <tr>
+        <td style='color: #666;'>Status</td>
+        <td style='text-align: right; font-weight: bold; color: #4caf50;'>ACTIVE</td>
+    </tr>
+</table>
+
+<p
+    style='margin-top: 20px; padding: 10px; background-color: #fff3cd; border-left: 4px solid #ffc107; font-size: 14px;'
+>
+    <strong>Action Required:</strong><br />
+    Your remaining balance ({{currency}}
+    {{remainingAmount}}) is below your minimum limit ({{currency}}
+    {{minLimit}}). This means no new orders can be placed on this ad.
+</p>
+
+<p style='margin-top: 15px;'>
+    <strong>What should I do?</strong><br />
+    You have two options:
+</p>
+
+<ul style='margin-left: 20px;'>
+    <li>Reduce your minimum limit to match the remaining amount</li>
+    <li>Close the ad if you no longer wish to trade</li>
+</ul>
+
+<div style='margin-top: 20px; text-align: center;'>
+    <a
+        href='{{dashboardUrl}}'
+        style='display: inline-block; padding: 12px 30px; background-color: #2196f3; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'
+    >
+        Manage Ad
+    </a>
+</div>

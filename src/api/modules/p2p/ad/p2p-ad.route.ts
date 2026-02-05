@@ -16,5 +16,6 @@ router.get('/', P2PAdController.getAll);
 // Protected Routes
 router.post('/', P2PAdController.create);
 router.patch('/:id/close', P2PAdController.close);
+router.patch('/:id/reactivate', P2PAdController.reactivate);
 
 export default router;

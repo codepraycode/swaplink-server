@@ -49,4 +49,15 @@ export class P2PAdController {
             next(error);
         }
     }
+
+    static async reactivate(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = JwtUtils.ensureAuthentication(req);
+            const { id } = req.params;
+            const ad = await P2PAdService.reactivateAd(userId, id);
+            return sendSuccess(res, ad, 'Ad reactivated successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
 }

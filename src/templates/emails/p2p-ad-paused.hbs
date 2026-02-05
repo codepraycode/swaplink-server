@@ -1,0 +1,53 @@
+<p>Your P2P Ad has been automatically paused after being active for 24 hours.</p>
+
+<table
+    width='100%'
+    cellpadding='10'
+    cellspacing='0'
+    style='background-color: #f9f9f9; border-radius: 5px; margin-top: 15px; border: 1px solid #eeeeee;'
+>
+    <tr>
+        <td style='color: #666;'>Ad Type</td>
+        <td style='font-weight: bold; text-align: right;'>{{adType}}</td>
+    </tr>
+    <tr>
+        <td style='color: #666;'>Currency</td>
+        <td style='font-weight: bold; text-align: right;'>{{currency}}</td>
+    </tr>
+    <tr>
+        <td style='color: #666;'>Exchange Rate</td>
+        <td
+            style='font-weight: bold; text-align: right; font-size: 18px;'
+        >₦{{price}}/{{currency}}</td>
+    </tr>
+    <tr>
+        <td style='color: #666;'>Remaining Amount</td>
+        <td style='text-align: right;'>{{currency}} {{remainingAmount}}</td>
+    </tr>
+    <tr>
+        <td style='color: #666;'>Status</td>
+        <td style='text-align: right; font-weight: bold; color: #ff9800;'>PAUSED</td>
+    </tr>
+</table>
+
+<p
+    style='margin-top: 20px; padding: 10px; background-color: #e3f2fd; border-left: 4px solid #2196f3; font-size: 14px;'
+>
+    <strong>Why was my ad paused?</strong><br />
+    This is a safety measure to ensure you're still available to complete trades. Ads are
+    automatically paused after 24 hours of being active.
+</p>
+
+<p style='margin-top: 15px;'>
+    <strong>What should I do?</strong><br />
+    If you're still available to trade, you can reactivate your ad anytime from your P2P dashboard.
+</p>
+
+<div style='margin-top: 20px; text-align: center;'>
+    <a
+        href='{{dashboardUrl}}'
+        style='display: inline-block; padding: 12px 30px; background-color: #4caf50; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'
+    >
+        Reactivate Ad
+    </a>
+</div>

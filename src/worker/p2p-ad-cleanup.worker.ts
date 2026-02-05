@@ -11,7 +11,65 @@ export const p2pAdCleanupWorker = new Worker(
         logger.info(`🧹 Processing P2P Ad Cleanup Job: ${job.name}`);
 
         try {
-            // 1. Close Ads with 0 Remaining Amount
+            // 1. Auto-Pause Ads Active for More Than 24 Hours
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+            const expiredAds = await prisma.p2PAd.findMany({
+                where: {
+                    status: AdStatus.ACTIVE,
+                    createdAt: {
+                        lt: twentyFourHoursAgo,
+                    },
+                },
+                include: {
+                    user: true,
+                },
+            });
+
+            if (expiredAds.length > 0) {
+                logger.info(
+                    `⏰ Found ${expiredAds.length} ads active for more than 24 hours. Pausing...`
+                );
+
+                for (const ad of expiredAds) {
+                    // Pause the ad
+                    await prisma.p2PAd.update({
+                        where: { id: ad.id },
+                        data: { status: AdStatus.PAUSED },
+                    });
+
+                    // Notify user
+                    if (ad.user.email) {
+                        try {
+                            await emailService.sendTemplatedEmail({
+                                to: ad.user.email,
+                                subject: 'P2P Ad Auto-Paused After 24 Hours',
+                                templateName: 'p2p-ad-paused',
+                                data: {
+                                    name: ad.user.firstName,
+                                    adType: ad.type,
+                                    currency: ad.currency,
+                                    price: ad.price,
+                                    remainingAmount: ad.remainingAmount,
+                                    dashboardUrl: `${process.env.FRONTEND_URL}/p2p/my-ads`,
+                                },
+                            });
+                            logger.info(
+                                `📩 Sent 24hr pause notification to ${ad.user.email} for Ad ${ad.id}`
+                            );
+                        } catch (emailError) {
+                            logger.error(
+                                `❌ Failed to send email to ${ad.user.email}:`,
+                                emailError
+                            );
+                        }
+                    }
+                }
+
+                logger.info(`✅ Paused ${expiredAds.length} ads that exceeded 24-hour limit.`);
+            }
+
+            // 2. Close Ads with 0 Remaining Amount
             const zeroBalanceAds = await prisma.p2PAd.updateMany({
                 where: {
                     status: AdStatus.ACTIVE,
@@ -26,7 +84,7 @@ export const p2pAdCleanupWorker = new Worker(
                 logger.info(`✅ Closed ${zeroBalanceAds.count} ads with 0 remaining balance.`);
             }
 
-            // 2. Find "Dust" Ads (Remaining > 0 AND Remaining < MinLimit)
+            // 3. Find "Dust" Ads (Remaining > 0 AND Remaining < MinLimit)
             // We fetch all active ads with remaining > 0 and filter in memory
             // Optimization: We could filter by updated recently if we wanted to avoid spam,
             // but for now we process all to ensure compliance.
@@ -50,20 +108,19 @@ export const p2pAdCleanupWorker = new Worker(
                 for (const ad of dustAds) {
                     if (ad.user.email) {
                         try {
-                            await emailService.sendEmail({
+                            await emailService.sendTemplatedEmail({
                                 to: ad.user.email,
                                 subject: 'Action Required: P2P Ad Low Balance',
-                                html: `
-                                    <p>Hello ${ad.user.firstName},</p>
-                                    <p>Your P2P Ad for <b>${ad.currency}</b> has a remaining balance of <b>${ad.remainingAmount}</b>, which is below your minimum limit of <b>${ad.minLimit}</b>.</p>
-                                    <p>This means no new orders can be placed on this ad.</p>
-                                    <p>Please either:</p>
-                                    <ul>
-                                        <li>Reduce your minimum limit to match the remaining amount.</li>
-                                        <li>Cancel/Close the ad.</li>
-                                    </ul>
-                                    <p>Thank you,<br/>BCDees Team</p>
-                                `,
+                                templateName: 'p2p-ad-low-balance',
+                                data: {
+                                    name: ad.user.firstName,
+                                    adType: ad.type,
+                                    currency: ad.currency,
+                                    price: ad.price,
+                                    remainingAmount: ad.remainingAmount,
+                                    minLimit: ad.minLimit,
+                                    dashboardUrl: `${process.env.FRONTEND_URL}/p2p/my-ads`,
+                                },
                             });
                             logger.info(
                                 `📩 Sent dust warning email to ${ad.user.email} for Ad ${ad.id}`

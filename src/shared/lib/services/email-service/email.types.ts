@@ -74,6 +74,23 @@ export interface WalletEmailData {
     account_name: string;
 }
 
+export interface P2PAdPausedEmailData {
+    adType: string; // BUY_FX, SELL_FX
+    currency: string; // USD, EUR, GBP
+    price: number; // Exchange rate
+    remainingAmount: number;
+    dashboardUrl: string;
+}
+
+export interface P2PAdLowBalanceEmailData {
+    adType: string; // BUY_FX, SELL_FX
+    currency: string; // USD, EUR, GBP
+    price: number; // Exchange rate
+    remainingAmount: number;
+    minLimit: number;
+    dashboardUrl: string;
+}
+
 export interface GenericEmailData {
     subject: string;
     html: string;
@@ -87,6 +104,8 @@ export type EmailJobType =
     | 'transaction'
     | 'password-reset'
     | 'wallet-created'
+    | 'p2p-ad-paused'
+    | 'p2p-ad-low-balance'
     | 'generic';
 
 export interface SendEmailJob {
