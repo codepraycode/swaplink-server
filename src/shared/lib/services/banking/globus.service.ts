@@ -1,6 +1,17 @@
-import axios from 'axios';
 import { envConfig } from '../../../config/env.config';
+import { GlobusError } from '../../utils/api-error';
 import logger from '../../utils/logger';
+
+type AccountDetails = {
+    accountNumber: string;
+    accountName: string;
+    bankName: string;
+    bankCode: string;
+    status: string;
+    sessionId: string;
+    createdAt: Date;
+    updatedAt: Date;
+};
 
 export class GlobusService {
     private baseUrl = envConfig.GLOBUS_BASE_URL;
@@ -10,17 +21,14 @@ export class GlobusService {
         return 'mock_token';
     }
 
-    async verifyAccount(accountNumber: string, bankCode: string) {
-        if (this.isMockMode()) {
-            await this.simulateLatency();
-            return {
-                accountNumber,
-                accountName: 'MOCK USER NAME',
-                bankCode,
-                bankName: 'MOCK BANK',
-            };
-        }
+    async verifyAccount(_accountNumber: string, _bankCode: string): Promise<AccountDetails> {
+        // TODO: Implement live Globus call
+        // For now, since external API is not yet integrated, we return an error.
+        throw new GlobusError(
+            'Name Enquiry Service is currently unavailable. Please try again later.'
+        );
 
+        /*
         const token = await this.getAuthToken();
         try {
             const response = await axios.post(
@@ -33,9 +41,10 @@ export class GlobusService {
             logger.error('Globus Name Enquiry Failed', error);
             throw error;
         }
+        */
     }
 
-    async generateNuban(user: {
+    async generateNuban(_user: {
         id: string;
         firstName: string;
         lastName: string;
@@ -43,18 +52,13 @@ export class GlobusService {
         phone: string;
     }) {
         try {
-            if (this.isMockMode()) {
-                logger.warn(`⚠️ [GlobusService] Running in MOCK MODE for user ${user.id}`);
-                await this.simulateLatency();
-
-                return {
-                    accountNumber: '11' + Math.floor(Math.random() * 100000000),
-                    accountName: `BCDees - ${user.firstName} ${user.lastName}`,
-                    bankName: 'Globus Bank (Sandbox)',
-                    provider: 'GLOBUS',
-                };
-            }
-
+            // TODO: Implement live Globus call
+            // We want this to fail if we can't really create an account, so the worker retries or fails.
+            throw new GlobusError(
+                'Account creation service is currently unavailable. Please try again later.'
+            );
+            // if (this.isMockMode()) { ... } // Removed mock mode
+            /*
             const token = await this.getAuthToken();
             const response = await axios.post(
                 `${this.baseUrl}/accounts/virtual`,
@@ -73,6 +77,7 @@ export class GlobusService {
                 ...response.data,
                 provider: 'GLOBUS',
             };
+            */
         } catch (error) {
             logger.error('Globus Account Creation Failed', error);
             throw error; // Throw so the worker knows to retry
@@ -84,7 +89,7 @@ export class GlobusService {
         return this.generateNuban(user);
     }
 
-    async transferFunds(payload: {
+    async transferFunds(_payload: {
         amount: number;
         destinationAccount: string;
         destinationBankCode: string;
@@ -92,20 +97,13 @@ export class GlobusService {
         narration: string;
         reference: string;
     }) {
-        if (this.isMockMode()) {
-            await this.simulateLatency();
-            // Simulate 90% success
-            if (Math.random() > 0.1) {
-                return {
-                    status: 'SUCCESS',
-                    reference: payload.reference,
-                    sessionId: `MOCK-SESSION-${Date.now()}`,
-                };
-            } else {
-                throw new Error('Mock Transfer Failed');
-            }
-        }
+        // TODO: Implement live Globus call
+        // Throw error to prevent fake success
+        throw new GlobusError('Transfer service is currently unavailable. Please try again later.');
 
+        /* if (this.isMockMode()) { ... } */ // Mock removed
+
+        /*
         const token = await this.getAuthToken();
         try {
             const response = await axios.post(`${this.baseUrl}/transfers`, payload, {
@@ -116,19 +114,16 @@ export class GlobusService {
             logger.error('Globus Transfer Failed', error);
             throw error;
         }
+        */
     }
 
-    async getTransactionStatus(reference: string) {
-        if (this.isMockMode()) {
-            await this.simulateLatency();
-            return {
-                status: 'COMPLETED',
-                reference,
-                amount: 1000,
-                date: new Date(),
-            };
-        }
+    async getTransactionStatus(_reference: string) {
+        // TODO: Implement live Globus call
+        throw new GlobusError('Transaction status service is currently unavailable.');
 
+        /* if (this.isMockMode()) { ... } */ // Mock removed
+
+        /*
         const token = await this.getAuthToken();
         try {
             const response = await axios.get(`${this.baseUrl}/transactions/${reference}`, {
@@ -139,14 +134,16 @@ export class GlobusService {
             logger.error('Globus Get Transaction Status Failed', error);
             throw error;
         }
+        */
     }
 
-    async getStatement(startDate: Date, endDate: Date) {
-        if (this.isMockMode()) {
-            await this.simulateLatency();
-            return []; // Return empty list for mock
-        }
+    async getStatement(_startDate: Date, _endDate: Date) {
+        // TODO: Implement live Globus call
+        throw new GlobusError('Statement service is currently unavailable.');
 
+        /* if (this.isMockMode()) { ... } */ // Mock removed
+
+        /*
         const token = await this.getAuthToken();
         try {
             const response = await axios.get(`${this.baseUrl}/accounts/statement`, {
@@ -158,14 +155,18 @@ export class GlobusService {
             logger.error('Globus Get Statement Failed', error);
             throw error;
         }
+        */
     }
 
     private isMockMode() {
+        return false;
+        /*
         return (
             !envConfig.GLOBUS_CLIENT_ID ||
             envConfig.NODE_ENV === 'test' ||
             envConfig.NODE_ENV === 'development'
         );
+        */
     }
 
     private async simulateLatency() {

@@ -1,6 +1,5 @@
 import { prisma } from '../../../shared/database';
-import { BadRequestError } from '../../../shared/lib/utils/api-error';
-import logger from '../../../shared/lib/utils/logger';
+import { globusService } from '../../../shared/lib/services/banking/globus.service';
 
 export interface NameEnquiryResponse {
     accountName: string;
@@ -24,29 +23,22 @@ export class NameEnquiryService {
         });
 
         if (internalAccount) {
-            // It's a SwapLink user
             return {
                 accountName: internalAccount.accountName,
-                bankName: 'SwapLink (Globus)',
+                bankName: internalAccount.bankName || 'BCDees (Globus)',
                 isInternal: true,
             };
         }
 
-        // 2. External Lookup (Mocked for now, would call Globus API)
-        // TODO: Integrate actual Globus Name Enquiry API
-        logger.info(`Performing external name enquiry for ${accountNumber} @ ${bankCode}`);
-
-        // Mock response for external accounts
-        // In production, this would throw if not found
-        if (accountNumber.length !== 10) {
-            throw new BadRequestError('Invalid account number');
-        }
+        // 2. External Lookup (via Globus Service)
+        // This will throw InternalError until implemented live
+        const externalAccount = await globusService.verifyAccount(accountNumber, bankCode);
 
         return {
-            accountName: 'MOCKED EXTERNAL USER',
-            bankName: 'External Bank',
+            accountName: externalAccount.accountName,
+            bankName: externalAccount.bankName || 'External Bank',
             isInternal: false,
-            sessionId: '999999999999', // Mock NIBSS Session ID
+            sessionId: externalAccount.sessionId,
         };
     }
 }

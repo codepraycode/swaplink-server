@@ -6,7 +6,7 @@ import {
     PrismaClientValidationError,
 } from '../../database';
 import { HttpStatusCode } from './http-status-codes';
-import logger, { logError } from './logger';
+import logger from './logger';
 
 // Base Error Class
 export class ApiError extends Error {
@@ -144,6 +144,17 @@ export class CorsError extends ApiError {
             statusCode: HttpStatusCode.FORBIDDEN,
             originalError: originalError?.message,
             stack: originalError?.stack,
+        });
+    }
+}
+
+export class GlobusError extends ApiError {
+    constructor(message = 'Banking service error', data?: any) {
+        super(message, HttpStatusCode.BAD_GATEWAY, data);
+        logger.warn('[GlobusError]', {
+            message,
+            statusCode: HttpStatusCode.BAD_GATEWAY,
+            data,
         });
     }
 }
