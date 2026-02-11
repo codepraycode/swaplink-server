@@ -39,6 +39,7 @@ const processTransfer = async (job: Job<TransferJobData>) => {
         // 2. Call External API (Globus)
         // We use the globusService to initiate the transfer
         // If it fails, it throws. We catch and decide whether to retry or reverse.
+        // NOTE: Currently throws error until actual API is implemented
 
         let transferResponse;
         try {
@@ -62,6 +63,7 @@ const processTransfer = async (job: Job<TransferJobData>) => {
         }
 
         // 3. Handle Success
+        // NOTE: This code will only run when actual API is implemented and returns success
         await prisma.transaction.update({
             where: { id: transactionId },
             data: {

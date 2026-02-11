@@ -30,6 +30,8 @@ export const bankingWorker = new Worker<CreateAccountJob>(
                 logger.error(`❌ User ${userId} missing email or phone`);
                 return;
             }
+
+            // Generate virtual account details (auto-generated for now)
             const bankDetails = await globusService.generateNuban({
                 ...user,
                 email: user.email,

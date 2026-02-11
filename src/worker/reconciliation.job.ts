@@ -28,6 +28,7 @@ const startTransactionReconciliation = () => {
             for (const tx of pendingTransactions) {
                 try {
                     // Call Globus Requery
+                    // This will throw an error until the actual API is implemented
                     const statusResponse = await globusService.getTransactionStatus(tx.reference);
 
                     if (
@@ -96,6 +97,7 @@ const startDailyReconciliation = () => {
             today.setHours(0, 0, 0, 0);
 
             // Fetch External Statement
+            // This will throw an error until the actual API is implemented
             const statement = await globusService.getStatement(yesterday, today);
 
             // Fetch Local Transactions for the same period
@@ -110,11 +112,8 @@ const startDailyReconciliation = () => {
             // This is a simplified logic. In reality, we match by Reference or Session ID.
             const localTotal = localTransactions.reduce((sum, tx) => sum + Number(tx.amount), 0);
 
-            // Mock statement structure for now since getStatement returns any
-            const externalTotal = statement.reduce(
-                (sum: number, tx: any) => sum + Number(tx.amount),
-                0
-            );
+            // Calculate external total from statement entries
+            const externalTotal = statement.reduce((sum: number, tx) => sum + Number(tx.amount), 0);
 
             if (Math.abs(localTotal - externalTotal) > 1) {
                 // Allow small float diff
