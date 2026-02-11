@@ -9,7 +9,6 @@ import {
     InternalError,
 } from '../../../shared/lib/utils/api-error';
 
-import { randomUUID } from 'crypto';
 import logger from '../../../shared/lib/utils/logger';
 import { socketService } from '../../../shared/lib/services/socket.service';
 import { walletService as sharedWalletService } from '../../../shared/lib/services/wallet.service';
@@ -149,7 +148,7 @@ export class TransferService {
         if (!revenueUser) throw new InternalError('System Revenue User not found');
 
         // Import helper functions
-        const { getUserPartyDetails } =
+        const { getUserPartyDetails, generateTransactionReference } =
             await import('../../../shared/lib/utils/transaction-helpers');
 
         // Get party details
@@ -169,7 +168,7 @@ export class TransferService {
                 userId: senderWallet.userId,
                 amount: -amount,
                 type: TransactionType.TRANSFER,
-                reference: `TRF-${randomUUID()}`,
+                reference: generateTransactionReference('TRF'),
                 description: narration || `Transfer to ${destination.accountName}`,
                 idempotencyKey, // Only on the main tx
 
@@ -190,7 +189,7 @@ export class TransferService {
                 userId: senderWallet.userId,
                 amount: -fee,
                 type: TransactionType.FEE,
-                reference: `FEE-${randomUUID()}`,
+                reference: generateTransactionReference('FEE'),
                 description: 'Transfer Fee',
 
                 // Sender (User paying fee)
@@ -210,7 +209,7 @@ export class TransferService {
                 userId: receiverWallet.userId,
                 amount: amount,
                 type: TransactionType.DEPOSIT,
-                reference: `DEP-${randomUUID()}`,
+                reference: generateTransactionReference('DEP'),
                 description: narration || `Received from ${senderDetails.name}`,
                 metadata: { senderId: senderWallet.userId },
 
@@ -231,7 +230,7 @@ export class TransferService {
                 userId: revenueUser.id,
                 amount: fee,
                 type: TransactionType.FEE,
-                reference: `REV-${randomUUID()}`,
+                reference: generateTransactionReference('REV'),
                 description: `Fee from ${senderDetails.name}`,
                 metadata: { originalTx: `TRF-...` }, // Placeholder, will update below
 
@@ -330,7 +329,7 @@ export class TransferService {
         if (!revenueUser) throw new InternalError('System Revenue User not found');
 
         // Import helper functions
-        const { getUserPartyDetails, buildExternalPartyDetails } =
+        const { getUserPartyDetails, buildExternalPartyDetails, generateTransactionReference } =
             await import('../../../shared/lib/utils/transaction-helpers');
 
         // Get party details
@@ -355,7 +354,7 @@ export class TransferService {
                 userId: senderWallet.userId,
                 amount: -amount,
                 type: TransactionType.TRANSFER,
-                reference: `NIP-${randomUUID()}`,
+                reference: generateTransactionReference('NIP'),
                 description: narration || `Transfer to ${destination.accountName}`,
                 idempotencyKey,
 
@@ -376,7 +375,7 @@ export class TransferService {
                 userId: senderWallet.userId,
                 amount: -fee,
                 type: TransactionType.FEE,
-                reference: `FEE-${randomUUID()}`,
+                reference: generateTransactionReference('FEE'),
                 description: 'Transfer Fee',
 
                 // Sender (User paying fee)
@@ -396,7 +395,7 @@ export class TransferService {
                 userId: revenueUser.id,
                 amount: fee,
                 type: TransactionType.FEE,
-                reference: `REV-${randomUUID()}`,
+                reference: generateTransactionReference('REV'),
                 description: `Fee from ${senderDetails.name}`,
                 metadata: { originalTx: `NIP-...` }, // Will update with real ref
 

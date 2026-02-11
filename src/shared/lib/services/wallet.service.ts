@@ -252,6 +252,29 @@ export class WalletService {
                 const { userId, amount, type, reference, description, metadata } = entry;
                 const decimalAmount = new Decimal(amount);
 
+                // Import validation function
+                const { validateTransactionDetails } = await import('../utils/transaction-helpers');
+
+                // Validate transaction details
+                validateTransactionDetails(
+                    Math.abs(Number(amount)),
+                    {
+                        name: entry.senderName,
+                        account: entry.senderAccount,
+                        bankName: entry.senderBankName,
+                        bankCode: entry.senderBankCode,
+                        avatarUrl: entry.senderAvatarUrl,
+                    },
+                    {
+                        name: entry.receiverName,
+                        account: entry.receiverAccount,
+                        bankName: entry.receiverBankName,
+                        bankCode: entry.receiverBankCode,
+                        avatarUrl: entry.receiverAvatarUrl,
+                    },
+                    reference
+                );
+
                 // 1. Get Wallet
                 const wallet = await tx.wallet.findUnique({ where: { userId } });
                 if (!wallet) throw new NotFoundError(`Wallet not found for user ${userId}`);

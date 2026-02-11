@@ -14,6 +14,38 @@ export interface PartyDetails {
 }
 
 /**
+ * Generate a unique transaction reference with proper format
+ */
+export function generateTransactionReference(type: string = 'TX'): string {
+    const timestamp = Date.now();
+    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `${type}-${timestamp}-${randomPart}`;
+}
+
+/**
+ * Validate that all required transaction details are present
+ */
+export function validateTransactionDetails(
+    amount: number,
+    senderDetails: PartyDetails,
+    receiverDetails: PartyDetails,
+    reference: string
+): void {
+    if (!amount || amount <= 0) {
+        throw new Error('Transaction amount must be positive');
+    }
+    if (!senderDetails.name || !senderDetails.account || !senderDetails.bankName) {
+        throw new Error('Complete sender details are required');
+    }
+    if (!receiverDetails.name || !receiverDetails.account || !receiverDetails.bankName) {
+        throw new Error('Complete receiver details are required');
+    }
+    if (!reference || reference.trim().length === 0) {
+        throw new Error('Transaction reference is required');
+    }
+}
+
+/**
  * Get user's account details for transaction logging
  * Returns INTERNAL type for users within the system
  */
@@ -26,6 +58,7 @@ export async function getUserPartyDetails(userId: string): Promise<PartyDetails>
             avatarUrl: true,
             wallet: {
                 select: {
+                    id: true,
                     virtualAccount: {
                         select: {
                             accountNumber: true,
@@ -41,10 +74,15 @@ export async function getUserPartyDetails(userId: string): Promise<PartyDetails>
         throw new Error(`User ${userId} not found`);
     }
 
+    // Use wallet ID as fallback if no virtual account exists
+    const accountNumber =
+        user.wallet?.virtualAccount?.accountNumber || user.wallet?.id || userId.substring(0, 10);
+    const bankName = user.wallet?.virtualAccount?.bankName || 'BCDees Wallet';
+
     return {
         name: `${user.firstName} ${user.lastName}`,
-        account: user.wallet?.virtualAccount?.accountNumber || '0000000000',
-        bankName: user.wallet?.virtualAccount?.bankName || 'BCDees Wallet',
+        account: accountNumber,
+        bankName: bankName,
         avatarUrl: user.avatarUrl || undefined,
     };
 }
@@ -59,10 +97,14 @@ export function buildExternalPartyDetails(
     bankName?: string,
     bankCode?: string
 ): PartyDetails {
+    if (!name || !account || !bankName) {
+        throw new Error('External party details (name, account, bankName) are required');
+    }
+
     return {
-        name: name || 'External Party',
-        account: account || '0000000000',
-        bankName: bankName || 'External Bank',
+        name: name,
+        account: account,
+        bankName: bankName,
         bankCode: bankCode || undefined,
     };
 }
