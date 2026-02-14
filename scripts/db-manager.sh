@@ -32,9 +32,10 @@ show_menu() {
     echo "3. Reset Database (prisma migrate reset) - ⚠️  DANGER"
     echo "4. Clear Data (Truncate Tables) - ⚠️  DANGER"
     echo "5. View Migration Status (prisma migrate status)"
-    echo "6. Exit"
+    echo "6. Mark Migration as Rolled Back (Resolve Failed Migration)"
+    echo "7. Exit"
     echo "----------------------------------------"
-    read -p "Select an option [1-6]: " choice
+    read -p "Select an option [1-7]: " choice
 }
 
 # Main Logic
@@ -77,6 +78,17 @@ while true; do
             npx prisma migrate status
             ;;
         6)
+            echo -e "\n${YELLOW}🛠️  Marking migration as rolled back (Resolve Failed State)...${NC}"
+            echo "This is used when a migration failed and you fixed the migration file or want to retry."
+            read -p "Enter the full migration name (e.g., 20260214062127_updated_order_status): " migration_name
+            
+            if [ -z "$migration_name" ]; then
+                echo -e "${RED}❌ Migration name cannot be empty.${NC}"
+            else
+                npx prisma migrate resolve --rolled-back "$migration_name"
+            fi
+            ;;
+        7)
             echo -e "\n${GREEN}👋 Exiting...${NC}"
             exit 0
             ;;
