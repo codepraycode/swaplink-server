@@ -52,6 +52,7 @@ export class P2PAdService {
                 currency,
                 totalAmount,
                 remainingAmount: totalAmount,
+                engagedAmount: 0,
                 price,
                 minLimit,
                 maxLimit: maxLimit || totalAmount,
@@ -83,19 +84,27 @@ export class P2PAdService {
                         kycLevel: true,
                         avatarUrl: true,
                         email: true,
-                        // phoneNumber: true,
                     },
                 },
                 paymentMethod: true,
             },
         });
 
-        // Filter out ads where remaining amount is less than the minimum limit (Dust)
-        const validAds = ads.filter(ad => ad.remainingAmount >= ad.minLimit);
+        // Filter out ads where available amount is less than the minimum limit (Dust)
+        const validAds = ads.filter(ad => {
+            const availableAmount = ad.remainingAmount - ad.engagedAmount;
+            return availableAmount >= ad.minLimit;
+        });
+
+        // Enrich ads with availableAmount
+        const enrichedAds = validAds.map(ad => ({
+            ...ad,
+            availableAmount: ad.remainingAmount - ad.engagedAmount,
+        }));
 
         // Enrichment: If requesterId is provided, attach active orders to their ads
         if (requesterId) {
-            const myAds = validAds.filter(ad => ad.userId === requesterId);
+            const myAds = enrichedAds.filter(ad => ad.userId === requesterId);
             const myAdIds = myAds.map(ad => ad.id);
 
             if (myAdIds.length > 0) {
@@ -104,11 +113,9 @@ export class P2PAdService {
                         adId: { in: myAdIds },
                         status: {
                             in: [
-                                OrderStatus.PENDING,
-                                OrderStatus.PAID,
+                                OrderStatus.IN_PROGRESS,
                                 OrderStatus.PROCESSING,
                                 OrderStatus.COMPLETED,
-                                OrderStatus.CANCELLED,
                             ],
                         },
                     },
@@ -125,7 +132,7 @@ export class P2PAdService {
                 });
 
                 // Map orders to ads
-                return validAds.map(ad => {
+                return enrichedAds.map(ad => {
                     if (ad.userId === requesterId) {
                         return {
                             ...ad,
@@ -137,7 +144,97 @@ export class P2PAdService {
             }
         }
 
-        return validAds;
+        return enrichedAds;
+    }
+
+    /**
+     * Engage an Ad — reserve an amount while user sets up their order.
+     * This prevents other users from seeing/claiming the same amount.
+     */
+    static async engageAd(userId: string, adId: string, amount: number): Promise<any> {
+        const ad = await prisma.p2PAd.findFirst({
+            where: { id: adId },
+        });
+
+        if (!ad) throw new NotFoundError('Ad not found');
+        if (ad.userId === userId) throw new BadRequestError('Cannot engage your own ad');
+        if (ad.status !== AdStatus.ACTIVE) throw new BadRequestError('Ad is not active');
+        if (amount < ad.minLimit || amount > ad.maxLimit)
+            throw new BadRequestError(`Amount must be between ${ad.minLimit} and ${ad.maxLimit}`);
+
+        const availableAmount = ad.remainingAmount - ad.engagedAmount;
+        if (availableAmount < amount) {
+            throw new BadRequestError(
+                `Only ${availableAmount} ${ad.currency} available. Cannot engage ${amount}.`
+            );
+        }
+
+        // Check if remaining after engagement would leave dust
+        const newAvailable = availableAmount - amount;
+        if (newAvailable > 0 && newAvailable < ad.minLimit) {
+            throw new BadRequestError(
+                `Engaging ${amount} would leave ${newAvailable} ${ad.currency} available, which is below the minimum order of ${ad.minLimit}. ` +
+                    `Please engage at least ${
+                        availableAmount - ad.minLimit + 1
+                    } or the full available amount of ${availableAmount}.`
+            );
+        }
+
+        // Atomically increment engagedAmount
+        const updatedAd = await prisma.p2PAd.updateMany({
+            where: {
+                id: adId,
+                status: AdStatus.ACTIVE,
+            },
+            data: {
+                engagedAmount: { increment: amount },
+            },
+        });
+
+        if (updatedAd.count === 0) {
+            throw new BadRequestError('Could not engage ad. It may no longer be available.');
+        }
+
+        // Fetch updated ad
+        const refreshedAd = await prisma.p2PAd.findUnique({ where: { id: adId } });
+        return {
+            ...refreshedAd,
+            availableAmount: refreshedAd!.remainingAmount - refreshedAd!.engagedAmount,
+        };
+    }
+
+    /**
+     * Disengage from an Ad — release previously reserved amount.
+     * Called when user backs out without creating an order.
+     */
+    static async disengageAd(userId: string, adId: string, amount: number): Promise<any> {
+        const ad = await prisma.p2PAd.findFirst({
+            where: { id: adId },
+        });
+
+        if (!ad) throw new NotFoundError('Ad not found');
+        if (ad.userId === userId) throw new BadRequestError('Cannot disengage your own ad');
+
+        if (amount > ad.engagedAmount) {
+            throw new BadRequestError(
+                `Cannot disengage ${amount}. Only ${ad.engagedAmount} is currently engaged.`
+            );
+        }
+
+        // Atomically decrement engagedAmount
+        await prisma.p2PAd.update({
+            where: { id: adId },
+            data: {
+                engagedAmount: { decrement: amount },
+            },
+        });
+
+        // Fetch updated ad
+        const refreshedAd = await prisma.p2PAd.findUnique({ where: { id: adId } });
+        return {
+            ...refreshedAd,
+            availableAmount: refreshedAd!.remainingAmount - refreshedAd!.engagedAmount,
+        };
     }
 
     static async closeAd(userId: string, adId: string): Promise<P2PAd> {
@@ -155,14 +252,14 @@ export class P2PAdService {
             where: {
                 adId,
                 status: {
-                    in: [OrderStatus.PENDING, OrderStatus.PAID, OrderStatus.PROCESSING],
+                    in: [OrderStatus.IN_PROGRESS, OrderStatus.PROCESSING],
                 },
             },
         });
 
         if (activeOrders > 0) {
             throw new BadRequestError(
-                'Cannot close ad with active orders. Please complete or cancel them first.'
+                'Cannot close ad with active orders. Please complete them first.'
             );
         }
 
@@ -176,7 +273,8 @@ export class P2PAdService {
             where: { id: adId },
             data: {
                 status: AdStatus.CLOSED,
-                remainingAmount: 0, // Clear it
+                remainingAmount: 0,
+                engagedAmount: 0,
             },
         });
     }
@@ -210,7 +308,8 @@ export class P2PAdService {
             where: { id: adId },
             data: {
                 status: AdStatus.ACTIVE,
-                updatedAt: new Date(), // Update timestamp
+                engagedAmount: 0, // Reset engagement on reactivation
+                updatedAt: new Date(),
             },
         });
     }

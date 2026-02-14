@@ -1,7 +1,6 @@
 import { prisma, AdType } from '../shared/database';
 import { P2PAdService } from '../api/modules/p2p/ad/p2p-ad.service';
 import { P2POrderService } from '../api/modules/p2p/order/p2p-order.service';
-import { P2PChatService } from '../api/modules/p2p/chat/p2p-chat.service';
 import logger from '../shared/lib/utils/logger';
 
 async function verifyP2PFlow() {
@@ -70,42 +69,34 @@ async function verifyP2PFlow() {
             `   Maker Locked Balance: ${makerWalletAfterAd?.lockedBalance} (Expected: 150000)`
         );
 
-        // 4. Create Order
+        // 4. Engage Ad (Taker reserves 50 USD)
+        await P2PAdService.engageAd(taker.id, ad.id, 50);
+        logger.info('✅ Ad Engaged: 50 USD reserved');
+
+        // 5. Create Order with Proof (replaces old create + markAsPaid flow)
         // Taker sells 50 USD. Total NGN = 75,000.
         const order = await P2POrderService.createOrder(taker.id, {
             adId: ad.id,
             amount: 50,
+            paymentProofUrl: 'http://proof.url/test-proof.jpg',
         });
 
-        logger.info(`✅ Order Created: ${order.id}`);
+        logger.info(`✅ Order Created (with proof): ${order.id}`);
+        logger.info(`   Order Status: ${order.status} (Expected: IN_PROGRESS)`);
         logger.info(`   Order Total NGN: ${order.totalNgn}`);
-        logger.info(`   Order Fee: ${order.fee}`);
-        logger.info(`   Receive Amount: ${order.receiveAmount}`);
 
         // Verify Ad Balance
         const adAfterOrder = await prisma.p2PAd.findUnique({ where: { id: ad.id } });
         logger.info(`   Ad Remaining: ${adAfterOrder?.remainingAmount} (Expected: 50)`);
+        logger.info(`   Ad Engaged: ${adAfterOrder?.engagedAmount} (Expected: 0)`);
 
-        // 5. Chat
-        await P2PChatService.saveMessage(taker.id, order.id, 'Hello, I have sent the FX.');
-        logger.info('✅ Chat Message Sent');
-
-        // 6. Mark as Paid
-        await P2POrderService.markAsPaid(taker.id, order.id, 'http://proof.url');
-        logger.info('✅ Order Marked as Paid');
-
-        // 7. Release Funds
+        // 6. Confirm Order (Release Funds)
         await P2POrderService.confirmOrder(maker.id, order.id);
         logger.info('✅ Funds Released (Order Confirmed)');
 
-        // 8. Verify Final Balances
+        // 7. Verify Final Balances
         const makerWalletFinal = await prisma.wallet.findUnique({ where: { userId: maker.id } });
         const takerWalletFinal = await prisma.wallet.findUnique({ where: { userId: taker.id } });
-
-        // Maker: 500k - 150k (Locked) -> Released 75k. Remaining Locked 75k. Balance 350k.
-        // Taker: 0 + (75k - Fee).
-        // Fee = 1% of 75k = 750.
-        // Taker gets 74250.
 
         logger.info(`   Maker Final Locked: ${makerWalletFinal?.lockedBalance} (Expected: 75000)`);
         logger.info(`   Taker Final Balance: ${takerWalletFinal?.balance} (Expected: 74250)`);

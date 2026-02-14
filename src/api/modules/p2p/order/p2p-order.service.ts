@@ -15,14 +15,21 @@ import {
 } from '../../../../shared/lib/utils/api-error';
 
 import { getQueue as getP2POrderQueue } from '../../../../shared/lib/queues/p2p-order.queue';
-import { P2PChatService } from '../chat/p2p-chat.service';
 import { Decimal } from '@prisma/client/runtime/library';
 import { NotificationService } from '../../notification/notification.service';
-import { walletService } from '../../../../shared/lib/services/wallet.service';
 
 export class P2POrderService {
+    /**
+     * Create Order with Proof of Payment
+     * - Order is created directly in IN_PROGRESS status (proof already submitted)
+     * - No timer/expiration logic — FX has already been sent
+     * - Deducts engagedAmount from the ad (engagement is fulfilled)
+     */
     static async createOrder(userId: string, data: any): Promise<P2POrder> {
-        const { adId, amount, paymentMethodId, currency } = data;
+        const { adId, amount, paymentMethodId, currency, paymentProofUrl } = data;
+
+        // Proof is required upfront
+        if (!paymentProofUrl) throw new BadRequestError('Payment proof is required');
 
         // 1. Fetch Ad
         const ad = await prisma.p2PAd.findUnique({
@@ -96,7 +103,7 @@ export class P2POrderService {
 
         // 2. Transaction: Reserve Ad Amount + Lock Funds + Create Order
         const order = await prisma.$transaction(async tx => {
-            // A. Atomic Ad Update
+            // A. Atomic Ad Update (decrement remainingAmount and engagedAmount)
             const updatedAd = await tx.p2PAd.updateMany({
                 where: {
                     id: adId,
@@ -104,6 +111,7 @@ export class P2POrderService {
                 },
                 data: {
                     remainingAmount: { decrement: amount },
+                    engagedAmount: { decrement: Math.min(amount, ad.engagedAmount) },
                     version: { increment: 1 },
                 },
             });
@@ -135,7 +143,7 @@ export class P2POrderService {
                 });
             }
 
-            // C. Create Order
+            // C. Create Order (directly as IN_PROGRESS with proof)
             return await tx.p2POrder.create({
                 data: {
                     adId,
@@ -144,36 +152,23 @@ export class P2POrderService {
                     amount,
                     price: ad.price,
                     totalNgn,
-                    status: OrderStatus.PENDING,
-                    expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+                    status: OrderStatus.IN_PROGRESS,
+                    paymentProofUrl,
                     ...bankSnapshot,
                 },
             });
         });
 
-        // 3. Schedule Expiration Job
-        await getP2POrderQueue().add(
-            'order-timeout',
-            { orderId: order.id },
-            { delay: 15 * 60 * 1000 }
-        );
-
-        // 4. System Message
-        await P2PChatService.createSystemMessage(
-            order.id,
-            `Order created. Please pay ${order.totalNgn} NGN.`
-        );
-
-        // 5. Notification to Ad Owner (Maker)
+        // 3. Notification to Ad Owner (Maker)
         await NotificationService.sendToUser(
             makerId,
             'New Order Received',
-            `You have a new order for ${amount} ${ad.currency} from a buyer.`,
+            `You have a new order for ${amount} ${ad.currency}. Proof of payment has been submitted.`,
             { orderId: order.id, type: 'order' },
             NotificationType.TRANSACTION
         );
 
-        // 6. Refetch with relations for response
+        // 4. Refetch with relations for response
         const fullOrder = await prisma.p2POrder.findUnique({
             where: { id: order.id },
             include: { ad: true, maker: true, taker: true },
@@ -181,61 +176,12 @@ export class P2POrderService {
 
         return fullOrder!;
     }
+
     /**
-     * Mark Order as Paid
-     * - Only the NGN Payer can mark as paid
-     * - Requires proof of payment
+     * Confirm Order (Release Funds)
+     * - The NGN Payer (FX Buyer) confirms they received FX
+     * - Triggers async fund release via worker
      */
-    static async markAsPaid(userId: string, orderId: string, proofUrl: string): Promise<P2POrder> {
-        if (!proofUrl) throw new BadRequestError('Payment proof is required');
-
-        const order = await prisma.p2POrder.findUnique({
-            where: { id: orderId },
-            include: { ad: true },
-        });
-
-        if (!order) throw new NotFoundError('Order not found');
-        if (order.status === OrderStatus.COMPLETED || order.status === OrderStatus.CANCELLED)
-            throw new BadRequestError('Order is completed');
-
-        console.log({ type: order.ad.type, maker: order.makerId, taker: order.takerId, userId });
-
-        // Check if user is part of the order
-        if (userId !== order.makerId && userId !== order.takerId) {
-            throw new ForbiddenError('Access denied');
-        }
-
-        // Who sends FX and uploads proof?
-        // If BUY_FX: Maker wants FX, Taker sends FX → Taker uploads proof
-        // If SELL_FX: Maker sends FX, Taker wants FX → Maker uploads proof
-        const isFxSender =
-            (order.ad.type === AdType.BUY_FX && userId === order.takerId) ||
-            (order.ad.type === AdType.SELL_FX && userId === order.makerId);
-
-        if (!isFxSender) throw new ForbiddenError('Only the FX sender can upload payment proof');
-
-        const updatedOrder = await prisma.p2POrder.update({
-            where: { id: orderId },
-            data: {
-                status: OrderStatus.PAID,
-                paymentProofUrl: proofUrl,
-            },
-        });
-
-        // Notify the FX Receiver (NGN Payer) that proof has been uploaded
-        const otherPartyId = userId === order.makerId ? order.takerId : order.makerId;
-
-        await NotificationService.sendToUser(
-            otherPartyId,
-            'Order Paid',
-            `Order #${order.id.slice(0, 8)} marked as paid. Please verify and release funds.`,
-            { orderId: order.id },
-            NotificationType.TRANSACTION
-        );
-
-        return updatedOrder;
-    }
-
     static async confirmOrder(userId: string, orderId: string): Promise<{ message: string }> {
         const order = await prisma.p2POrder.findUnique({
             where: { id: orderId },
@@ -261,8 +207,8 @@ export class P2POrderService {
             throw new ForbiddenError(
                 'Only the buyer of FX (NGN payer) can confirm receipt and release funds. You are the seller.'
             );
-        if (order.status !== OrderStatus.PAID)
-            throw new BadRequestError('Order must be marked as paid first');
+        if (order.status !== OrderStatus.IN_PROGRESS)
+            throw new BadRequestError('Order must be in progress to confirm');
 
         // Calculate fee and receive amount
         const feePercent = 0.01; // 1% fee
@@ -283,13 +229,7 @@ export class P2POrderService {
         // 2. Trigger Async Fund Release via Worker
         await getP2POrderQueue().add('release-funds', { orderId });
 
-        // 3. System Message
-        await P2PChatService.createSystemMessage(
-            orderId,
-            'Order confirmed. Funds will be released shortly.'
-        );
-
-        // 4. Notify both parties
+        // 3. Notify both parties
         const payerId = order.ad.type === AdType.BUY_FX ? order.makerId : order.takerId;
         const receiverId = order.ad.type === AdType.BUY_FX ? order.takerId : order.makerId;
 
@@ -313,74 +253,6 @@ export class P2POrderService {
         );
 
         return { message: 'Order completed. Funds will be released soon.' };
-    }
-
-    static async cancelOrder(userId: string, orderId: string): Promise<{ message: string }> {
-        const order = await prisma.p2POrder.findUnique({
-            where: { id: orderId },
-            include: { ad: true },
-        });
-        if (!order) throw new NotFoundError('Order not found');
-
-        if (order.status === OrderStatus.COMPLETED || order.status === OrderStatus.CANCELLED) {
-            throw new BadRequestError('Order already finalized');
-        }
-
-        if (order.status === OrderStatus.PAID) {
-            // Only Admin or Dispute resolution can cancel PAID orders
-            throw new ForbiddenError('Cannot cancel a paid order. Please raise a dispute.');
-        }
-
-        // Only Payer or Receiver (or Admin) can cancel?
-        // Usually Payer can cancel anytime before PAID.
-        // Receiver can cancel? Maybe if they suspect fraud.
-        // Let's allow both for now if PENDING.
-
-        if (userId !== order.makerId && userId !== order.takerId)
-            throw new ForbiddenError('Not authorized');
-
-        await prisma.$transaction(async tx => {
-            // 1. Refund NGN Payer (Unlock funds)
-            // If Taker was Payer (SELL_FX), unlock Taker.
-            // If Maker was Payer (BUY_FX), funds return to Ad (increment remainingAmount).
-
-            if (order.ad.type === AdType.SELL_FX) {
-                // Taker locked funds. Refund Taker.
-                await tx.wallet.update({
-                    where: { userId: order.takerId },
-                    data: { lockedBalance: { decrement: order.totalNgn } },
-                });
-            } else {
-                // Maker locked funds (in Ad).
-
-                // Check if Ad is CLOSED (Safety Net)
-                const ad = await tx.p2PAd.findUnique({ where: { id: order.adId } });
-
-                if (ad && (ad.status === AdStatus.CLOSED || ad.status === AdStatus.COMPLETED)) {
-                    // Ad is closed, so we cannot return funds to it.
-                    // We must unlock the funds directly to the Maker's wallet.
-                    // Amount to unlock = order.totalNgn (since Maker locked NGN for BUY_FX)
-                    await walletService.unlockFunds(order.makerId, order.totalNgn);
-                } else {
-                    // Return funds to Ad (increment remainingAmount)
-                    // Note: Maker's wallet lockedBalance is NOT decremented because the funds stay in the Ad!
-                    await tx.p2PAd.update({
-                        where: { id: order.adId },
-                        data: { remainingAmount: { increment: order.amount } },
-                    });
-                }
-            }
-
-            // 2. Update Order
-            await tx.p2POrder.update({
-                where: { id: orderId },
-                data: { status: OrderStatus.CANCELLED },
-            });
-        });
-
-        await P2PChatService.createSystemMessage(orderId, 'Order cancelled.');
-
-        return { message: 'Order cancelled' };
     }
 
     static async getOrder(userId: string, orderId: string): Promise<P2POrder> {

@@ -3,12 +3,27 @@ import { P2POrderService } from './p2p-order.service';
 import { sendSuccess, sendCreated } from '../../../../shared/lib/utils/api-response';
 import { JwtUtils } from '../../../../shared/lib/utils/jwt-utils';
 import { AdType } from '../../../../shared/database';
+import { storageService } from '../../../../shared/lib/services/storage.service';
+import { BadRequestError } from '../../../../shared/lib/utils/api-error';
 
 export class P2POrderController {
     static async create(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId } = JwtUtils.ensureAuthentication(req);
-            const order = await P2POrderService.createOrder(userId, req.body);
+
+            // Upload proof file to storage
+            if (!req.file) {
+                throw new BadRequestError('Payment proof file is required');
+            }
+            const paymentProofUrl = await storageService.uploadFile(req.file, 'p2p-proofs');
+            if (!paymentProofUrl) {
+                throw new BadRequestError('Failed to upload payment proof');
+            }
+
+            const order = await P2POrderService.createOrder(userId, {
+                ...req.body,
+                paymentProofUrl,
+            });
             const transformed = P2POrderController.transformOrder(order, userId);
             return sendCreated(res, transformed, 'Order created successfully');
         } catch (error) {
@@ -52,17 +67,6 @@ export class P2POrderController {
         }
     }
 
-    static async cancel(req: Request, res: Response, next: NextFunction) {
-        try {
-            const { userId } = JwtUtils.ensureAuthentication(req);
-            const { id } = req.params;
-            const result = await P2POrderService.cancelOrder(userId, id);
-            return sendSuccess(res, result, 'Order cancelled');
-        } catch (error) {
-            next(error);
-        }
-    }
-
     private static transformOrder(order: any, userId: string) {
         const isBuyAd = order.ad.type === AdType.BUY_FX;
 
@@ -81,15 +85,8 @@ export class P2POrderController {
             };
         };
 
-        const payTimeLimit = 15 * 60; // 15 mins in seconds
-        const expiresAt = new Date(order.expiresAt).getTime();
-        const now = Date.now();
-        const remainingTime = Math.max(0, Math.floor((expiresAt - now) / 1000));
-
         return {
             ...order,
-            payTimeLimit,
-            remainingTime,
             buyer: sanitize(buyer),
             seller: sanitize(seller),
             userSide: userId === buyer?.id ? 'BUYER' : 'SELLER',

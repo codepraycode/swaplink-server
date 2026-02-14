@@ -9,61 +9,6 @@ interface OrderJobData {
     orderId: string;
 }
 
-const processOrderExpiration = async (job: Job<OrderJobData>) => {
-    const { orderId } = job.data;
-    logger.info(`Checking expiration for order ${orderId}`);
-
-    try {
-        const order = await prisma.p2POrder.findUnique({
-            where: { id: orderId },
-            include: { ad: true },
-        });
-
-        if (!order) {
-            logger.warn(`Order ${orderId} not found during expiration check`);
-            return;
-        }
-
-        if (order.status !== OrderStatus.PENDING) {
-            logger.info(`Order ${orderId} is ${order.status}. No expiration needed.`);
-            return;
-        }
-
-        // Order is PENDING and timed out. Cancel it.
-        logger.info(`Order ${orderId} expired. Cancelling...`);
-
-        await prisma.$transaction(async tx => {
-            // 1. Refund Logic (Replicated from P2POrderService.cancelOrder)
-            if (order.ad.type === AdType.SELL_FX) {
-                // Taker locked funds. Refund Taker.
-                await tx.wallet.update({
-                    where: { userId: order.takerId },
-                    data: { lockedBalance: { decrement: order.totalNgn } },
-                });
-            } else {
-                // Maker locked funds (in Ad). Return to Ad.
-                await tx.p2PAd.update({
-                    where: { id: order.adId },
-                    data: { remainingAmount: { increment: order.amount } },
-                });
-            }
-
-            // 2. Update Order Status
-            await tx.p2POrder.update({
-                where: { id: orderId },
-                data: { status: OrderStatus.CANCELLED },
-            });
-        });
-
-        logger.info(`Order ${orderId} cancelled successfully.`);
-
-        // TODO: Emit socket event to notify users?
-    } catch (error) {
-        logger.error(`Error processing expiration for order ${orderId}`, error);
-        throw error;
-    }
-};
-
 const processFundRelease = async (job: Job<OrderJobData>) => {
     const { orderId } = job.data;
     logger.info(`Processing fund release for order ${orderId}`);
@@ -85,10 +30,9 @@ const processFundRelease = async (job: Job<OrderJobData>) => {
             });
             if (!order) throw new Error('Order not found');
 
-            // Note: Order status might already be COMPLETED by the API, so we don't check for PAID here strictly.
-            // But we should ensure we are not processing a CANCELLED order.
-            if (order.status === OrderStatus.CANCELLED) {
-                throw new Error('Cannot release funds for cancelled order');
+            // Ensure we are not processing a completed or disputed order
+            if (order.status === OrderStatus.COMPLETED || order.status === OrderStatus.DISPUTE) {
+                throw new Error(`Cannot release funds for order in ${order.status} status`);
             }
 
             // 1. Identify NGN Payer and Receiver
@@ -305,9 +249,7 @@ const processFundRelease = async (job: Job<OrderJobData>) => {
 export const p2pOrderWorker = new Worker(
     'p2p-order-queue',
     async job => {
-        if (job.name === 'order-timeout') {
-            return await processOrderExpiration(job);
-        } else if (job.name === 'release-funds') {
+        if (job.name === 'release-funds') {
             return await processFundRelease(job);
         }
     },

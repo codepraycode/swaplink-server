@@ -93,6 +93,7 @@ describe('P2P Ad Cancellation Tests', () => {
         const order = await P2POrderService.createOrder(taker.id, {
             adId: ad.id,
             amount: 50,
+            paymentProofUrl: 'http://test-proof.url/proof.jpg',
             paymentMethodId: null,
         });
 
@@ -137,6 +138,7 @@ describe('P2P Ad Cancellation Tests', () => {
         const order = await P2POrderService.createOrder(taker.id, {
             adId: ad.id,
             amount: 50,
+            paymentProofUrl: 'http://test-proof.url/proof.jpg',
             paymentMethodId: null,
         });
 
@@ -181,6 +183,7 @@ describe('P2P Ad Cancellation Tests', () => {
         const order = await P2POrderService.createOrder(taker.id, {
             adId: ad.id,
             amount: 20,
+            paymentProofUrl: 'http://test-proof.url/proof.jpg',
             paymentMethodId: null,
         });
 

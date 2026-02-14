@@ -22,7 +22,6 @@ export class P2PAdController {
             res.setHeader('Surrogate-Control', 'no-store');
 
             // Force 200 OK by removing conditional headers from request
-            // This prevents Express from sending 304 if the client sends If-None-Match
             delete req.headers['if-none-match'];
             delete req.headers['if-modified-since'];
 
@@ -56,6 +55,36 @@ export class P2PAdController {
             const { id } = req.params;
             const ad = await P2PAdService.reactivateAd(userId, id);
             return sendSuccess(res, ad, 'Ad reactivated successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async engage(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = JwtUtils.ensureAuthentication(req);
+            const { id } = req.params;
+            const { amount } = req.body;
+            if (!amount || amount <= 0) {
+                return res.status(400).json({ message: 'Amount is required and must be positive' });
+            }
+            const ad = await P2PAdService.engageAd(userId, id, Number(amount));
+            return sendSuccess(res, ad, 'Ad engaged successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async disengage(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = JwtUtils.ensureAuthentication(req);
+            const { id } = req.params;
+            const { amount } = req.body;
+            if (!amount || amount <= 0) {
+                return res.status(400).json({ message: 'Amount is required and must be positive' });
+            }
+            const ad = await P2PAdService.disengageAd(userId, id, Number(amount));
+            return sendSuccess(res, ad, 'Ad disengaged successfully');
         } catch (error) {
             next(error);
         }

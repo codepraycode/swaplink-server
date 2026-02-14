@@ -59,7 +59,6 @@ describe('P2P Concurrency Tests', () => {
     });
 
     afterAll(async () => {
-        await prisma.p2PChat.deleteMany();
         await prisma.p2POrder.deleteMany();
         await prisma.p2PAd.deleteMany();
         await prisma.p2PPaymentMethod.deleteMany();
@@ -88,16 +87,14 @@ describe('P2P Concurrency Tests', () => {
         const orderPromise1 = P2POrderService.createOrder(taker1.id, {
             adId: ad.id,
             amount: 60,
-            paymentMethodId: null, // Taker gives FX, Maker gives NGN. Taker doesn't need PM here? Wait, logic says Taker gives FX.
-            // If BUY_FX, Maker WANTS FX. Taker GIVES FX.
-            // Taker needs Maker's details (in Ad).
-            // Taker does NOT need to provide PM in request (unless receiving NGN? No NGN to wallet).
-            // So paymentMethodId: null is fine.
+            paymentProofUrl: 'http://test-proof.url/proof1.jpg',
+            paymentMethodId: null,
         });
 
         const orderPromise2 = P2POrderService.createOrder(taker2.id, {
             adId: ad.id,
             amount: 60,
+            paymentProofUrl: 'http://test-proof.url/proof2.jpg',
             paymentMethodId: null,
         });
 

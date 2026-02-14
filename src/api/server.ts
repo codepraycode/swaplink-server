@@ -6,7 +6,6 @@ import { envConfig } from '../shared/config/env.config';
 import logger from '../shared/lib/utils/logger';
 import { checkDatabaseConnection } from '../shared/database';
 import { socketService } from '../shared/lib/services/socket.service';
-import { P2PChatGateway } from './modules/p2p/chat/p2p-chat.gateway';
 import {
     closeQueues,
     initializeListeners,
@@ -31,26 +30,20 @@ const startServer = async () => {
         logger.info('🔄 Initializing services...');
         await initializeQueues();
 
-        // 6. Initialize Event Listeners
+        // 3. Initialize Event Listeners
         await initializeListeners();
 
-        // 7. Initialize System Resources (User/Wallet)
+        // 4. Initialize System Resources (User/Wallet)
         await initializeSystemResources();
 
-        // 3. Start HTTP server
+        // 5. Start HTTP server
         logger.info('🔄 Starting HTTP server...');
         server = app.listen(PORT, () => {
             logger.info(`🚀 Server running in ${envConfig.NODE_ENV} mode on port ${PORT}`);
             logger.debug(`🔗 Health: ${SERVER_URL}/api/v1/health`);
 
-            // 4. Initialize Socket.io
+            // 6. Initialize Socket.io
             socketService.initialize(server);
-
-            // 5. Initialize P2P Chat Gateway
-            const io = socketService.getIO();
-            if (io) {
-                new P2PChatGateway(io);
-            }
 
             logger.info('✅ All services initialized successfully');
         });

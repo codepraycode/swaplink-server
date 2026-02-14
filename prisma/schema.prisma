@@ -62,7 +62,7 @@ model User {
   p2pAds            P2PAd[]
   makerOrders       P2POrder[]        @relation("MakerOrders")
   takerOrders       P2POrder[]        @relation("TakerOrders")
-  p2pChats          P2PChat[]
+
   
   // Admin
   role             UserRole          @default(USER)
@@ -299,6 +299,7 @@ model P2PAd {
   
   totalAmount     Float    // Initial FX amount
   remainingAmount Float    // Available FX amount
+  engagedAmount   Float    @default(0) // Amount currently being worked on by users
   price           Float    // Rate (NGN per 1 FX)
   minLimit        Float
   maxLimit        Float
@@ -342,7 +343,7 @@ model P2POrder {
   bankDetails     Json?       // Snapshot of full details
   
   // Meta
-  status          OrderStatus @default(PENDING)
+  status          OrderStatus @default(IN_PROGRESS)
   paymentProofUrl String?
   
   // Dispute Meta
@@ -351,7 +352,7 @@ model P2POrder {
   resolutionNotes String?
   resolvedAt      DateTime?
   
-  expiresAt       DateTime    // 15 mins TTL
+  expiresAt       DateTime?   // Legacy: was 15 mins TTL, no longer used for new orders
   completedAt     DateTime?
   
   createdAt       DateTime    @default(now())
@@ -360,7 +361,7 @@ model P2POrder {
   ad              P2PAd       @relation(fields: [adId], references: [id], onDelete: Cascade)
   maker           User        @relation("MakerOrders", fields: [makerId], references: [id], onDelete: Cascade)
   taker           User        @relation("TakerOrders", fields: [takerId], references: [id], onDelete: Cascade)
-  messages        P2PChat[]
+
 
   @@map("p2p_orders")
 }
@@ -398,19 +399,7 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-model P2PChat {
-  id        String   @id @default(uuid())
-  orderId   String
-  senderId  String
-  message   String?
-  imageUrl  String?
-  system      Boolean  @default(false)
-  createdAt   DateTime @default(now())
 
-  order     P2POrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  @@map("p2p_chats")
-}
 
 // ==========================================
 // NOTIFICATIONS
@@ -501,20 +490,14 @@ enum AdStatus {
 }
 
 enum OrderStatus {
-  PENDING
-  PAID
+  IN_PROGRESS // Order created with proof, awaiting confirmation
   PROCESSING  // Fund release in progress (set by worker)
   COMPLETED
-  CANCELLED
   DISPUTE
 }
 
 
-enum ChatType {
-  TEXT
-  IMAGE
-  SYSTEM
-}
+
 
 enum NotificationType {
   TRANSACTION

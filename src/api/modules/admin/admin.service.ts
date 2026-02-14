@@ -53,9 +53,6 @@ export class AdminService {
                     select: { id: true, firstName: true, lastName: true, email: true, phone: true },
                 },
                 ad: true,
-                messages: {
-                    orderBy: { createdAt: 'asc' },
-                },
             },
         });
 
@@ -149,14 +146,14 @@ export class AdminService {
                     data: { balance: { increment: order.totalNgn } },
                 });
 
-                // Update Order
+                // Update Order — mark as COMPLETED with refund resolution
                 await tx.p2POrder.update({
                     where: { id: orderId },
                     data: {
-                        status: OrderStatus.CANCELLED,
+                        status: OrderStatus.COMPLETED,
                         resolvedBy: adminId,
                         resolvedAt: new Date(),
-                        resolutionNotes: notes,
+                        resolutionNotes: `REFUND: ${notes}`,
                     },
                 });
             }
