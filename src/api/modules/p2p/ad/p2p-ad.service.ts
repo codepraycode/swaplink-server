@@ -317,4 +317,33 @@ export class P2PAdService {
             },
         });
     }
+
+    static async getUserAds(userId: string): Promise<any[]> {
+        const ads = await prisma.p2PAd.findMany({
+            where: { userId },
+            include: {
+                paymentMethod: true,
+                orders: {
+                    include: {
+                        taker: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                                avatarUrl: true,
+                            },
+                        },
+                    },
+                    orderBy: { createdAt: 'desc' },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        return ads.map(ad => ({
+            ...ad,
+            availableAmount: ad.remainingAmount - ad.engagedAmount,
+        }));
+    }
 }

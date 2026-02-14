@@ -10,6 +10,7 @@ router.use(authenticate);
 router.get('/', P2PAdController.getAll);
 
 // Protected Routes
+router.get('/my-ads', P2PAdController.getMyAds);
 router.post('/', P2PAdController.create);
 router.patch('/:id/close', P2PAdController.close);
 router.patch('/:id/reactivate', P2PAdController.reactivate);

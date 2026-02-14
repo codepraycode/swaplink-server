@@ -89,4 +89,14 @@ export class P2PAdController {
             next(error);
         }
     }
+
+    static async getMyAds(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = JwtUtils.ensureAuthentication(req);
+            const ads = await P2PAdService.getUserAds(userId);
+            return sendSuccess(res, ads, 'My ads retrieved successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
 }
