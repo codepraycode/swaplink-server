@@ -70,8 +70,20 @@ export class P2POrderController {
     private static transformOrder(order: any, userId: string) {
         const isBuyAd = order.ad.type === AdType.BUY_FX;
 
+        // In P2P:
+        // BUY_FX Ad: Maker WANTS FX (Buyer), Taker GIVES FX (Seller)
+        // SELL_FX Ad: Maker GIVES FX (Seller), Taker WANTS FX (Buyer)
         const buyer = isBuyAd ? order.maker : order.taker;
         const seller = isBuyAd ? order.taker : order.maker;
+
+        // The "owner" is the one who created the ad
+        const owner = order.maker;
+
+        // The "sender" in terms of payment depends on the ad type:
+        // In BUY_FX: Maker (Buyer) sends NGN (out of system) -> Taker (Seller).
+        // But the ORDER is created by the person who submitted proof.
+        // Usually, the "sender" is the one who provides the payment proof.
+        const sender = order.takerId === userId ? order.taker : order.maker;
 
         const sanitize = (u: any) => {
             if (!u) return null;
@@ -89,7 +101,10 @@ export class P2POrderController {
             ...order,
             buyer: sanitize(buyer),
             seller: sanitize(seller),
+            owner: sanitize(owner),
+            sender: sanitize(sender),
             userSide: userId === buyer?.id ? 'BUYER' : 'SELLER',
+            paymentMethod: order.ad.paymentMethod, // Include ad payment method if available
         };
     }
 }

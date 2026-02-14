@@ -5,17 +5,20 @@ import logger from '../../../../shared/lib/utils/logger';
 
 export class P2PAdService {
     static async createAd(userId: string, data: any): Promise<P2PAd> {
-        const {
-            type: givenType,
-            currency,
-            totalAmount,
-            price,
-            minLimit,
-            maxLimit,
-            paymentMethodId,
-            terms,
-            autoReply,
-        } = data;
+        const { type: givenType, currency, paymentMethodId, terms, autoReply } = data;
+
+        const totalAmount = Number(data.totalAmount);
+        const price = Number(data.price);
+        const minLimit = Number(data.minLimit);
+        const maxLimit = data.maxLimit ? Number(data.maxLimit) : totalAmount;
+
+        if (isNaN(totalAmount) || totalAmount <= 0)
+            throw new BadRequestError('Invalid total amount provided');
+        if (isNaN(price) || price <= 0) throw new BadRequestError('Invalid price provided');
+        if (isNaN(minLimit) || minLimit <= 0)
+            throw new BadRequestError('Invalid minimum limit provided');
+        if (isNaN(maxLimit) || maxLimit <= 0)
+            throw new BadRequestError('Invalid maximum limit provided');
 
         // Basic Validation
         if (minLimit > maxLimit)

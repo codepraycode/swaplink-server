@@ -26,7 +26,10 @@ export class P2POrderService {
      * - Deducts engagedAmount from the ad (engagement is fulfilled)
      */
     static async createOrder(userId: string, data: any): Promise<P2POrder> {
-        const { adId, amount, paymentMethodId, currency, paymentProofUrl } = data;
+        const { adId, paymentMethodId, currency, paymentProofUrl } = data;
+        const amount = Number(data.amount);
+
+        if (isNaN(amount) || amount <= 0) throw new BadRequestError('Invalid amount provided');
 
         // Proof is required upfront
         if (!paymentProofUrl) throw new BadRequestError('Payment proof is required');
@@ -173,7 +176,7 @@ export class P2POrderService {
         // 4. Refetch with relations for response
         const fullOrder = await prisma.p2POrder.findUnique({
             where: { id: order.id },
-            include: { ad: true, maker: true, taker: true },
+            include: { ad: { include: { paymentMethod: true } }, maker: true, taker: true },
         });
 
         return fullOrder!;
@@ -260,7 +263,7 @@ export class P2POrderService {
     static async getOrder(userId: string, orderId: string): Promise<P2POrder> {
         const order = await prisma.p2POrder.findUnique({
             where: { id: orderId },
-            include: { ad: true, maker: true, taker: true },
+            include: { ad: { include: { paymentMethod: true } }, maker: true, taker: true },
         });
 
         if (!order) throw new NotFoundError('Order not found');
@@ -276,7 +279,7 @@ export class P2POrderService {
                 OR: [{ makerId: userId }, { takerId: userId }],
             },
             include: {
-                ad: true,
+                ad: { include: { paymentMethod: true } },
                 maker: true,
                 taker: true,
             },
