@@ -107,11 +107,13 @@ export class P2POrderService {
             const updatedAd = await tx.p2PAd.updateMany({
                 where: {
                     id: adId,
-                    remainingAmount: { gte: amount },
+                    remainingAmount: { gte: Number(amount) },
                 },
                 data: {
-                    remainingAmount: { decrement: amount },
-                    engagedAmount: { decrement: Math.min(amount, ad.engagedAmount) },
+                    remainingAmount: { decrement: Number(amount) },
+                    engagedAmount: {
+                        decrement: Math.min(Number(amount), Number(ad.engagedAmount)),
+                    },
                     version: { increment: 1 },
                 },
             });
@@ -150,7 +152,7 @@ export class P2POrderService {
                     makerId,
                     takerId,
                     amount,
-                    price: ad.price,
+                    price: Number(ad.price),
                     totalNgn,
                     status: OrderStatus.IN_PROGRESS,
                     paymentProofUrl,

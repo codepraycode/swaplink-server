@@ -215,7 +215,7 @@ export class P2PAdService {
         if (!ad) throw new NotFoundError('Ad not found');
         if (ad.userId === userId) throw new BadRequestError('Cannot disengage your own ad');
 
-        if (amount > ad.engagedAmount) {
+        if (Number(amount) > Number(ad.engagedAmount)) {
             throw new BadRequestError(
                 `Cannot disengage ${amount}. Only ${ad.engagedAmount} is currently engaged.`
             );
@@ -225,7 +225,7 @@ export class P2PAdService {
         await prisma.p2PAd.update({
             where: { id: adId },
             data: {
-                engagedAmount: { decrement: amount },
+                engagedAmount: { decrement: Number(amount) },
             },
         });
 
@@ -233,7 +233,8 @@ export class P2PAdService {
         const refreshedAd = await prisma.p2PAd.findUnique({ where: { id: adId } });
         return {
             ...refreshedAd,
-            availableAmount: refreshedAd!.remainingAmount - refreshedAd!.engagedAmount,
+            availableAmount:
+                Number(refreshedAd!.remainingAmount) - Number(refreshedAd!.engagedAmount),
         };
     }
 
