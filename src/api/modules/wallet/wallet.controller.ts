@@ -102,6 +102,8 @@ export class WalletController {
 
             const payload = { ...req.body, userId, idempotencyKey };
 
+            console.debug('Payload to process transfer', payload);
+
             // Validate payload
             if (!payload.amount || payload.amount <= 0) {
                 throw new BadRequestError('Valid amount is required');

@@ -11,5 +11,6 @@ router.post('/', uploadProof.single('proof'), P2POrderController.create);
 router.get('/', P2POrderController.getAll);
 router.get('/:id', P2POrderController.getOne);
 router.patch('/:id/confirm', P2POrderController.confirm);
+router.patch('/:id/proof', uploadProof.single('proof'), P2POrderController.submitProof);
 
 export default router;

@@ -11,13 +11,12 @@ export class P2POrderController {
         try {
             const { userId } = JwtUtils.ensureAuthentication(req);
 
-            // Upload proof file to storage
-            if (!req.file) {
-                throw new BadRequestError('Payment proof file is required');
-            }
-            const paymentProofUrl = await storageService.uploadFile(req.file, 'p2p-proofs');
-            if (!paymentProofUrl) {
-                throw new BadRequestError('Failed to upload payment proof');
+            let paymentProofUrl: string | undefined;
+            if (req.file) {
+                paymentProofUrl = await storageService.uploadFile(req.file, 'p2p-proofs');
+                if (!paymentProofUrl) {
+                    throw new BadRequestError('Failed to upload payment proof');
+                }
             }
 
             const order = await P2POrderService.createOrder(userId, {
@@ -62,6 +61,28 @@ export class P2POrderController {
             const { id } = req.params;
             const result = await P2POrderService.confirmOrder(userId, id);
             return sendSuccess(res, result, 'Order confirmed. Funds will be released soon.');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async submitProof(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = JwtUtils.ensureAuthentication(req);
+            const { id } = req.params;
+
+            if (!req.file) {
+                throw new BadRequestError('Payment proof file is required');
+            }
+
+            const paymentProofUrl = await storageService.uploadFile(req.file, 'p2p-proofs');
+            if (!paymentProofUrl) {
+                throw new BadRequestError('Failed to upload payment proof');
+            }
+
+            const order = await P2POrderService.submitMakerProof(userId, id, paymentProofUrl);
+            const transformed = P2POrderController.transformOrder(order, userId);
+            return sendSuccess(res, transformed, 'Payment proof submitted successfully');
         } catch (error) {
             next(error);
         }

@@ -25,7 +25,16 @@ export class P2POrderService {
      * - No timer/expiration logic — FX has already been sent
      * - Deducts engagedAmount from the ad (engagement is fulfilled)
      */
-    static async createOrder(userId: string, data: any): Promise<P2POrder> {
+    static async createOrder(
+        userId: string,
+        data: {
+            adId: string;
+            paymentMethodId?: string;
+            currency?: string;
+            amount: number;
+            paymentProofUrl?: string;
+        }
+    ): Promise<P2POrder> {
         // Check verification
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) throw new NotFoundError('User not found');
@@ -36,8 +45,7 @@ export class P2POrderService {
 
         if (isNaN(amount) || amount <= 0) throw new BadRequestError('Invalid amount provided');
 
-        // Proof is required upfront
-        if (!paymentProofUrl) throw new BadRequestError('Payment proof is required');
+        // Proof check moved after Ad fetch to support different flows
 
         // 1. Fetch Ad
         const ad = await prisma.p2PAd.findUnique({
@@ -62,12 +70,27 @@ export class P2POrderService {
             );
         }
 
+        // Determine Status & Proof Requirement
+        let status: OrderStatus;
+
+        if (ad.type === AdType.BUY_FX) {
+            // Maker WANTS FX (Buyer), Taker GIVES FX (Seller).
+            // Taker is creating the order. Taker must provide proof of FX transfer.
+            if (!paymentProofUrl) throw new BadRequestError('Payment proof is required');
+            status = OrderStatus.IN_PROGRESS;
+        } else {
+            // SELL_FX: Maker GIVES FX (Seller), Taker WANTS FX (Buyer).
+            // Taker is creating the order. Taker pays NGN (locked on platform).
+            // Proof comes from Maker later (Maker sends FX).
+            status = OrderStatus.AWAITING_MAKER_PAYMENT;
+        }
+
         const totalNgn = amount * ad.price;
         const makerId = ad.userId;
         const takerId = userId;
 
         // Snapshot Bank Details
-        let bankSnapshot: any = {};
+        let bankSnapshot: Record<string, any> = {};
 
         if (ad.type === AdType.BUY_FX) {
             // Maker WANTS FX (Gives NGN). Maker funds already locked in Ad.
@@ -153,7 +176,7 @@ export class P2POrderService {
                 });
             }
 
-            // C. Create Order (directly as IN_PROGRESS with proof)
+            // C. Create Order
             return await tx.p2POrder.create({
                 data: {
                     adId,
@@ -162,7 +185,7 @@ export class P2POrderService {
                     amount,
                     price: Number(ad.price),
                     totalNgn,
-                    status: OrderStatus.IN_PROGRESS,
+                    status,
                     paymentProofUrl,
                     ...bankSnapshot,
                 },
@@ -173,7 +196,9 @@ export class P2POrderService {
         await NotificationService.sendToUser(
             makerId,
             'New Order Received',
-            `You have a new order for ${amount} ${ad.currency}. Proof of payment has been submitted.`,
+            status === OrderStatus.AWAITING_MAKER_PAYMENT
+                ? `New Order for ${amount} ${ad.currency}. Please send FX and upload proof.`
+                : `You have a new order for ${amount} ${ad.currency}. Proof of payment has been submitted.`,
             { orderId: order.id, type: 'order' },
             NotificationType.TRANSACTION
         );
@@ -263,6 +288,49 @@ export class P2POrderService {
         );
 
         return { message: 'Order completed. Funds will be released soon.' };
+    }
+
+    /**
+     * Submit Proof for SELL_FX orders (Maker)
+     */
+    static async submitMakerProof(
+        userId: string,
+        orderId: string,
+        paymentProofUrl: string
+    ): Promise<P2POrder> {
+        const order = await prisma.p2POrder.findUnique({
+            where: { id: orderId },
+        });
+
+        if (!order) throw new NotFoundError('Order not found');
+        if (order.makerId !== userId)
+            throw new ForbiddenError('Only the ad creator can submit proof');
+        if (order.status !== OrderStatus.AWAITING_MAKER_PAYMENT) {
+            throw new BadRequestError('Order is not awaiting maker payment');
+        }
+
+        const updatedOrder = await prisma.p2POrder.update({
+            where: { id: orderId },
+            data: {
+                paymentProofUrl,
+                status: OrderStatus.IN_PROGRESS,
+            },
+            include: { ad: { include: { paymentMethod: true } }, maker: true, taker: true },
+        });
+
+        // Notify Taker (Buyer)
+        await NotificationService.sendToUser(
+            order.takerId,
+            'Payment Proof Submitted',
+            `The seller has submitted proof for your order #${orderId.slice(
+                0,
+                8
+            )}. You can now confirm the receipt.`,
+            { orderId, type: 'order' },
+            NotificationType.TRANSACTION
+        );
+
+        return updatedOrder;
     }
 
     static async getOrder(userId: string, orderId: string): Promise<P2POrder> {

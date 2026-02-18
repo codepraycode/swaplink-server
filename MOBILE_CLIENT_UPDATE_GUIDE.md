@@ -19,7 +19,10 @@ Then separately: `POST /api/v1/p2p/chat/upload` to submit proof → triggers `ma
 
 ### After
 
-Order creation now requires proof of payment **in the same request** as a multipart form upload.
+Order creation now handles two flows based on the ad type:
+
+- **BUY_FX Ad**: Taker (Sender) **MUST** provide payment proof in the same request. Status starts at `IN_PROGRESS`.
+- **SELL_FX Ad**: Taker (Buyer) **is not required** to provide proof. Status starts at `AWAITING_MAKER_PAYMENT`, indicating we are expecting the **Maker** (Seller) to send FX and provide proof.
 
 ```
 POST /api/v1/p2p/orders
@@ -29,31 +32,31 @@ Authorization: Bearer <token>
 Fields:
   - adId: string (required)
   - amount: number (required)
-  - paymentMethodId: string (required for SELL_FX ads, null for BUY_FX)
-  - currency: string (required for SELL_FX ads — must match taker's payment method)
-  - proof: File (required — image file of payment proof)
+  - paymentMethodId: string (required for SELL_FX ads)
+  - currency: string (required for SELL_FX ads)
+  - proof: File (required for BUY_FX, optional for SELL_FX)
 ```
 
-**Response**: Order object with `status: "IN_PROGRESS"`
+**Response**: Order object with status `"IN_PROGRESS"` or `"AWAITING_MAKER_PAYMENT"`.
 
 ### Mobile Code Example
 
 ```typescript
 const formData = new FormData();
-formData.append("adId", adId);
-formData.append("amount", amount.toString());
+formData.append('adId', adId);
+formData.append('amount', amount.toString());
 if (paymentMethodId) {
-    formData.append("paymentMethodId", paymentMethodId);
-    formData.append("currency", currency); // e.g. 'USD'
+    formData.append('paymentMethodId', paymentMethodId);
+    formData.append('currency', currency); // e.g. 'USD'
 }
-formData.append("proof", {
+formData.append('proof', {
     uri: proofImageUri,
-    type: "image/jpeg",
-    name: "proof.jpg",
+    type: 'image/jpeg',
+    name: 'proof.jpg',
 } as any);
 
-const response = await api.post("/p2p/orders", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
+const response = await api.post('/p2p/orders', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
 });
 // response.data.status === 'IN_PROGRESS'
 ```
@@ -78,10 +81,13 @@ const response = await api.post("/p2p/orders", formData, {
 ### New Status Flow
 
 ```
-IN_PROGRESS → PROCESSING → COMPLETED
-     ↓
-   DISPUTE
+AWAITING_MAKER_PAYMENT → IN_PROGRESS → PROCESSING → COMPLETED
+                                ↓
+                              DISPUTE
 ```
+
+- **AWAITING_MAKER_PAYMENT**: Only for `SELL_FX`. Maker needs to upload proof.
+- **IN_PROGRESS**: Proof submitted, awaiting confirmation from the NGN payer.
 
 ### What to Update
 
@@ -94,11 +100,11 @@ IN_PROGRESS → PROCESSING → COMPLETED
 
 ## 3. Removed Endpoints — BREAKING CHANGE
 
-| Endpoint                                 | Reason                                  |
-| ---------------------------------------- | --------------------------------------- |
-| `PATCH /api/v1/p2p/orders/:id/cancel`    | Orders can no longer be cancelled       |
-| `POST /api/v1/p2p/chat/upload`           | Proof upload merged into order creation |
-| `GET /api/v1/p2p/chat/:orderId/messages` | Chat module removed entirely            |
+| Endpoint                                 | Reason                             |
+| ---------------------------------------- | ---------------------------------- |
+| `PATCH /api/v1/p2p/orders/:id/cancel`    | Orders can no longer be cancelled  |
+| `GET /api/v1/p2p/chat/:orderId/messages` | Chat module removed entirely       |
+| `PATCH /api/v1/p2p/orders/:id/proof`     | **NEW**: For Maker to submit proof |
 
 ### Socket.IO Events Removed
 
@@ -345,6 +351,19 @@ Authorization: Bearer <token>
 ```
 
 Only the FX buyer (NGN payer) can confirm.
+
+#### Submit Maker Proof (SELL_FX only) — NEW
+
+```
+PATCH /api/v1/p2p/orders/:id/proof
+Content-Type: multipart/form-data
+Authorization: Bearer <token>
+
+Fields:
+  - proof: File (required)
+```
+
+Used by the **Ad Owner (Maker)** of a `SELL_FX` ad to upload proof of FX transfer. This moves the order from `AWAITING_MAKER_PAYMENT` to `IN_PROGRESS`.
 
 ---
 

@@ -4,6 +4,13 @@ import { UserId } from '../../types/query.types';
 import { redisConnection } from '../../config/redis.config';
 import { socketService } from './socket.service';
 import { Decimal } from '@prisma/client/runtime/library';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import {
+    validateTransactionDetails,
+    getUserPartyDetails,
+    buildSystemPartyDetails,
+} from '../utils/transaction-helpers';
+import { scrambleAccountNumber, formatTransactionForClient } from '../utils/email-formatter';
 
 // --- Interfaces ---
 
@@ -180,9 +187,6 @@ export class WalletService {
             prisma.transaction.count({ where }),
         ]);
 
-        // Import scrambling utility
-        const { scrambleAccountNumber } = await import('../utils/email-formatter');
-
         // Map transactions and scramble account numbers for security
         const enrichedTransactions = transactions.map(tx => ({
             ...tx,
@@ -245,124 +249,140 @@ export class WalletService {
      * This is the core engine for all money movement.
      */
     async processLedgerEntry(entries: LedgerEntry[]): Promise<Transaction[]> {
-        return await prisma.$transaction(async tx => {
-            const results = [];
+        try {
+            return await prisma.$transaction(
+                async tx => {
+                    const results = [];
 
-            for (const entry of entries) {
-                const { userId, amount, type, reference, description, metadata } = entry;
-                const decimalAmount = new Decimal(amount);
+                    for (const entry of entries) {
+                        const { userId, amount, type, reference, description, metadata } = entry;
+                        const decimalAmount = new Decimal(amount);
 
-                // Import validation function
-                const { validateTransactionDetails } = await import('../utils/transaction-helpers');
-
-                // Validate transaction details
-                validateTransactionDetails(
-                    Math.abs(Number(amount)),
-                    {
-                        name: entry.senderName,
-                        account: entry.senderAccount,
-                        bankName: entry.senderBankName,
-                        bankCode: entry.senderBankCode,
-                        avatarUrl: entry.senderAvatarUrl,
-                    },
-                    {
-                        name: entry.receiverName,
-                        account: entry.receiverAccount,
-                        bankName: entry.receiverBankName,
-                        bankCode: entry.receiverBankCode,
-                        avatarUrl: entry.receiverAvatarUrl,
-                    },
-                    reference
-                );
-
-                // 1. Get Wallet
-                const wallet = await tx.wallet.findUnique({ where: { userId } });
-                if (!wallet) throw new NotFoundError(`Wallet not found for user ${userId}`);
-
-                // 2. Check Balance (if debit)
-                if (decimalAmount.isNegative()) {
-                    const available = new Decimal(wallet.balance).minus(
-                        new Decimal(wallet.lockedBalance)
-                    );
-                    if (available.plus(decimalAmount).isNegative()) {
-                        // decimalAmount is negative, so + means -
-                        throw new BadRequestError(`Insufficient funds for user ${userId}`);
-                    }
-                }
-
-                // 3. Update Balance
-                const updatedWallet = await tx.wallet.update({
-                    where: { id: wallet.id },
-                    data: { balance: { increment: decimalAmount } },
-                });
-
-                // 4. Create Transaction Record (Fully Decoupled)
-                const transaction = await tx.transaction.create({
-                    data: {
-                        userId,
-                        walletId: wallet.id,
-                        type,
-                        amount: decimalAmount,
-                        balanceBefore: wallet.balance,
-                        balanceAfter: updatedWallet.balance,
-                        status: 'COMPLETED',
-                        reference,
-                        description,
-                        metadata,
-                        fee: entry.fee ? new Decimal(entry.fee) : 0,
-
-                        // Sender Details (Required)
-                        senderName: entry.senderName,
-                        senderAccount: entry.senderAccount,
-                        senderBankName: entry.senderBankName,
-                        senderBankCode: entry.senderBankCode,
-                        senderAvatarUrl: entry.senderAvatarUrl,
-
-                        // Receiver Details (Required)
-                        receiverName: entry.receiverName,
-                        receiverAccount: entry.receiverAccount,
-                        receiverBankName: entry.receiverBankName,
-                        receiverBankCode: entry.receiverBankCode,
-                        receiverAvatarUrl: entry.receiverAvatarUrl,
-                    },
-                });
-
-                results.push(transaction);
-
-                // 5. 30M Guard (For Credits)
-                if (decimalAmount.isPositive()) {
-                    const user = await tx.user.findUnique({ where: { id: userId } });
-                    if (user) {
-                        const newCumulative = new Decimal(user.cumulativeInflow).plus(
-                            decimalAmount
+                        // Validate transaction details
+                        validateTransactionDetails(
+                            Math.abs(Number(amount)),
+                            {
+                                name: entry.senderName,
+                                account: entry.senderAccount,
+                                bankName: entry.senderBankName,
+                                bankCode: entry.senderBankCode,
+                                avatarUrl: entry.senderAvatarUrl,
+                            },
+                            {
+                                name: entry.receiverName,
+                                account: entry.receiverAccount,
+                                bankName: entry.receiverBankName,
+                                bankCode: entry.receiverBankCode,
+                                avatarUrl: entry.receiverAvatarUrl,
+                            },
+                            reference
                         );
 
-                        // Update Cumulative Inflow
-                        await tx.user.update({
-                            where: { id: userId },
-                            data: { cumulativeInflow: newCumulative },
+                        // 1. Get Wallet
+                        const wallet = await tx.wallet.findUnique({ where: { userId } });
+                        if (!wallet) throw new NotFoundError(`Wallet not found for user ${userId}`);
+
+                        // 2. Check Balance (if debit)
+                        if (decimalAmount.isNegative()) {
+                            const available = new Decimal(wallet.balance).minus(
+                                new Decimal(wallet.lockedBalance)
+                            );
+                            if (available.plus(decimalAmount).isNegative()) {
+                                // decimalAmount is negative, so + means -
+                                throw new BadRequestError(`Insufficient funds for user ${userId}`);
+                            }
+                        }
+
+                        // 3. Update Balance
+                        const updatedWallet = await tx.wallet.update({
+                            where: { id: wallet.id },
+                            data: { balance: { increment: decimalAmount } },
                         });
 
-                        // Check Limit
-                        if (
-                            newCumulative.greaterThan(30000000) && // 30M
-                            user.kycLevel !== 'FULL'
-                        ) {
-                            await tx.user.update({
-                                where: { id: userId },
-                                data: {
-                                    flagType: UserFlagType.KYC_LIMIT,
-                                    flagReason: 'Cumulative inflow limit exceeded (30M)',
-                                    flaggedAt: new Date(),
-                                },
-                            });
+                        // 4. Create Transaction Record (Fully Decoupled)
+                        const transaction = await tx.transaction.create({
+                            data: {
+                                userId,
+                                walletId: wallet.id,
+                                type,
+                                amount: decimalAmount,
+                                balanceBefore: wallet.balance,
+                                balanceAfter: updatedWallet.balance,
+                                status: 'COMPLETED',
+                                reference,
+                                description,
+                                metadata,
+                                fee: entry.fee ? new Decimal(entry.fee) : 0,
+
+                                // Sender Details (Required)
+                                senderName: entry.senderName,
+                                senderAccount: entry.senderAccount,
+                                senderBankName: entry.senderBankName,
+                                senderBankCode: entry.senderBankCode,
+                                senderAvatarUrl: entry.senderAvatarUrl,
+
+                                // Receiver Details (Required)
+                                receiverName: entry.receiverName,
+                                receiverAccount: entry.receiverAccount,
+                                receiverBankName: entry.receiverBankName,
+                                receiverBankCode: entry.receiverBankCode,
+                                receiverAvatarUrl: entry.receiverAvatarUrl,
+                            },
+                        });
+
+                        results.push(transaction);
+
+                        // 5. 30M Guard (For Credits)
+                        if (decimalAmount.isPositive()) {
+                            const user = await tx.user.findUnique({ where: { id: userId } });
+                            if (user) {
+                                const newCumulative = new Decimal(user.cumulativeInflow).plus(
+                                    decimalAmount
+                                );
+
+                                // Update Cumulative Inflow
+                                await tx.user.update({
+                                    where: { id: userId },
+                                    data: { cumulativeInflow: newCumulative },
+                                });
+
+                                // Check Limit
+                                if (
+                                    newCumulative.greaterThan(30000000) && // 30M
+                                    user.kycLevel !== 'FULL'
+                                ) {
+                                    await tx.user.update({
+                                        where: { id: userId },
+                                        data: {
+                                            flagType: UserFlagType.KYC_LIMIT,
+                                            flagReason: 'Cumulative inflow limit exceeded (30M)',
+                                            flaggedAt: new Date(),
+                                        },
+                                    });
+                                }
+                            }
                         }
                     }
+
+                    return results;
+                },
+                {
+                    timeout: 20000, // 20 seconds timeout to prevent "Transaction already closed"
+                }
+            );
+        } catch (error) {
+            console.error('Ledger Processing Error:', error);
+
+            if (error instanceof PrismaClientKnownRequestError) {
+                // P2028: Transaction already closed
+                if (error.code === 'P2028') {
+                    throw new InternalError(
+                        'Transaction timed out or was closed unexpectedly. Please try again.'
+                    );
                 }
             }
-
-            return results;
-        });
+            throw error;
+        }
     }
 
     /**
@@ -379,10 +399,6 @@ export class WalletService {
         const txReference =
             reference ||
             `TX-CR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
-
-        // Import helper
-        const { getUserPartyDetails, buildSystemPartyDetails } =
-            await import('../utils/transaction-helpers');
 
         // Get receiver (user) details
         const receiverDetails = await getUserPartyDetails(userId);
@@ -423,9 +439,6 @@ export class WalletService {
             message: `Credit Alert: +₦${amount.toLocaleString()}`,
         });
 
-        // Import formatter utility
-        const { formatTransactionForClient } = await import('../utils/email-formatter');
-
         // Emit Transaction Created Event with scrambled account numbers
         socketService.emitToUser(
             userId,
@@ -449,10 +462,6 @@ export class WalletService {
         const txReference =
             reference ||
             `TX-DR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
-
-        // Import helper
-        const { getUserPartyDetails, buildSystemPartyDetails } =
-            await import('../utils/transaction-helpers');
 
         // Get sender (user) details
         const senderDetails = await getUserPartyDetails(userId);
@@ -491,9 +500,6 @@ export class WalletService {
             ...newBalance,
             message: `Debit Alert: -₦${amount.toLocaleString()}`,
         });
-
-        // Import formatter utility
-        const { formatTransactionForClient } = await import('../utils/email-formatter');
 
         // Emit Transaction Created Event with scrambled account numbers
         socketService.emitToUser(

@@ -491,6 +491,7 @@ enum AdStatus {
 
 enum OrderStatus {
   IN_PROGRESS // Order created with proof, awaiting confirmation
+  AWAITING_MAKER_PAYMENT // SELL_FX: Order created, waiting for Maker to send FX and provide proof
   PROCESSING  // Fund release in progress (set by worker)
   COMPLETED
   DISPUTE

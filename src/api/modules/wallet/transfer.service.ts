@@ -14,6 +14,7 @@ import { socketService } from '../../../shared/lib/services/socket.service';
 import { walletService as sharedWalletService } from '../../../shared/lib/services/wallet.service';
 import { getTransferQueue } from '../../../shared/lib/init/service-initializer';
 import { redisConnection } from '../../../shared/config/redis.config';
+import { formatTransactionForClient } from '../../../shared/lib/utils/email-formatter';
 
 export interface TransferRequest {
     userId: string;
@@ -312,6 +313,7 @@ export class TransferService {
             status: 'COMPLETED',
             amount,
             recipient: destination.accountName,
+            transaction: formatTransactionForClient(senderTx),
         };
     }
 
@@ -469,6 +471,7 @@ export class TransferService {
             status: 'PENDING',
             amount,
             recipient: destination.accountName,
+            transaction: formatTransactionForClient(transaction),
         };
     }
 }
