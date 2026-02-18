@@ -1,11 +1,20 @@
 import { prisma, AdType, AdStatus, P2PAd, OrderStatus } from '../../../../shared/database';
 import { walletService } from '../../../../shared/lib/services/wallet.service';
-import { BadRequestError, NotFoundError } from '../../../../shared/lib/utils/api-error';
+import {
+    BadRequestError,
+    NotFoundError,
+    ForbiddenError,
+} from '../../../../shared/lib/utils/api-error';
 import logger from '../../../../shared/lib/utils/logger';
 
 export class P2PAdService {
     static async createAd(userId: string, data: any): Promise<P2PAd> {
         const { type: givenType, currency, paymentMethodId, terms, autoReply } = data;
+
+        // Check verification
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundError('User not found');
+        if (!user.isVerified) throw new ForbiddenError('User must be verified to create an ad');
 
         const totalAmount = Number(data.totalAmount);
         const price = Number(data.price);
@@ -155,6 +164,11 @@ export class P2PAdService {
      * This prevents other users from seeing/claiming the same amount.
      */
     static async engageAd(userId: string, adId: string, amount: number): Promise<any> {
+        // Check verification
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundError('User not found');
+        if (!user.isVerified) throw new ForbiddenError('User must be verified to engage an ad');
+
         const ad = await prisma.p2PAd.findFirst({
             where: { id: adId },
         });
@@ -256,7 +270,7 @@ export class P2PAdService {
             where: {
                 adId,
                 status: {
-                    in: [OrderStatus.IN_PROGRESS, OrderStatus.PROCESSING],
+                    in: [OrderStatus.IN_PROGRESS, OrderStatus.PROCESSING, OrderStatus.DISPUTE],
                 },
             },
         });

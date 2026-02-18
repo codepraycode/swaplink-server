@@ -26,6 +26,11 @@ export class P2POrderService {
      * - Deducts engagedAmount from the ad (engagement is fulfilled)
      */
     static async createOrder(userId: string, data: any): Promise<P2POrder> {
+        // Check verification
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundError('User not found');
+        if (!user.isVerified) throw new ForbiddenError('User must be verified to create an order');
+
         const { adId, paymentMethodId, currency, paymentProofUrl } = data;
         const amount = Number(data.amount);
 

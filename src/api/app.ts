@@ -64,18 +64,8 @@ const healthCheck = (req: Request, res: Response) => {
 app.get('/health', healthCheck);
 app.get(`${API_ROUTE}/health`, healthCheck);
 
-// ======================================================
-// 4. Rate Limiting (DoS Protection)
-// ======================================================
-// Apply global limits ONLY to API routes, or globally after health check.
-// Using it before body parser saves CPU on blocked requests.
 app.use(API_ROUTE, rateLimiters.global);
 
-// ======================================================
-// 5. Body Parsing
-// ======================================================
-// NOTE: If you integrate webhooks (Paystack/Stripe) later,
-// you might need raw body access here for signature verification.
 app.use(
     express.json({
         limit: bodySizeLimits.json,
@@ -87,33 +77,12 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true, limit: bodySizeLimits.urlencoded }));
 
-// ======================================================
-// 6. Mount Routes
-// ======================================================
 app.use(API_ROUTE, routes);
 
-// ======================================================
-// 7. Error Handling
-// ======================================================
-
-// 404 Handler
 app.use((req: Request, res: Response, next: NextFunction) => {
     next(new NotFoundError(`Route not found: ${req.originalUrl}`));
 });
 
-// Global Error Handler
 app.use(globalErrorHandler);
 
 export default app;
-
-// app.use(
-//     express.json({
-//         limit: bodySizeLimits.json,
-//         verify: (req: any, res, buf) => {
-//             // Store raw body for webhook signature verification
-//             if (req.url.includes('/webhooks')) {
-//                 req.rawBody = buf;
-//             }
-//         },
-//     })
-// );

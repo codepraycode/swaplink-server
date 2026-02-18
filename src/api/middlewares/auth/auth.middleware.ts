@@ -19,7 +19,6 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
             throw new UnauthorizedError('No authorization token provided');
         }
 
-        // Check for Bearer token format
         if (!authHeader.startsWith('Bearer ')) {
             throw new UnauthorizedError('Invalid authorization format. Use: Bearer <token>');
         }
