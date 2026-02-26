@@ -102,7 +102,7 @@ export class WalletController {
 
             const payload = { ...req.body, userId, idempotencyKey };
 
-            console.debug('Payload to process transfer', payload);
+            // console.debug('Payload to process transfer', payload);
 
             // Validate payload
             if (!payload.amount || payload.amount <= 0) {
@@ -111,9 +111,9 @@ export class WalletController {
             if (!payload.accountNumber || payload.accountNumber.length < 10) {
                 throw new BadRequestError('Valid account number is required');
             }
-            if (!payload.bankCode || payload.bankCode.length !== 3) {
-                throw new BadRequestError('Valid bank code is required');
-            }
+            // if (!payload.bankCode || payload.bankCode.length !== 3) {
+            //     throw new BadRequestError('Valid bank code is required');
+            // }
             if (!payload.accountName || payload.accountName.trim().length === 0) {
                 throw new BadRequestError('Account name is required');
             }
